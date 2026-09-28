@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Custom ###
+/agenda.odt
+/domain-expert-guide.md
+/.mcp.json
