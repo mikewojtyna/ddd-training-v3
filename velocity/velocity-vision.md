@@ -15,7 +15,7 @@ The core vision is: **"Bikes are for freedom, not friction — every ride starts
 Two ideas shape everything we are building:
 
 1. **Trust is earned once, then honored.** A rider proves who they are and how they will pay when they join VeloCity. After that, unlocking a bike is a single tap.
-2. **The city sets the shape of the network.** Bikes can be picked up freely, but they must come back to places the city has agreed to. Pricing, not enforcement, is what keeps the fleet where it belongs.
+2. **The city sets the shape of the network.** Bikes can be picked up freely, but they must come back to places the city has agreed to.
 
 We serve **individual riders** only. There is no corporate or group offering at launch.
 
