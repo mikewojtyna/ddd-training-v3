@@ -147,7 +147,7 @@ The rider brings the bike back to an official **station**.
 1. The bike is **returned to the station**.
 2. The system attempts to **lock the bike in the station**.
 3. If locking succeeds, the session ends cleanly. If the bike shows signs of a fault (damage, mechanical issue detected), a **fault is reported**. The bike is then considered broken, is no longer offered to riders, and waits for a technician (see **Broken Bikes & Maintenance**).
-4. If locking **fails**, the rider is prompted to **contact customer support** — the session cannot silently drift. Every ended session must have a clear resolution.
+4. If locking **fails**, the session is **ended immediately** and the rider is told why — the session cannot silently drift. The rider is not charged extra because our lock failed. The bike is treated as **broken** and waits for a technician. The rider can still contact customer support if anything is unclear.
 
 ### Drop Zone Return (Free-Floating)
 
