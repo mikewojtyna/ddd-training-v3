@@ -31,6 +31,10 @@ A rider is a person who wants to move through the city on a bike. They register 
 
 Support agents work for VeloCity. They handle incidents reported by riders, decide whether to accept or reject each report, and follow up until every incident reaches a resolved state.
 
+### Technicians
+
+Technicians work for VeloCity. They look after broken bikes. A technician may reserve and unlock a bike just like a rider can, but they do it to repair the bike, not to ride it. Once the bike is fixed, the technician puts it back into circulation.
+
 ### City Operations
 
 The city itself is a stakeholder, not a user. The city defines where **stations** are placed and where **drop zones** are allowed. Anywhere else counts as an **unauthorized zone**. VeloCity honors this map — it shapes returns, pricing, and long-term fleet distribution.
@@ -74,6 +78,38 @@ Two things can go wrong before a session starts:
 
 A rental session, once started, belongs to that rider until it is properly returned or forcibly ended by the penalty rule.
 
+Riders are not the only ones who reserve and unlock bikes. Technicians go through the same reserve-and-unlock steps when they pick up a broken bike — see **Broken Bikes & Maintenance** below.
+
+---
+
+## Broken Bikes & Maintenance
+
+Bikes break. A flat tire, a loose brake, a lock that no longer responds. When that happens, the bike must stop being offered to riders and must get fixed as quickly as possible.
+
+A bike can be **reported broken** in several ways:
+
+- A rider reports a fault when returning the bike to a station.
+- A rider reports an incident about the bike (e.g. a broken brake) to customer support.
+- The bike itself signals a problem (for example, a failed lock or a mechanical fault detected at the station).
+
+From that moment on, the bike is broken and riders can no longer rent it.
+
+The maintenance flow reuses the same steps riders use to get a bike:
+
+1. The **bike is reported broken**.
+2. A technician **reserves the bike**. The reservation keeps anyone else from grabbing it while the technician is on the way.
+3. The technician **unlocks the bike**.
+4. **Maintenance is started.** Unlike a rider's unlock, a technician's unlock never starts a rental session.
+5. The **bike is fixed**.
+6. The **bike is returned** to circulation — it is back at a station or in a drop zone and available to riders again.
+
+Things can go wrong here too, exactly as with riders:
+
+- **The reservation expires** before the technician unlocks the bike. The bike is still broken, so it is not offered to riders — it simply waits until a technician reserves it again.
+- **The unlock fails.** The reservation is released, the bike stays broken, and a technician tries again later.
+
+Maintenance is never billed. It is not a ride — it is how we keep the fleet healthy.
+
 ---
 
 ## Billing
@@ -106,7 +142,7 @@ The rider brings the bike back to an official **station**.
 
 1. The bike is **returned to the station**.
 2. The system attempts to **lock the bike in the station**.
-3. If locking succeeds, the session ends cleanly. If the bike shows signs of a fault (damage, mechanical issue detected), a **fault is reported** so the fleet team can pull it from circulation.
+3. If locking succeeds, the session ends cleanly. If the bike shows signs of a fault (damage, mechanical issue detected), a **fault is reported**. The bike is then considered broken, is no longer offered to riders, and waits for a technician (see **Broken Bikes & Maintenance**).
 4. If locking **fails**, the rider is prompted to **contact customer support** — the session cannot silently drift. Every ended session must have a clear resolution.
 
 ### Drop Zone Return (Free-Floating)
@@ -157,6 +193,8 @@ The incident flow is:
 
 Every incident, no matter how it was routed, must end in a **resolved** state. Nothing stays open forever.
 
+When an incident is about a faulty bike (a fleet issue), the bike is marked as **broken** and handed over to technicians for maintenance.
+
 ---
 
 ## Key Business Rules to Know
@@ -169,6 +207,9 @@ Every incident, no matter how it was routed, must end in a **resolved** state. N
 - **Debt collection runs automatically, but can be paused.** Disputes, regulatory holds, and negotiated payment plans are legitimate reasons to pause without giving up on recovery.
 - **Every incident has a terminal state.** Accepted, rejected, escalated, or reopened — the flow always converges on resolved.
 - **A blocked account cannot start new rentals.** Blocks are lifted only when the reason behind them is cleared.
+- **A broken bike is never offered to riders.** It stays out of circulation until a technician fixes it.
+- **Only riders and technicians reserve and unlock bikes.** A rider's unlock starts a rental session; a technician's unlock starts maintenance.
+- **A bike returns to circulation only after it is fixed.** Maintenance is never billed.
 
 ---
 <div style="page-break-after: always;"></div>
@@ -181,9 +222,13 @@ Every incident, no matter how it was routed, must end in a **resolved** state. N
 | **Account** | A rider's identity in VeloCity; can be incomplete, activated, or blocked |
 | **Onboarding** | The sequential trust-building steps a person completes before their account is activated |
 | **Payment Method** | A card or equivalent linked to a rider's account and verified through a pre-authorization |
-| **Reservation** | A brief, exclusive hold on a specific bike for a specific rider between selection and unlock |
+| **Technician** | A VeloCity employee allowed to reserve and unlock bikes in order to repair them |
+| **Reservation** | A brief, exclusive hold on a specific bike for a specific rider or technician between selection and unlock |
 | **Rental Session** | A confirmed, active ride from unlock until proper return or forced end |
-| **Bike** | A physical vehicle in the VeloCity fleet, usable when available and free of faults |
+| **Bike** | A physical vehicle in the VeloCity fleet; it can be available, reserved, rented, broken, or in maintenance |
+| **Broken Bike** | A bike reported as faulty; it is not offered to riders until it is fixed |
+| **Maintenance** | The work a technician does on a broken bike after unlocking it; never billed |
+| **Bike Fixed** | The moment maintenance succeeds and the bike is ready to return to circulation |
 | **Station** | An official location where bikes are docked and locked |
 | **Drop Zone** | A city-approved area where a bike may be left without a station |
 | **Unauthorized Zone** | Anywhere outside the network of stations and drop zones — return is possible but costly |
@@ -195,7 +240,7 @@ Every incident, no matter how it was routed, must end in a **resolved** state. N
 | **Total Fee** | The final calculated cost of a rental session, combining hourly fees, return fees, and any penalties |
 | **Maximum Rental Time** | The upper limit beyond which a session is treated as a problem rather than a ride |
 | **Penalty** | An additional charge applied when a rider breaks a hard rule (e.g., exceeding maximum rental time) |
-| **Fault Report** | A record that a bike shows signs of damage or malfunction and needs to be pulled from circulation |
+| **Fault Report** | A record that a bike shows signs of damage or malfunction and makes it a broken bike until a technician fixes it |
 | **Reroute** | A prompt asking the rider to move a short distance because their current location does not qualify as a valid return spot |
 | **Account Block** | A state that prevents a rider from starting new rentals, triggered by invalid card, debt, or failed payment |
 | **Debt Recovery Process** | The business process that pursues an outstanding balance until it is paid, exhausted, or paused |
