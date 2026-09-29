@@ -124,11 +124,15 @@ A rental session moves through the following billing phases:
 4. **Third hour billing period** with its third-hour fee.
 5. **Fourth hour and beyond.** From this point the same hourly fee is applied for each additional hour.
 
-At the end of the session, the **total fee is calculated** from the applied fees plus any return-related charges.
+At the end of the session, the **total fee is calculated** from the applied fees plus any return-related charges. The rider always pays according to the prices that were valid when the ride started — a price change during a ride never affects that ride.
 
-There is a hard ceiling: if a session runs past the **maximum rental time**, a **penalty is applied** on top of the hourly fees. The maximum rental time exists so bikes don't get parked on someone's balcony for a week. It is a business signal, not a technical timeout: it means "at this point, this is no longer a rental — it is a problem."
+There is a hard ceiling: if a session runs past the **maximum rental time**, the **session is ended automatically** and a **penalty is applied** on top of the hourly fees. The maximum rental time exists so bikes don't get parked on someone's balcony for a week. It is a business signal, not a technical timeout: it means "at this point, this is no longer a rental — it is a problem."
 
 The distinction between an hourly fee and a penalty matters. Hourly fees are the normal cost of the service. A penalty says the rider crossed a rule of the network.
+
+### Settling the Ride
+
+Once the total fee is known, the ride has to be **settled** — the rider is **charged** for it through their payment method on file. We make sure every ride is eventually settled: if a charge fails, we automatically try again a few times shortly after the ride. If the money still cannot be collected, the unpaid amount stays on the rider's account as **outstanding debt**, and the account is blocked (see **Account Blocks & Debt Recovery**).
 
 ---
 
@@ -158,15 +162,14 @@ VeloCity is not station-only. The city has approved certain **drop zones** where
 
 ## Account Blocks & Debt Recovery
 
-A rider's account can be **blocked**, preventing new rentals. Three situations trigger this:
+A rider's account can be **blocked**, preventing new rentals. Two situations trigger this:
 
 - **Invalid card.** The payment method on file is no longer usable (expired, canceled, reported lost).
-- **Outstanding debt.** The rider owes VeloCity money from a previous session that hasn't been settled.
-- **Failed payment.** A specific charge attempt was refused by the payment processor.
+- **Outstanding debt.** The rider owes VeloCity money from a previous ride that could not be charged, even after retrying (see **Settling the Ride**).
 
 Whenever an account is blocked, a **block notification** is sent to the rider so they know what happened and what to do next.
 
-If the block is due to owed money, the **debt recovery process** begins. This process can:
+If the block is due to owed money, the **debt recovery process** begins. It is different from the automatic retries right after a ride: those are quick, silent charge attempts on the card. Debt recovery is an active pursuit of the money — reminding the rider, asking them to pay or update their card, negotiating payment plans, and handling disputes. This process can:
 
 - **Succeed** — the rider pays and the account is unblocked.
 - **Fail** — recovery is exhausted (all attempts have been tried and rejected).
@@ -199,7 +202,8 @@ When an incident is about a faulty bike (a fleet issue), the bike is marked as *
 
 - **A bike can never be in two active rental sessions at the same time.** Reservations exist to guarantee this during the seconds between "I picked this bike" and "I unlocked this bike."
 - **No unlock without a fully activated account.** Every step of onboarding — email, phone, personal data, verified payment method, signed agreement — must be complete before a session can begin.
-- **A rental session must eventually end.** Either through a proper return, or through the maximum rental time triggering a penalty. There is no such thing as an eternal ride.
+- **A rental session must eventually end.** Either through a proper return, or automatically when the maximum rental time is exceeded — with a penalty. There is no such thing as an eternal ride.
+- **Every ride is eventually settled.** Either the rider is charged successfully, or the unpaid amount becomes outstanding debt.
 - **Returns outside authorized zones cost more.** The shape of the VeloCity network is enforced by pricing, not by locks. Riders can always end their ride; where they end it decides what they pay.
 - **The drop zone fee is normal; the unauthorized zone fee is a signal.** One is the price of convenience, the other is the price of breaking the network rules.
 - **Debt collection runs automatically, but can be paused.** Disputes, regulatory holds, and negotiated payment plans are legitimate reasons to pause without giving up on recovery.
@@ -238,8 +242,10 @@ When an incident is about a faulty bike (a fleet issue), the bike is marked as *
 | **Total Fee** | The final calculated cost of a rental session, combining hourly fees, return fees, and any penalties |
 | **Maximum Rental Time** | The upper limit beyond which a session is treated as a problem rather than a ride |
 | **Penalty** | An additional charge applied when a rider breaks a hard rule (e.g., exceeding maximum rental time) |
+| **Settlement** | Charging the rider for a finished ride; a ride is settled once the charge succeeds or the unpaid amount becomes outstanding debt |
+| **Outstanding Debt** | Money a rider owes VeloCity for a ride that could not be charged |
 | **Fault Report** | A record that a bike shows signs of damage or malfunction and makes it a broken bike until a technician fixes it |
-| **Account Block** | A state that prevents a rider from starting new rentals, triggered by invalid card, debt, or failed payment |
+| **Account Block** | A state that prevents a rider from starting new rentals, triggered by an invalid card or outstanding debt |
 | **Debt Recovery Process** | The business process that pursues an outstanding balance until it is paid, exhausted, or paused |
 | **Incident** | A rider-reported issue that must be routed, worked, and resolved by support |
 | **Escalation** | Handing an accepted incident to a specialized team for resolution |
