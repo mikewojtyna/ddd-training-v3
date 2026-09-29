@@ -149,12 +149,10 @@ The rider brings the bike back to an official **station**.
 
 VeloCity is not station-only. The city has approved certain **drop zones** where a bike may be left without a station.
 
-1. The rider **attempts to end the ride** at their current location.
-2. The system checks the location against the city's zone map.
-3. Three outcomes are possible:
-   - **Return accepted.** The bike is left in an approved drop zone. A **drop zone fee** is applied — small, but real, because free-floating returns cost the operator more to manage than station returns.
-   - **Return rejected.** The location is close to but not inside an approved drop zone. The rider is asked to **reroute** — move a short distance and try again.
-   - **Unauthorized zone detected.** The rider is trying to leave the bike outside the network entirely. The return is completed (we don't leave the rider stranded), but a much higher **unauthorized zone return fee** is applied. This is how pricing enforces the shape of the network without requiring physical infrastructure everywhere.
+1. The rider **ends the ride** at their current location. The ride always ends where the rider is — we never leave a rider stranded.
+2. The location is then checked against the city's zone map to decide what the rider pays:
+   - **Approved drop zone.** A **drop zone fee** is applied — small, but real, because free-floating returns cost the operator more to manage than station returns.
+   - **Unauthorized zone.** The bike was left outside the network entirely. A much higher **unauthorized zone return fee** is applied. This is how pricing enforces the shape of the network without requiring physical infrastructure everywhere.
 
 ---
 
@@ -241,7 +239,6 @@ When an incident is about a faulty bike (a fleet issue), the bike is marked as *
 | **Maximum Rental Time** | The upper limit beyond which a session is treated as a problem rather than a ride |
 | **Penalty** | An additional charge applied when a rider breaks a hard rule (e.g., exceeding maximum rental time) |
 | **Fault Report** | A record that a bike shows signs of damage or malfunction and makes it a broken bike until a technician fixes it |
-| **Reroute** | A prompt asking the rider to move a short distance because their current location does not qualify as a valid return spot |
 | **Account Block** | A state that prevents a rider from starting new rentals, triggered by invalid card, debt, or failed payment |
 | **Debt Recovery Process** | The business process that pursues an outstanding balance until it is paid, exhausted, or paused |
 | **Incident** | A rider-reported issue that must be routed, worked, and resolved by support |
