@@ -75,12 +75,12 @@ flowchart LR
 
     ACC -->|"U / D<br/>is account active?"| REN
 
-    REN -->|"U: OHS/PL · D: CF<br/>Rental Session Ended"| SET
+    REN -->|"U: PL · D: CF<br/>Rental Session Ended"| SET
     REN -->|"U: OHS/PL · D: CF<br/>fault detected, lock failed<br/>withdraw / make available<br/>reserve / unlock"| FLT
 
     PRI -->|"U: OHS · D: CF<br/>price for session"| SET
 
-    SET -->|"U: OHS/PL · D: CF<br/>Rental Fee Unpaid<br/>Outstanding Debt Cleared"| ACC
+    SET -->|"U: PL · D: CF<br/>Rental Fee Unpaid<br/>Outstanding Debt Cleared"| ACC
     SET -->|"U: OHS/PL · D: CF<br/>Rental Fee Unpaid<br/>attempt collection"| DEB
 
     SUP -.->|"fleet-issue incident<br/>(default, unconfirmed)"| FLT
