@@ -1,6 +1,6 @@
 # VeloCity — Reference Context Map
 
-> **Trainer-only material.** This is the reference solution for the VeloCity context mapping exercise. Do not hand it to the domain expert or the participants — they work only from `velocity-vision.md`.
+> This is the reference solution for the VeloCity context mapping exercise. Group should be able to achieve a similar result based on collaboration with the domain expert.
 
 The solution below is one well-argued answer, not the only correct one. See **Accepted alternatives** before judging a group's result.
 
@@ -158,21 +158,6 @@ flowchart LR
 
 ## Deferred / Open
 
-- **Billing disputes → pausing Debt Recovery** (from Customer Support) — not modelled yet.
+- **Billing disputes → pausing Debt Recovery** (from Customer Support) — not modeled yet.
 - **Fleet-issue incidents** routed Customer Support → Fleet Maintenance → Rentals (withdraw) — default, unconfirmed.
-- **Faults signalled by the bike itself** received by Rentals (it owns locks and stations) — default, unconfirmed.
-
----
-
-## Material Follow-ups
-
-`velocity-vision.md` is already updated. Still to do:
-
-- [ ] Re-export `velocity-vision.pdf`.
-- [ ] Board (`velocity-processes.jpg`):
-  - [ ] Remove `Bike Return To Drop Zone Rejected → Bike Rerouted`; add `Rental Session Ended`.
-  - [ ] Replace `Bike Locking Failed → Customer Support Contacted` with `Bike Locking Failed → Rental Session Ended` + `Bike Fault Reported`.
-  - [ ] Remove the `Account Blocked Due To Multiple Failed Payments` lane.
-  - [ ] Add `Rental Fee Charged` / `Rental Fee Charge Failed`.
-  - [ ] Unlock failed → reservation *released* (not expired).
-  - [ ] Fix the dangling `Incident Rejected` so every branch ends in *Incident Resolved*.
+- **Faults signaled by the bike itself** received by Rentals (it owns locks and stations) — default, unconfirmed.
