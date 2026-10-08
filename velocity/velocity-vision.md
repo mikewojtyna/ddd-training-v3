@@ -2,6 +2,8 @@
 
 > **Workshop role instructions**: You are playing the role of a domain expert - a senior product manager at a European city bike-share operator who has been deeply involved in designing VeloCity. You know the business inside-out. Answer questions naturally, using the language of the business. You do NOT need to mention technical terms, classes, or patterns. Just describe how the business works.
 >
+> ⚠️ **Attention:** This guide is intentionally written to be inconsistent and contain logical gaps in the flow *in a few places*. This allows you to experience working with unclear vision, incomplete documents, and stakeholders who are not fully aligned. You need to work together and refine the details with your group!
+> 
 > **You do not need to read the entire document at once. Start with reading the `Background` section and just skim over the rest of the document. When being asked a question or in doubt, refer to the corresponding section in the document to understand the details. At the end of the file you can find the `Domain Vocabulary`. Have fun!**
 
 ---
@@ -10,11 +12,11 @@
 
 VeloCity is a new city bike rental service we are designing from the ground up. Our ambition is to give every resident and visitor a bike within a short walk of wherever they are, and let them ride to wherever they need to go — with as little friction as possible between the moment they want a bike and the moment they are on one.
 
-The core vision is: **"Bikes are for freedom, not friction — every ride starts in seconds and ends where the city wants it."**
+The core vision is: **Every ride starts in seconds and ends anywhere where the city permits it.**
 
 Two ideas shape everything we are building:
 
-1. **Trust is earned once, then honored.** A rider proves who they are and how they will pay when they join VeloCity. After that, unlocking a bike is a single tap.
+1. **Trust is earned once, then honored.** A rider proves who they are and how they will pay when they join VeloCity. After that, unlocking a bike is a single tap. We hope that riders will eventually pay for their rides.
 2. **The city sets the shape of the network.** Bikes can be picked up freely, but they must come back to places the city has agreed to.
 
 We serve **individual riders** only. There is no corporate or group offering at launch.
@@ -58,7 +60,7 @@ Before anyone can unlock a bike, they go through an onboarding sequence. Each st
 7. They **sign the user agreement** (terms of service, liability, city rules).
 8. The **account is activated**.
 
-Only an activated account can reserve and unlock a bike. This sequential trust-building is deliberate: an unverified card must never be able to start a ride. If the rider drops out mid-onboarding, their account stays in an incomplete state until they finish the missing step. They can resume later.
+Only an activated account can reserve and unlock a bike. If the rider drops out mid-onboarding, their account stays in an incomplete state until they finish the missing step. They can resume later.
 
 ---
 
@@ -74,7 +76,7 @@ Renting a bike is meant to feel instant, but a lot happens under the surface.
 Two things can go wrong before a session starts:
 
 - **The reservation expires** before the rider unlocks the bike. The bike returns to the pool and is available to anyone.
-- **The unlock fails** (mechanical issue, connectivity problem). The reservation is then released and the rider is free to try another bike.
+- **The unlocking fails** (mechanical issue, connectivity problem, or for any other reason). The reservation is then released and the rider is free to try another bike.
 
 A rental session, once started, belongs to that rider until it is properly returned or forcibly ended by the penalty rule.
 
@@ -146,17 +148,19 @@ The rider brings the bike back to an official **station**.
 
 1. The bike is **returned to the station**.
 2. The system attempts to **lock the bike in the station**.
-3. If locking succeeds, the session ends cleanly. If the bike shows signs of a fault (damage, mechanical issue detected), a **fault is reported**. The bike is then considered broken, is no longer offered to riders, and waits for a technician (see **Broken Bikes & Maintenance**).
+3. If locking succeeds, the session ends cleanly.
 4. If locking **fails**, the session is **ended immediately** and the rider is told why — the session cannot silently drift. The rider is not charged extra because our lock failed. The bike is treated as **broken** and waits for a technician. The rider can still contact customer support if anything is unclear.
 
 ### Drop Zone Return (Free-Floating)
 
 VeloCity is not station-only. The city has approved certain **drop zones** where a bike may be left without a station.
 
-1. The rider **ends the ride** at their current location. The ride always ends where the rider is — we never leave a rider stranded.
-2. The location is then checked against the city's zone map to decide what the rider pays:
+1. The rider **ends the ride** at their current location. The ride always ends where the rider is.
+2. Bike locking can still fail (bike needs to be locked outside the station, too)
+3. The location is then checked against the city's zone map to decide what the rider pays:
    - **Approved drop zone.** A **drop zone fee** is applied — small, but real, because free-floating returns cost the operator more to manage than station returns.
    - **Unauthorized zone.** The bike was left outside the network entirely. A much higher **unauthorized zone return fee** is applied. This is how pricing enforces the shape of the network without requiring physical infrastructure everywhere.
+- 
 
 ---
 
