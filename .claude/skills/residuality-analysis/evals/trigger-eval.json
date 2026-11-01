@@ -1,0 +1,22 @@
+[
+  {"query": "run a residuality analysis on the velocity context map, i want an incidence matrix and a residual index for tomorrow's session", "should_trigger": true},
+  {"query": "What happens to our VeloCity design if the payment processor goes bankrupt, the city bans docking stations and we expand to Prague? Go through lots of scenarios like that and show me where the context map breaks.", "should_trigger": true},
+  {"query": "poke holes in the CrowdSorcery bounded contexts. which ones are fragile if the business shifts?", "should_trigger": true},
+  {"query": "I just finished reading Barry O'Reilly's Residues book. Can you apply it to src/main/cml/VeloCity-Context-Map.cml?", "should_trigger": true},
+  {"query": "is the Settlement / Debt Recovery split robust to change or would a new regulation force us to touch both every time?", "should_trigger": true},
+  {"query": "stress test our architecture with random stressors - giant lizards included - and propose an augmented architecture", "should_trigger": true},
+  {"query": "here's our group's context map from the workshop (pasted below). Validate it against a bunch of stressors and tell us which relationships spread the damage.\n\nAccounts -> Rentals (CF)\nRentals -> Billing (PL)\nBilling -> Payments (ACL)", "should_trigger": true},
+  {"query": "I added two stressors to docs/residuality/velocity/2026-11-01-reference-context-map/analysis.json - rerun the matrix and update the report", "should_trigger": true},
+  {"query": "which VeloCity contexts share hidden assumptions? I suspect Pricing and Settlement both assume a single currency", "should_trigger": true},
+  {"query": "Scaffold the Pricing bounded context for VeloCity from docs/bounded-contexts/velocity/pricing/canvas.md", "should_trigger": false},
+  {"query": "a station can't hold more than 20 bikes, model that invariant in BikeStation", "should_trigger": false},
+  {"query": "render the VeloCity context map to PNG, the VelocityContextMap main class fails with 'dot not found'", "should_trigger": false},
+  {"query": "write a JMeter load test that stresses the rentals REST endpoint with 500 concurrent unlocks", "should_trigger": false},
+  {"query": "add a resilience4j circuit breaker around the payment processor client in the deposit context", "should_trigger": false},
+  {"query": "explain the difference between an ACL and a conformist relationship with a VeloCity example", "should_trigger": false},
+  {"query": "do a risk assessment for the VeloCity launch: list the top 10 risks with probability and impact scores for the steering committee", "should_trigger": false},
+  {"query": "review the CrowdSorcery business archetype analysis in archetypes/crowdfunding-platform-analysis.md and suggest which domains are core", "should_trigger": false},
+  {"query": "run the BikeStationTest and fix whatever is failing", "should_trigger": false},
+  {"query": "update velocity-context-map.md so Pricing reacts to Rental Session Ended instead of being called by Settlement, and keep the CML in sync", "should_trigger": false},
+  {"query": "chaos engineering: kill random pods in our k8s staging cluster and report which services recover", "should_trigger": false}
+]

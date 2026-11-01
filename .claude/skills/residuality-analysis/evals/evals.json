@@ -1,0 +1,57 @@
+{
+  "skill_name": "residuality-analysis",
+  "evals": [
+    {
+      "id": 1,
+      "name": "velocity-reference-map-full",
+      "prompt": "Validate the VeloCity reference context map (velocity/velocity-context-map.md and the CML) with residuality theory. I'm the trainer, not a participant, so the spoiler doesn't matter. Throw lots of different stressors at it and tell me where it breaks and what you'd change.",
+      "expected_output": "analysis.json + analysis.md under docs/residuality/velocity/...; 25-40 concrete stressors across all categories incl. absurd; attractors reused across stressors; incidence matrix from the script with hidden-coupling candidates; augmented architecture traced to attractors; independent test set with Ri computed; CML and map untouched.",
+      "files": [],
+      "assertions": [
+        "analysis.json and analysis.md both created",
+        "analysis.json passes residuality_matrix.py validation (exit code 0)",
+        "At least 25 non-withdrawn training stressors",
+        "Stressors span at least 7 distinct categories, including an absurd one",
+        "Fewer attractors than half the number of stressors (attractors are reused)",
+        "Every stressor has a naive verdict with a reason and a residue",
+        "Report contains an incidence matrix with column totals",
+        "Report names at least one hidden coupling (co-impact pair without a direct relationship)",
+        "Residual architecture changes reference both stressors and attractors",
+        "Separate test stressor set (>=10) with naive and residual verdicts",
+        "Residual index Ri reported with its arithmetic",
+        "CML and velocity-context-map.md not modified"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "rentals-single-context-user-stressors",
+      "prompt": "how robust is our Rentals bounded context really? I'm worried about two things in particular: the city might start requiring every ride to end in a geofenced bay with photo proof, and we might add e-bikes that need charging. stress-test rentals with those plus whatever else you come up with",
+      "expected_output": "Scope is the Rentals context code (aggregates, ports, adapters) plus its neighbours; the two user stressors are included and tagged source=user; 15-25 stressors; matrix over Rentals components; residues at the code/boundary level; no code changes; offers follow-up via other skills.",
+      "files": [],
+      "assertions": [
+        "analysis.json and analysis.md both created",
+        "Components include Rentals-internal elements (e.g. BikeStation aggregate, BikeStationRepo, RentBikeUseCase)",
+        "Both user stressors (geofenced bay/photo, e-bike charging) present and marked as from the user",
+        "Between 15 and 30 training stressors",
+        "Report contains an incidence matrix with column totals",
+        "Residual index Ri reported with its arithmetic",
+        "No Java source files modified"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "crowdsorcery-poke-holes",
+      "prompt": "poke holes in the CrowdSorcery architecture - which bounded contexts would fall over first if the business environment shifted? I want something I can show the group tomorrow.",
+      "expected_output": "Reads CrowdSorcery.md, the crowdsorcery packages and the in-code context map; builds the naive architecture from them; stressor analysis with attractors; matrix; ranked hot spots answering 'which falls over first'; augmented architecture; Ri; report saved under docs/residuality/crowdsorcery/....",
+      "files": [],
+      "assertions": [
+        "analysis.json and analysis.md both created",
+        "Components include the CrowdSorcery contexts found in code (e.g. deposit, investment, payment, fundraising)",
+        "At least 20 non-withdrawn training stressors",
+        "Report ranks components by impact (answers which falls over first)",
+        "Report contains an incidence matrix with column totals",
+        "Residual index Ri reported with its arithmetic"
+      ]
+    }
+  ]
+}
