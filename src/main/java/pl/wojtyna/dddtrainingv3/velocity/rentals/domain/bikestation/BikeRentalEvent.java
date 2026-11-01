@@ -1,0 +1,12 @@
+package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
+
+import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvent;
+
+public sealed interface BikeRentalEvent extends DomainEvent {
+
+    record BikeRented(Borrower by, RentalDuration forDuration) implements BikeRentalEvent {
+    }
+
+    record BikeReturned() implements BikeRentalEvent {
+    }
+}
