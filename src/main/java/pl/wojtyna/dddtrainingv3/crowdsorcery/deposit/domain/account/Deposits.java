@@ -1,6 +1,6 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account;
 
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
 
 public interface Deposits {
 

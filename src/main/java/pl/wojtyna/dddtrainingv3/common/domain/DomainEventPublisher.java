@@ -1,4 +1,4 @@
-package pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain;
+package pl.wojtyna.dddtrainingv3.common.domain;
 
 import org.jmolecules.architecture.hexagonal.SecondaryPort;
 

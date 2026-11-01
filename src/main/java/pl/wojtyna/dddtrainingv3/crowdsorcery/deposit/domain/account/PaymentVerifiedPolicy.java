@@ -1,7 +1,7 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account;
 
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainPolicy;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainPolicy;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.payment.PaymentVerified;
 
 public class PaymentVerifiedPolicy implements DomainPolicy {

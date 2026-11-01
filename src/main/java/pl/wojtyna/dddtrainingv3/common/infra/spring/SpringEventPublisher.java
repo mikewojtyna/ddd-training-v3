@@ -1,9 +1,9 @@
-package pl.wojtyna.dddtrainingv3.crowdsorcery.common.infra.spring;
+package pl.wojtyna.dddtrainingv3.common.infra.spring;
 
 import org.springframework.context.ApplicationEventPublisher;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvents;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvent;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
 
 public class SpringEventPublisher implements DomainEventPublisher {
 

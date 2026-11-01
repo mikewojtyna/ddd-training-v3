@@ -4,4 +4,4 @@
 @AntiCorruptionLayer
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.infra.adapters.secondary.paymentctxacl;
 
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.arch.AntiCorruptionLayer;
+import pl.wojtyna.dddtrainingv3.common.arch.AntiCorruptionLayer;

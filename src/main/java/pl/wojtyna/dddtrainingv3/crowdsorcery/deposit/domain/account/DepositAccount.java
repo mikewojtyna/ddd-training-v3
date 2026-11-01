@@ -4,7 +4,7 @@ import org.jmolecules.ddd.annotation.Entity;
 import org.jmolecules.ddd.annotation.Identity;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
 
 import java.util.ArrayList;
 import java.util.List;

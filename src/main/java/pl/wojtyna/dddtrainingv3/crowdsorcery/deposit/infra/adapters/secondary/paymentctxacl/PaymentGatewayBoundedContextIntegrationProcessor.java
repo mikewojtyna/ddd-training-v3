@@ -1,7 +1,7 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.infra.adapters.secondary.paymentctxacl;
 
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.Deposit;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.payment.PaymentProcessor;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.payment.PaymentVerified;

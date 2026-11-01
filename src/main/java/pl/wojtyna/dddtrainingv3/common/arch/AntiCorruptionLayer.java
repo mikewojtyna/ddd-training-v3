@@ -1,4 +1,4 @@
-package pl.wojtyna.dddtrainingv3.crowdsorcery.common.arch;
+package pl.wojtyna.dddtrainingv3.common.arch;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

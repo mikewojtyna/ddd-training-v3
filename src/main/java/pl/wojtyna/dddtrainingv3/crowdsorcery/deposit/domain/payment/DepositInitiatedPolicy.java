@@ -1,6 +1,6 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.payment;
 
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainPolicy;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainPolicy;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.DepositInitiated;
 
 public class DepositInitiatedPolicy implements DomainPolicy {

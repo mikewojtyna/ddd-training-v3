@@ -4,7 +4,7 @@ import org.jmolecules.ddd.annotation.AggregateRoot;
 import org.jmolecules.ddd.annotation.Entity;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.By;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.ForDuration;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
 
 import java.util.HashSet;
 import java.util.Objects;

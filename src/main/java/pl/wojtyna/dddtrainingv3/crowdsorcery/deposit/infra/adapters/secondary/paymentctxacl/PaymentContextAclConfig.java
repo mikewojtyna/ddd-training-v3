@@ -2,7 +2,7 @@ package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.infra.adapters.secondary.p
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.Deposit;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.payment.PaymentProcessor;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.payment.api.PaymentGateway;

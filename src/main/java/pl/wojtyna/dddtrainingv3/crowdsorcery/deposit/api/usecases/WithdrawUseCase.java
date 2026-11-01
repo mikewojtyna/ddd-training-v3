@@ -2,7 +2,7 @@ package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.api.usecases;
 
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.joda.money.Money;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.AccountId;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.AccountRepository;
 

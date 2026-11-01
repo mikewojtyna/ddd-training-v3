@@ -1,7 +1,7 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.api.events;
 
 import org.jmolecules.ddd.annotation.ValueObject;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.integration.IntegrationEvent;
+import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
 
 import java.math.BigDecimal;
 

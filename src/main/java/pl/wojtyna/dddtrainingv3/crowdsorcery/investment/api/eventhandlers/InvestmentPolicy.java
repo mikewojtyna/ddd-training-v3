@@ -3,7 +3,7 @@ package pl.wojtyna.dddtrainingv3.crowdsorcery.investment.api.eventhandlers;
 import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainPolicy;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainPolicy;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.api.events.DepositMade;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.investment.invest.*;
 

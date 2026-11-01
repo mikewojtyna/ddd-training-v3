@@ -1,6 +1,6 @@
 package pl.wojtyna.dddtrainingv3.crowdsorcery.fundraising;
 
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.investment.invest.Investor;
 
 public class FundraisingSystem {

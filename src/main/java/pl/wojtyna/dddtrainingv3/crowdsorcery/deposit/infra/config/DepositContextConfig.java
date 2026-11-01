@@ -2,7 +2,7 @@ package pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.infra.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pl.wojtyna.dddtrainingv3.crowdsorcery.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.api.usecases.CreateAccountUseCase;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.api.usecases.WithdrawUseCase;
 import pl.wojtyna.dddtrainingv3.crowdsorcery.deposit.domain.account.*;
