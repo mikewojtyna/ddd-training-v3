@@ -1,0 +1,26 @@
+package pl.wojtyna.dddtrainingv3.crowdsorcery.payment.crypto;
+
+import pl.wojtyna.dddtrainingv3.crowdsorcery.payment.api.PaymentEvent;
+import pl.wojtyna.dddtrainingv3.crowdsorcery.payment.api.PaymentGateway;
+import pl.wojtyna.dddtrainingv3.crowdsorcery.payment.api.PaymentRequest;
+import pl.wojtyna.dddtrainingv3.crowdsorcery.payment.api.PaymentToken;
+
+import java.util.concurrent.Flow;
+
+public class CryptoProvider implements PaymentGateway {
+
+    @Override
+    public PaymentToken pay(PaymentRequest paymentRequest) {
+        return null;
+    }
+
+    @Override
+    public boolean isVerified(PaymentToken paymentToken) {
+        return false;
+    }
+
+    @Override
+    public Flow.Publisher<PaymentEvent> events(PaymentToken token) {
+        return null;
+    }
+}
