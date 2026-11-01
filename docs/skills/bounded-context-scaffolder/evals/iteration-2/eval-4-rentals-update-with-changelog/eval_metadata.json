@@ -1,0 +1,17 @@
+{
+  "eval_id": 4,
+  "eval_name": "rentals-update-with-changelog",
+  "prompt": "The Rentals canvas changed - update the existing rentals bounded context to match /home/goobar/IdeaProjects/ddd-training-v3/.claude/skills/bounded-context-scaffolder/evals/files/rentals-update-canvas.md",
+  "assertions": [
+    "Plan markdown file created for rentals",
+    "Plan has a dated Changelog entry",
+    "returnBike implemented (no UnsupportedOperationException)",
+    "At least 2 GWT tests (@DisplayName text block with given/when/then) covering 'return'",
+    "Existing BikeStationTest methods preserved",
+    "No files deleted",
+    "Bike Returned published as IntegrationEvent record in api/events",
+    "Available Bikes query handler in api/queries",
+    "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
+    "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
+  ]
+}

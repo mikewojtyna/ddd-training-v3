@@ -1,0 +1,1300 @@
+diff --git a/docs/bounded-contexts/velocity/pricing/canvas.md b/docs/bounded-contexts/velocity/pricing/canvas.md
+new file mode 100644
+index 0000000..fbed6ff
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/pricing/canvas.md
+@@ -0,0 +1,66 @@
++# Bounded Context Canvas: Pricing
++
++## Name
++Pricing
++
++## Purpose
++Turns a finished ride into a fair, predictable fee. Riders are encouraged to take short trips (free period),
++long trips get progressively more expensive, and the rider always pays the price list that was valid when the ride started.
++
++## Strategic Classification
++- Domain: core
++- Business model: revenue
++- Evolution: custom built
++
++## Domain Roles
++- Execution Model: calculates the total fee for every rental session.
++
++## Inbound Communication
++| Collaborator | Type | Message | Notes |
++|---|---|---|---|
++| Rentals | Event | Rental Session Ended | carries session id, rider id, start and end time |
++| Back office | Command | Publish Price List | new price list valid from a given moment |
++| Rider app | Query | Estimate Fee | rider wants to know how much a ride of N minutes would cost |
++
++## Outbound Communication
++| Message | Type | Collaborator | ACL? |
++|---|---|---|---|
++| Ride Priced | Event | Settlement | n/a |
++| Get Return Charges | Query | Rentals | yes |
++
++## Ubiquitous Language
++- **Price List**: set of fees (free period length, first/second/third hour fee, subsequent hourly fee) valid from a given moment.
++- **Free Period**: the initial minutes of a rental session during which no fee is applied.
++- **Billing Period**: one started hour of a ride after the free period.
++- **Total Fee**: sum of billing period fees plus return charges.
++- **Return Charges**: drop-zone or unauthorized-zone charges reported by Rentals.
++
++## Business Decisions
++### Free ride
++- **Given** a price list with a 10 minute free period
++- **When** a ride of 8 minutes is priced
++- **Then** the total fee is 0.00 PLN
++
++### First hour
++- **Given** a price list with a 10 minute free period and first-hour fee 5.00 PLN
++- **When** a ride of 45 minutes is priced
++- **Then** the total fee is 5.00 PLN
++
++### Tiered hours
++- **Given** a price list with a 10 minute free period, first-hour fee 5.00 PLN, second-hour fee 7.00 PLN, third-hour fee 9.00 PLN and subsequent hourly fee 12.00 PLN
++- **When** a ride of 3 hours 20 minutes is priced
++- **Then** the total fee is 33.00 PLN
++
++### Price valid at ride start
++- **Given** price list A (first-hour fee 5.00 PLN) valid from 08:00 and price list B (first-hour fee 6.00 PLN) valid from 09:00
++- **When** a ride that started at 08:50 and ended at 09:30 is priced
++- **Then** the total fee is 5.00 PLN
++
++## Assumptions
++- Return charges are always known by the time the session ends.
++
++## Verification Metrics
++- Number of pricing disputes raised in Customer Support per 1000 rides.
++
++## Open Questions
++- Does the maximum-rental-time penalty belong to Pricing or Rentals?
+diff --git a/docs/bounded-contexts/velocity/pricing/plan.md b/docs/bounded-contexts/velocity/pricing/plan.md
+new file mode 100644
+index 0000000..d96ef0b
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/pricing/plan.md
+@@ -0,0 +1,139 @@
++# Pricing bounded context: implementation plan
++
++- **System / package**: `velocity.pricing`
++- **Mode**: scaffold
++- **Source canvas**: `docs/bounded-contexts/velocity/pricing/canvas.md` (copied from `.claude/skills/bounded-context-scaffolder/evals/files/pricing-canvas.md`)
++- **Last updated**: 2026-11-01
++
++## Canvas summary
++Pricing turns a finished ride into a fair, predictable fee: a free period for short trips, progressively more expensive hours, and always the price list valid at ride start. It is a **core** domain, it generates **revenue**, and it is **custom built**. Its domain role is **Execution Model** (`docs/model-traits-worksheet.md`): it calculates the total fee for every rental session.
++
++## Decisions
++| Decision | Choice | Reason |
++|---|---|---|
++| System | `velocity` | The canvas is VeloCity's Pricing, and `Pricing` is a `BoundedContext` in `src/main/cml/VeloCity-*.cml`. |
++| Context name | `@BoundedContext(name = "Pricing")` | The canvas name matches the CML name. |
++| Package | `velocity.pricing` | Lowercase from the name. The package didn't exist, so this is scaffold mode. |
++| Modules | 1 module = 1 context | Default. |
++| ACL towards Rentals (Get Return Charges) | yes, `infra/adapters/secondary/rentalsctxacl` | The canvas asks for one, and it's the skill default. The port `ReturnChargesProvider` speaks Pricing's language. |
++| Inbound "Rental Session Ended" | own record `api/usecases/RentalSessionEnded` + `PriceRideUseCase`; no listener yet | Rentals publishes no such event in code yet, so there's no upstream type to listen to. |
++| Aggregate | `PriceList` (`domain/pricelist`) | See "Business rules → aggregates". |
++| Choosing the valid price list | `PriceList.validAt(Collection<PriceList>, Instant)` in the domain; the repository returns `all()` | Keeps the "price valid at ride start" rule in the domain and testable without infrastructure. Loading every price list is fine at this scale. Revisit if price lists pile up. |
++| Pricing a ride has no save step | `PriceRideUseCase` loads, prices, publishes | Pricing is a pure calculation, and the price list doesn't change. |
++| Estimate Fee handler | uses `PriceListRepository` + `PriceList.estimate(...)` instead of a separate read model | The estimate is a calculation with the price list valid *now*, not a stored view. The clock is passed in (`Clock.systemUTC()`) and isn't a global `Clock` bean. |
++| Money | `org.joda.money.Money` | The canvas talks about PLN amounts. CrowdSorcery already uses joda-money. |
++| REST adapters | `PriceListRestApi` (POST `/velocity/pricing/price-lists`), `FeeEstimateRestApi` (GET `/velocity/pricing/fee-estimates?rideMinutes=N`) | Back office and rider app are apps. The canvas doesn't describe the endpoints, so path and body shape are scaffolding choices. They're implemented, not stubbed, because they only translate. |
++| Billing period counting | started hours counted from the end of the free period | Literal reading of the definition "one started hour of a ride after the free period". See open points. |
++
++## Mapping: canvas → code
++### Inbound
++| Collaborator | Type | Message | Code |
++|---|---|---|---|
++| Rentals | Event | Rental Session Ended | `api/usecases/RentalSessionEnded` (our record), `api/usecases/PriceRideUseCase`. Listener in `infra/adapters/primary/rentalsctxacl` is a follow-up. |
++| Back office | Command | Publish Price List | `api/usecases/PublishPriceList`, `api/usecases/PublishPriceListUseCase`, `infra/adapters/primary/PriceListRestApi` + `PublishPriceListRequest` |
++| Rider app | Query | Estimate Fee | `api/queries/EstimateFeeQuery`, `api/queries/FeeEstimate`, `api/queries/EstimateFeeQueryHandler`, `infra/adapters/primary/FeeEstimateRestApi` |
++
++### Outbound
++| Message | Type | Collaborator | Port | Adapter (ACL package) |
++|---|---|---|---|---|
++| Ride Priced | Event | Settlement | domain event `PriceListEvent.RidePriced` | `infra/adapters/secondary/IntegrationEventsPublisher` publishes `api/events/RidePriced` (published language, no ACL) |
++| Get Return Charges | Query | Rentals | `domain/pricelist/ReturnChargesProvider` | `infra/adapters/secondary/rentalsctxacl/RentalsReturnChargesAdapter` (stub) |
++
++### Ubiquitous language
++| Term | Code type | Kind |
++|---|---|---|
++| Price List | `PriceList` (+ `PriceListId`) | aggregate root |
++| Free Period | `FreePeriod` | VO |
++| Billing Period | `BillingPeriod` | VO |
++| Total Fee | `TotalFee` | VO |
++| Return Charges | `ReturnCharges` | VO |
++| (ride, not in the UL) | `Ride` (+ `RentalSessionId`, `RiderId`) | VO, see open points |
++| (Ride Priced, outbound message) | `PriceListEvent.RidePriced` / `api.events.RidePriced` | domain event / integration event |
++
++### Business rules → aggregates
++Every rule's *Given* is one or more price lists, and its *When* is "a ride is priced". The state that has to be consistent is the price list's fees and its valid-from moment, so `PriceList` is the consistency boundary. Selecting among price lists (rule 4) reads several aggregates but changes none, so it's a domain function over `PriceList`s, not a bigger aggregate.
++
++| Rule (GWT) | Invariant | Aggregate | Test |
++|---|---|---|---|
++| Free ride: 10 min free, ride 8 min → 0.00 PLN | no billing period while the ride is within the free period | `PriceList` | `PriceListTest.freeRide` |
++| First hour: 10 min free, first hour 5.00, ride 45 min → 5.00 PLN | 35 min after the free period = 1 started hour = first-hour fee | `PriceList` | `PriceListTest.firstHour` |
++| Tiered hours: 10 min free, 5/7/9/12 PLN, ride 3h20 → 33.00 PLN | 190 min after the free period = 4 started hours = 5 + 7 + 9 + 12 | `PriceList` | `PriceListTest.tieredHours` |
++| Price valid at ride start: A 5.00 from 08:00, B 6.00 from 09:00, ride 08:50–09:30 → 5.00 PLN | the price list with the latest valid-from not after the ride start applies; a price list never prices a ride that started before it was valid (`PriceListNotValidForRide`) | `PriceList` (+ `PriceList.validAt`) | `PriceListTest.priceValidAtRideStart` |
++
++Consistency check, done by hand: all four examples agree with the definitions. No contradictions found.
++
++### Rules awaiting GWT
++- **Return charges in the total fee.** The definition "Total Fee = sum of billing period fees plus return charges" is implemented (`PriceList.price` adds them), but no example covers it, so there's no test. Suggested GWT: *given a price list with a 10 minute free period and first-hour fee 5.00 PLN, and Rentals reporting a 3.00 PLN drop-zone charge, when a ride of 45 minutes is priced, then the total fee is 8.00 PLN.* Status: awaiting confirmation.
++- **Rule "Price valid at ride start" doesn't give A's free period or other fees.** Any free period under 40 minutes gives 5.00 PLN. The test uses 10 minutes, as in the other examples. Status: please confirm or give the values.
++
++## Differences from the reference context map
++| Canvas says | Reference map says | Covered by "Accepted Alternatives"? |
++|---|---|---|
++| Pricing reacts to Rentals' *Rental Session Ended* (Rentals → Pricing) | Rentals → Settlement only; Settlement calls Pricing | Yes: "Pricing reacting to Rental Session Ended instead of being called by Settlement". |
++| Pricing publishes *Ride Priced* to Settlement | Pricing is an OHS that Settlement queries ("price for session") | Yes, the same alternative (the orchestration direction is flipped). |
++| Pricing queries Rentals for *Return Charges* (drop-zone / unauthorized-zone charges computed by Rentals) | Pricing calculates drop zone / unauthorized zone fees itself using the City zone map (City → Pricing, CF) | No. The canvas has no City relationship, and zone-fee logic moves to Rentals. |
++| Term "Price List" | Term "tariff" ("tariff valid at session start") | No. The "Billing" alternative covers the context name only. Same meaning, different word. |
++| Fees: first / second / third hour fee + subsequent hourly fee | "tiered hourly fees", "hourly fee" | Compatible, the canvas is more precise. |
++| Max-rental-time penalty: open question | Pricing adds the penalty | No. The canvas leaves it open. |
++| Back office *Publish Price List*, rider app *Estimate Fee* | Not shown (the map shows contexts only) | n/a, not a contradiction. |
++
++The reference map and CML were **not** changed.
++
++## Files
++```
++docs/bounded-contexts/velocity/pricing/
++  canvas.md
++  plan.md
++src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/
++  package-info.java
++  api/events/RidePriced.java
++  api/queries/EstimateFeeQuery.java
++  api/queries/EstimateFeeQueryHandler.java
++  api/queries/FeeEstimate.java
++  api/usecases/PriceRideUseCase.java
++  api/usecases/PublishPriceList.java
++  api/usecases/PublishPriceListUseCase.java
++  api/usecases/RentalSessionEnded.java
++  domain/pricelist/BillingPeriod.java
++  domain/pricelist/FreePeriod.java
++  domain/pricelist/NoPriceListValidAt.java
++  domain/pricelist/PriceList.java
++  domain/pricelist/PriceListEvent.java
++  domain/pricelist/PriceListId.java
++  domain/pricelist/PriceListNotValidForRide.java
++  domain/pricelist/PriceListRepository.java
++  domain/pricelist/RentalSessionId.java
++  domain/pricelist/ReturnCharges.java
++  domain/pricelist/ReturnChargesProvider.java
++  domain/pricelist/Ride.java
++  domain/pricelist/RiderId.java
++  domain/pricelist/TotalFee.java
++  infra/adapters/primary/FeeEstimateRestApi.java
++  infra/adapters/primary/PriceListRestApi.java
++  infra/adapters/primary/PublishPriceListRequest.java
++  infra/adapters/secondary/InMemoryPriceListRepository.java
++  infra/adapters/secondary/IntegrationEventsPublisher.java
++  infra/adapters/secondary/rentalsctxacl/package-info.java
++  infra/adapters/secondary/rentalsctxacl/RentalsReturnChargesAdapter.java
++  infra/config/PricingContextConfig.java
++src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/
++  PriceListTest.java
++```
++
++## Stubs and follow-ups
++- `RentalsReturnChargesAdapter` is a stub (`UnsupportedOperationException("implement this")`): Rentals offers no "Get Return Charges" query in code yet. Until it does, `PriceRideUseCase` fails at runtime.
++- The listener for Rentals' *Rental Session Ended* (`infra/adapters/primary/rentalsctxacl`) is missing: Rentals publishes no such event yet (its `BikeRentalEvent` has only `BikeRented` / `BikeReturned`, and Rentals has no `api/events`).
++- Settlement doesn't exist in code. `api/events/RidePriced` is published, but nobody listens yet.
++- **Ubiquitous language gap**: "ride" is used in the purpose and every rule but isn't defined. The code uses `Ride`. Should it be added to the UL, or should the code say "rental session"?
++- **Billing period counting**: the examples can't tell "started hours counted from the end of the free period" (implemented, literal definition) from "started hours counted from ride start, with the free period free". They agree on all four examples but differ for, e.g., a 65 minute ride (5.00 vs 12.00 PLN). Please confirm with a GWT example.
++- **Republishing a price list id** overwrites it silently. That could change past prices. Should it be rejected? There's no rule in the canvas.
++- Open question from the canvas: does the maximum-rental-time penalty belong to Pricing or Rentals?
++- CML (`src/main/cml/VeloCity-*.cml`) and `velocity/velocity-context-map.md` don't match the canvas (see the differences above). They weren't changed. Update them on request.
++
++## Changelog
++### 2026-11-01: scaffolded
++- Added: the whole `velocity.pricing` module (see Files), `PriceListTest` with the 4 canvas rules, and this plan and a copy of the canvas.
++- Changed: nothing outside the new module.
++- Removed (confirmed by user): none.
++- Proposed removals (not applied): none.
++- Triggered by: initial canvas `pricing-canvas.md`.
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java
+new file mode 100644
+index 0000000..1aafc2d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java
+@@ -0,0 +1,12 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++import java.math.BigDecimal;
++
++/// Published language: "Ride Priced", consumed by Settlement (canvas outbound event).
++@ValueObject
++public record RidePriced(String rentalSessionId, String riderId, String priceListId, BigDecimal totalFee,
++                         String currency) implements IntegrationEvent {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQuery.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQuery.java
+new file mode 100644
+index 0000000..ffd6e3c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQuery.java
+@@ -0,0 +1,11 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries;
++
++/// Canvas inbound query: "Estimate Fee" from the rider app. How much would a ride of `rideMinutes` minutes cost?
++public record EstimateFeeQuery(long rideMinutes) {
++
++    public EstimateFeeQuery {
++        if (rideMinutes < 0) {
++            throw new IllegalArgumentException("Ride minutes cannot be negative");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java
+new file mode 100644
+index 0000000..5a9c954
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java
+@@ -0,0 +1,34 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceList;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListRepository;
++
++import java.time.Clock;
++import java.time.Duration;
++import java.util.Optional;
++
++/// Canvas inbound query: "Estimate Fee" (rider app). Uses the price list valid now.
++///
++/// The estimate is a calculation, not a lookup, so the handler uses the domain's `PriceList` instead of a separate
++/// read model.
++@PrimaryPort
++public class EstimateFeeQueryHandler {
++
++    private final PriceListRepository priceLists;
++    private final Clock clock;
++
++    public EstimateFeeQueryHandler(PriceListRepository priceLists, Clock clock) {
++        this.priceLists = priceLists;
++        this.clock = clock;
++    }
++
++    public Optional<FeeEstimate> handle(EstimateFeeQuery query) {
++        return PriceList.validAt(priceLists.all(), clock.instant())
++                        .map(priceList -> {
++                            var fee = priceList.estimate(Duration.ofMinutes(query.rideMinutes())).amount();
++                            return new FeeEstimate(priceList.id().value(), fee.getAmount(),
++                                                   fee.getCurrencyUnit().getCode());
++                        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/FeeEstimate.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/FeeEstimate.java
+new file mode 100644
+index 0000000..486c56f
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/FeeEstimate.java
+@@ -0,0 +1,7 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries;
++
++import java.math.BigDecimal;
++
++/// Result of the "Estimate Fee" query. Return charges are not included, because they're only known after the ride.
++public record FeeEstimate(String priceListId, BigDecimal amount, String currency) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java
+new file mode 100644
+index 0000000..fc3351c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java
+@@ -0,0 +1,40 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.NoPriceListValidAt;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceList;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListRepository;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.RentalSessionId;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.ReturnChargesProvider;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.Ride;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.RiderId;
++
++/// Reacts to the canvas inbound event "Rental Session Ended" (Rentals) by pricing the ride, which publishes
++/// "Ride Priced" (outbound event to Settlement).
++///
++/// Pricing a ride doesn't change the price list, so there's no save step.
++@PrimaryPort
++public class PriceRideUseCase {
++
++    private final PriceListRepository priceLists;
++    private final ReturnChargesProvider returnChargesProvider;
++    private final DomainEventPublisher eventPublisher;
++
++    public PriceRideUseCase(PriceListRepository priceLists, ReturnChargesProvider returnChargesProvider,
++                            DomainEventPublisher eventPublisher) {
++        this.priceLists = priceLists;
++        this.returnChargesProvider = returnChargesProvider;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void handle(RentalSessionEnded event) {
++        var ride = new Ride(new RentalSessionId(event.rentalSessionId()), new RiderId(event.riderId()),
++                            event.startedAt(), event.endedAt());
++        var priceList = PriceList.validAt(priceLists.all(), ride.startedAt())
++                                 .orElseThrow(() -> new NoPriceListValidAt(ride.startedAt()));
++        var returnCharges = returnChargesProvider.returnChargesFor(ride.rentalSessionId());
++        var events = priceList.price(ride, returnCharges);
++        eventPublisher.publish(events);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceList.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceList.java
+new file mode 100644
+index 0000000..89adb54
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceList.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++
++/// Canvas inbound command: "Publish Price List" from the back office. A new price list valid from a given moment.
++public record PublishPriceList(String priceListId, Instant validFrom, long freePeriodMinutes,
++                               BigDecimal firstHourFee, BigDecimal secondHourFee, BigDecimal thirdHourFee,
++                               BigDecimal subsequentHourlyFee, String currency) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java
+new file mode 100644
+index 0000000..013f9a9
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java
+@@ -0,0 +1,40 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import org.joda.money.CurrencyUnit;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.FreePeriod;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceList;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListId;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListRepository;
++
++import java.math.BigDecimal;
++
++/// Canvas inbound command: "Publish Price List" (back office).
++///
++/// Publishing creates a new price list and emits no domain event, because the canvas lists no outbound message for it.
++@PrimaryPort
++public class PublishPriceListUseCase {
++
++    private final PriceListRepository priceLists;
++
++    public PublishPriceListUseCase(PriceListRepository priceLists) {
++        this.priceLists = priceLists;
++    }
++
++    public void handle(PublishPriceList command) {
++        var currency = CurrencyUnit.of(command.currency());
++        var priceList = new PriceList(new PriceListId(command.priceListId()),
++                                      command.validFrom(),
++                                      FreePeriod.ofMinutes(command.freePeriodMinutes()),
++                                      money(currency, command.firstHourFee()),
++                                      money(currency, command.secondHourFee()),
++                                      money(currency, command.thirdHourFee()),
++                                      money(currency, command.subsequentHourlyFee()));
++        priceLists.save(priceList);
++    }
++
++    private static Money money(CurrencyUnit currency, BigDecimal amount) {
++        return Money.of(currency, amount);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/RentalSessionEnded.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/RentalSessionEnded.java
+new file mode 100644
+index 0000000..dc6570c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/RentalSessionEnded.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases;
++
++import java.time.Instant;
++
++/// Pricing's own record of the fact "Rental Session Ended" published by Rentals (canvas inbound event).
++///
++/// Rentals doesn't publish this event in code yet. When it does, an `@AntiCorruptionLayer` listener in
++/// `infra/adapters/primary/rentalsctxacl` should translate Rentals' event into this record.
++public record RentalSessionEnded(String rentalSessionId, String riderId, Instant startedAt, Instant endedAt) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/BillingPeriod.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/BillingPeriod.java
+new file mode 100644
+index 0000000..0ffa69e
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/BillingPeriod.java
+@@ -0,0 +1,34 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.time.Duration;
++import java.util.List;
++import java.util.stream.IntStream;
++
++/// **Billing Period**: one started hour of a ride after the free period.
++///
++/// `number` is 1-based: billing period 1 is the first started hour after the free period.
++@ValueObject
++public record BillingPeriod(int number) {
++
++    private static final Duration ONE_HOUR = Duration.ofHours(1);
++
++    public BillingPeriod {
++        if (number < 1) {
++            throw new IllegalArgumentException("Billing period number starts at 1");
++        }
++    }
++
++    /// Every billing period started by a ride of `rideDuration`. Started hours are counted from the end of the free
++    /// period, as the definition says. A ride not longer than the free period has no billing periods.
++    public static List<BillingPeriod> startedWithin(Duration rideDuration, FreePeriod freePeriod) {
++        var afterFreePeriod = rideDuration.minus(freePeriod.length());
++        if (afterFreePeriod.isNegative() || afterFreePeriod.isZero()) {
++            return List.of();
++        }
++        var fullHours = afterFreePeriod.dividedBy(ONE_HOUR);
++        var startedHours = afterFreePeriod.minus(ONE_HOUR.multipliedBy(fullHours)).isZero() ? fullHours : fullHours + 1;
++        return IntStream.rangeClosed(1, Math.toIntExact(startedHours)).mapToObj(BillingPeriod::new).toList();
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/FreePeriod.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/FreePeriod.java
+new file mode 100644
+index 0000000..2f097a7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/FreePeriod.java
+@@ -0,0 +1,22 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.time.Duration;
++import java.util.Objects;
++
++/// **Free Period**: the initial minutes of a rental session during which no fee is applied.
++@ValueObject
++public record FreePeriod(Duration length) {
++
++    public FreePeriod {
++        Objects.requireNonNull(length, "length");
++        if (length.isNegative()) {
++            throw new IllegalArgumentException("Free period cannot be negative");
++        }
++    }
++
++    public static FreePeriod ofMinutes(long minutes) {
++        return new FreePeriod(Duration.ofMinutes(minutes));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/NoPriceListValidAt.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/NoPriceListValidAt.java
+new file mode 100644
+index 0000000..f645add
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/NoPriceListValidAt.java
+@@ -0,0 +1,11 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import java.time.Instant;
++
++/// Thrown when no published price list was valid at the given moment, so no fee can be calculated.
++public class NoPriceListValidAt extends RuntimeException {
++
++    public NoPriceListValidAt(Instant moment) {
++        super("No price list was valid at " + moment);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceList.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceList.java
+new file mode 100644
+index 0000000..694689e
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceList.java
+@@ -0,0 +1,105 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.AggregateRoot;
++import org.jmolecules.ddd.annotation.Identity;
++import org.joda.money.CurrencyUnit;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.util.Collection;
++import java.util.Comparator;
++import java.util.List;
++import java.util.Objects;
++import java.util.Optional;
++
++/// **Price List**: set of fees (free period length, first/second/third hour fee, subsequent hourly fee) valid from a
++/// given moment.
++///
++/// Invariants:
++/// - all fees are non-negative and in one currency
++/// - a ride is priced only with a price list that was already valid when the ride started
++@AggregateRoot
++public class PriceList {
++
++    private final PriceListId id;
++    private final Instant validFrom;
++    private final FreePeriod freePeriod;
++    private final Money firstHourFee;
++    private final Money secondHourFee;
++    private final Money thirdHourFee;
++    private final Money subsequentHourlyFee;
++
++    public PriceList(PriceListId id, Instant validFrom, FreePeriod freePeriod, Money firstHourFee,
++                     Money secondHourFee, Money thirdHourFee, Money subsequentHourlyFee) {
++        this.id = Objects.requireNonNull(id, "id");
++        this.validFrom = Objects.requireNonNull(validFrom, "validFrom");
++        this.freePeriod = Objects.requireNonNull(freePeriod, "freePeriod");
++        this.firstHourFee = Objects.requireNonNull(firstHourFee, "firstHourFee");
++        this.secondHourFee = Objects.requireNonNull(secondHourFee, "secondHourFee");
++        this.thirdHourFee = Objects.requireNonNull(thirdHourFee, "thirdHourFee");
++        this.subsequentHourlyFee = Objects.requireNonNull(subsequentHourlyFee, "subsequentHourlyFee");
++        var fees = List.of(firstHourFee, secondHourFee, thirdHourFee, subsequentHourlyFee);
++        if (fees.stream().anyMatch(Money::isNegative)) {
++            throw new IllegalArgumentException("Price list fees cannot be negative");
++        }
++        if (fees.stream().map(Money::getCurrencyUnit).distinct().count() > 1) {
++            throw new IllegalArgumentException("All fees of a price list must be in one currency");
++        }
++    }
++
++    /// The price list valid at `moment`: the one with the latest valid-from moment that isn't after `moment`.
++    ///
++    /// Business rule "Price valid at ride start": the rider always pays the price list that was valid when the ride
++    /// started.
++    public static Optional<PriceList> validAt(Collection<PriceList> priceLists, Instant moment) {
++        return priceLists.stream()
++                         .filter(priceList -> priceList.hasTakenEffectBy(moment))
++                         .max(Comparator.comparing(priceList -> priceList.validFrom));
++    }
++
++    /// Prices a finished ride. Total fee = sum of billing period fees + return charges.
++    public DomainEvents price(Ride ride, ReturnCharges returnCharges) {
++        if (!hasTakenEffectBy(ride.startedAt())) {
++            throw new PriceListNotValidForRide(id, ride);
++        }
++        var totalFee = new TotalFee(billingPeriodsFee(ride.duration()).plus(returnCharges.amount()));
++        return DomainEvents.of(new PriceListEvent.RidePriced(ride.rentalSessionId(), ride.riderId(), id, totalFee));
++    }
++
++    /// Estimates the fee of a ride lasting `rideDuration`. Return charges are left out, because they're only known
++    /// once the ride has ended.
++    public TotalFee estimate(Duration rideDuration) {
++        return new TotalFee(billingPeriodsFee(rideDuration));
++    }
++
++    private boolean hasTakenEffectBy(Instant moment) {
++        return !validFrom.isAfter(moment);
++    }
++
++    private Money billingPeriodsFee(Duration rideDuration) {
++        return BillingPeriod.startedWithin(rideDuration, freePeriod)
++                            .stream()
++                            .map(this::feeFor)
++                            .reduce(Money.zero(currency()), Money::plus);
++    }
++
++    private Money feeFor(BillingPeriod billingPeriod) {
++        return switch (billingPeriod.number()) {
++            case 1 -> firstHourFee;
++            case 2 -> secondHourFee;
++            case 3 -> thirdHourFee;
++            default -> subsequentHourlyFee;
++        };
++    }
++
++    private CurrencyUnit currency() {
++        return firstHourFee.getCurrencyUnit();
++    }
++
++    @Identity
++    public PriceListId id() {
++        return id;
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListEvent.java
+new file mode 100644
+index 0000000..4918a8c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListEvent.java
+@@ -0,0 +1,11 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++
++public sealed interface PriceListEvent extends DomainEvent {
++
++    /// A finished ride got its total fee, calculated with the price list that was valid when the ride started.
++    record RidePriced(RentalSessionId rentalSessionId, RiderId riderId, PriceListId priceListId,
++                      TotalFee totalFee) implements PriceListEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListId.java
+new file mode 100644
+index 0000000..7a026ad
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListId.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record PriceListId(String value) {
++
++    public PriceListId {
++        Objects.requireNonNull(value, "value");
++        if (value.isBlank()) {
++            throw new IllegalArgumentException("Price list id cannot be blank");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListNotValidForRide.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListNotValidForRide.java
+new file mode 100644
+index 0000000..fdbb742
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListNotValidForRide.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++/// Thrown when a ride is priced with a price list that wasn't valid yet when the ride started.
++public class PriceListNotValidForRide extends RuntimeException {
++
++    public PriceListNotValidForRide(PriceListId priceListId, Ride ride) {
++        super("Price list " + priceListId.value() + " was not valid yet when ride " + ride.rentalSessionId().value()
++              + " started at " + ride.startedAt());
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListRepository.java
+new file mode 100644
+index 0000000..56057a1
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListRepository.java
+@@ -0,0 +1,20 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++import org.jmolecules.ddd.annotation.Repository;
++
++import java.util.Collection;
++import java.util.Optional;
++
++@Repository
++@SecondaryPort
++public interface PriceListRepository {
++
++    Optional<PriceList> load(PriceListId id);
++
++    /// All published price lists. Pick the one valid at a moment with `PriceList.validAt(...)`, so the
++    /// "price valid at ride start" rule stays in the domain and out of the adapters.
++    Collection<PriceList> all();
++
++    void save(PriceList priceList);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RentalSessionId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RentalSessionId.java
+new file mode 100644
+index 0000000..5e80de2
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RentalSessionId.java
+@@ -0,0 +1,17 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++/// Identifier of the rental session a ride belongs to, as carried by Rentals' "Rental Session Ended" event.
++@ValueObject
++public record RentalSessionId(String value) {
++
++    public RentalSessionId {
++        Objects.requireNonNull(value, "value");
++        if (value.isBlank()) {
++            throw new IllegalArgumentException("Rental session id cannot be blank");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnCharges.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnCharges.java
+new file mode 100644
+index 0000000..55e17b7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnCharges.java
+@@ -0,0 +1,23 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.CurrencyUnit;
++import org.joda.money.Money;
++
++import java.util.Objects;
++
++/// **Return Charges**: drop-zone or unauthorized-zone charges reported by Rentals.
++@ValueObject
++public record ReturnCharges(Money amount) {
++
++    public ReturnCharges {
++        Objects.requireNonNull(amount, "amount");
++        if (amount.isNegative()) {
++            throw new IllegalArgumentException("Return charges cannot be negative");
++        }
++    }
++
++    public static ReturnCharges none(CurrencyUnit currency) {
++        return new ReturnCharges(Money.zero(currency));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnChargesProvider.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnChargesProvider.java
+new file mode 100644
+index 0000000..09c2d60
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/ReturnChargesProvider.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++
++/// Return charges for a finished ride, in Pricing's language.
++///
++/// Canvas outbound query: "Get Return Charges" → Rentals (with ACL). Canvas assumption: return charges are always
++/// known by the time the session ends, so this is a synchronous query.
++@SecondaryPort
++public interface ReturnChargesProvider {
++
++    ReturnCharges returnChargesFor(RentalSessionId rentalSessionId);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/Ride.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/Ride.java
+new file mode 100644
+index 0000000..86b75e2
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/Ride.java
+@@ -0,0 +1,29 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.util.Objects;
++
++/// A finished ride to be priced: Pricing's view of a rental session that Rentals reported as ended.
++///
++/// The canvas purpose and every business rule use "ride", but the canvas's ubiquitous language doesn't define it
++/// yet (see the plan's open points).
++@ValueObject
++public record Ride(RentalSessionId rentalSessionId, RiderId riderId, Instant startedAt, Instant endedAt) {
++
++    public Ride {
++        Objects.requireNonNull(rentalSessionId, "rentalSessionId");
++        Objects.requireNonNull(riderId, "riderId");
++        Objects.requireNonNull(startedAt, "startedAt");
++        Objects.requireNonNull(endedAt, "endedAt");
++        if (endedAt.isBefore(startedAt)) {
++            throw new IllegalArgumentException("A ride cannot end before it started");
++        }
++    }
++
++    public Duration duration() {
++        return Duration.between(startedAt, endedAt);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RiderId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RiderId.java
+new file mode 100644
+index 0000000..c435ed7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/RiderId.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record RiderId(String value) {
++
++    public RiderId {
++        Objects.requireNonNull(value, "value");
++        if (value.isBlank()) {
++            throw new IllegalArgumentException("Rider id cannot be blank");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/TotalFee.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/TotalFee.java
+new file mode 100644
+index 0000000..ad662c2
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/TotalFee.java
+@@ -0,0 +1,18 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.Money;
++
++import java.util.Objects;
++
++/// **Total Fee**: sum of billing period fees plus return charges.
++@ValueObject
++public record TotalFee(Money amount) {
++
++    public TotalFee {
++        Objects.requireNonNull(amount, "amount");
++        if (amount.isNegative()) {
++            throw new IllegalArgumentException("Total fee cannot be negative");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/FeeEstimateRestApi.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/FeeEstimateRestApi.java
+new file mode 100644
+index 0000000..d4ca696
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/FeeEstimateRestApi.java
+@@ -0,0 +1,30 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.primary;
++
++import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RequestParam;
++import org.springframework.web.bind.annotation.RestController;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries.EstimateFeeQuery;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries.EstimateFeeQueryHandler;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries.FeeEstimate;
++
++/// Rider app entry point for the canvas query "Estimate Fee". The canvas doesn't describe the endpoint; the path and
++/// parameter are a scaffolding choice.
++@PrimaryAdapter
++@RestController
++@RequestMapping("/velocity/pricing/fee-estimates")
++public class FeeEstimateRestApi {
++
++    private final EstimateFeeQueryHandler estimateFee;
++
++    public FeeEstimateRestApi(EstimateFeeQueryHandler estimateFee) {
++        this.estimateFee = estimateFee;
++    }
++
++    @GetMapping
++    public ResponseEntity<FeeEstimate> estimate(@RequestParam("rideMinutes") long rideMinutes) {
++        return ResponseEntity.of(estimateFee.handle(new EstimateFeeQuery(rideMinutes)));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PriceListRestApi.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PriceListRestApi.java
+new file mode 100644
+index 0000000..6e23bf0
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PriceListRestApi.java
+@@ -0,0 +1,31 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.primary;
++
++import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases.PublishPriceList;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases.PublishPriceListUseCase;
++
++/// Back office entry point for the canvas command "Publish Price List". The canvas doesn't describe the endpoint;
++/// the path and body shape are a scaffolding choice.
++@PrimaryAdapter
++@RestController
++@RequestMapping("/velocity/pricing/price-lists")
++public class PriceListRestApi {
++
++    private final PublishPriceListUseCase publishPriceList;
++
++    public PriceListRestApi(PublishPriceListUseCase publishPriceList) {
++        this.publishPriceList = publishPriceList;
++    }
++
++    @PostMapping
++    public void publish(@RequestBody PublishPriceListRequest request) {
++        publishPriceList.handle(new PublishPriceList(request.priceListId(), request.validFrom(),
++                                                     request.freePeriodMinutes(), request.firstHourFee(),
++                                                     request.secondHourFee(), request.thirdHourFee(),
++                                                     request.subsequentHourlyFee(), request.currency()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PublishPriceListRequest.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PublishPriceListRequest.java
+new file mode 100644
+index 0000000..7e9a635
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PublishPriceListRequest.java
+@@ -0,0 +1,9 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.primary;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++
++public record PublishPriceListRequest(String priceListId, Instant validFrom, long freePeriodMinutes,
++                                      BigDecimal firstHourFee, BigDecimal secondHourFee, BigDecimal thirdHourFee,
++                                      BigDecimal subsequentHourlyFee, String currency) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/InMemoryPriceListRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/InMemoryPriceListRepository.java
+new file mode 100644
+index 0000000..f8fdd4d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/InMemoryPriceListRepository.java
+@@ -0,0 +1,33 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceList;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListId;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListRepository;
++
++import java.util.Collection;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemoryPriceListRepository implements PriceListRepository {
++
++    private final Map<PriceListId, PriceList> priceLists = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<PriceList> load(PriceListId id) {
++        return Optional.ofNullable(priceLists.get(id));
++    }
++
++    @Override
++    public Collection<PriceList> all() {
++        return List.copyOf(priceLists.values());
++    }
++
++    @Override
++    public void save(PriceList priceList) {
++        priceLists.put(priceList.id(), priceList);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/IntegrationEventsPublisher.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/IntegrationEventsPublisher.java
+new file mode 100644
+index 0000000..e301c15
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/IntegrationEventsPublisher.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.events.RidePriced;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListEvent;
++
++/// Translates Pricing's domain events into its published language (`api.events`).
++@SecondaryAdapter
++public class IntegrationEventsPublisher {
++
++    private final ApplicationEventPublisher publisher;
++
++    public IntegrationEventsPublisher(ApplicationEventPublisher publisher) {
++        this.publisher = publisher;
++    }
++
++    @EventListener
++    public void on(PriceListEvent.RidePriced event) {
++        var fee = event.totalFee().amount();
++        publisher.publishEvent(new RidePriced(event.rentalSessionId().value(), event.riderId().value(),
++                                              event.priceListId().value(), fee.getAmount(),
++                                              fee.getCurrencyUnit().getCode()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/RentalsReturnChargesAdapter.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/RentalsReturnChargesAdapter.java
+new file mode 100644
+index 0000000..0ebc771
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/RentalsReturnChargesAdapter.java
+@@ -0,0 +1,17 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary.rentalsctxacl;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.RentalSessionId;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.ReturnCharges;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.ReturnChargesProvider;
++
++@SecondaryAdapter
++public class RentalsReturnChargesAdapter implements ReturnChargesProvider {
++
++    @Override
++    public ReturnCharges returnChargesFor(RentalSessionId rentalSessionId) {
++        // Canvas outbound query: "Get Return Charges" → Rentals (ACL: yes).
++        // Rentals doesn't offer this query in code yet, so there's no API to translate from.
++        throw new UnsupportedOperationException("implement this");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java
+new file mode 100644
+index 0000000..eb21b33
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java
+@@ -0,0 +1,7 @@
++/// Anti-corruption layer towards the Rentals bounded context. This is the only package in Pricing where Rentals'
++/// language (classes, APIs or other published language) may appear. It translates Rentals' answers into Pricing's
++/// `ReturnCharges`.
++@AntiCorruptionLayer
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary.rentalsctxacl;
++
++import pl.wojtyna.dddtrainingv3.common.arch.AntiCorruptionLayer;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/config/PricingContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/config/PricingContextConfig.java
+new file mode 100644
+index 0000000..9e5b875
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/config/PricingContextConfig.java
+@@ -0,0 +1,53 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.infra.config;
++
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.queries.EstimateFeeQueryHandler;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases.PriceRideUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.usecases.PublishPriceListUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.PriceListRepository;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist.ReturnChargesProvider;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary.InMemoryPriceListRepository;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary.IntegrationEventsPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.infra.adapters.secondary.rentalsctxacl.RentalsReturnChargesAdapter;
++
++import java.time.Clock;
++
++@Configuration
++public class PricingContextConfig {
++
++    @Bean
++    public PriceListRepository pricingPriceListRepository() {
++        return new InMemoryPriceListRepository();
++    }
++
++    @Bean
++    public ReturnChargesProvider pricingReturnChargesProvider() {
++        return new RentalsReturnChargesAdapter();
++    }
++
++    @Bean
++    public PublishPriceListUseCase pricingPublishPriceListUseCase(PriceListRepository pricingPriceListRepository) {
++        return new PublishPriceListUseCase(pricingPriceListRepository);
++    }
++
++    @Bean
++    public PriceRideUseCase pricingPriceRideUseCase(PriceListRepository pricingPriceListRepository,
++                                                    ReturnChargesProvider pricingReturnChargesProvider,
++                                                    DomainEventPublisher eventPublisher) {
++        return new PriceRideUseCase(pricingPriceListRepository, pricingReturnChargesProvider, eventPublisher);
++    }
++
++    @Bean
++    public EstimateFeeQueryHandler pricingEstimateFeeQueryHandler(PriceListRepository pricingPriceListRepository) {
++        // Not a Clock bean on purpose: a context-wide Clock would be shared by every system in the application.
++        return new EstimateFeeQueryHandler(pricingPriceListRepository, Clock.systemUTC());
++    }
++
++    @Bean
++    public IntegrationEventsPublisher pricingIntegrationEventsPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        return new IntegrationEventsPublisher(applicationEventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java
+new file mode 100644
+index 0000000..bb52670
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java
+@@ -0,0 +1,47 @@
++/// # Pricing bounded context
++///
++/// ## Purpose
++/// Turns a finished ride into a fair, predictable fee. Riders are encouraged to take short trips (free period), long
++/// trips get progressively more expensive, and the rider always pays the price list that was valid when the ride
++/// started.
++///
++/// ## Strategic classification
++/// - Domain: core
++/// - Business model: revenue
++/// - Evolution: custom built
++///
++/// ## Domain roles
++/// - Execution Model: calculates the total fee for every rental session.
++///
++/// ## Ubiquitous language
++/// - **Price List**: set of fees (free period length, first/second/third hour fee, subsequent hourly fee) valid from
++///   a given moment.
++/// - **Free Period**: the initial minutes of a rental session during which no fee is applied.
++/// - **Billing Period**: one started hour of a ride after the free period.
++/// - **Total Fee**: sum of billing period fees plus return charges.
++/// - **Return Charges**: drop-zone or unauthorized-zone charges reported by Rentals.
++///
++/// ## Business decisions
++/// - Free ride: with a 10 minute free period, a ride of 8 minutes costs 0.00 PLN.
++/// - First hour: with a 10 minute free period and first-hour fee 5.00 PLN, a ride of 45 minutes costs 5.00 PLN.
++/// - Tiered hours: with a 10 minute free period and hour fees 5.00 / 7.00 / 9.00 / 12.00 (subsequent) PLN, a ride of
++///   3 hours 20 minutes costs 33.00 PLN.
++/// - Price valid at ride start: with price list A (first hour 5.00 PLN) valid from 08:00 and price list B (first hour
++///   6.00 PLN) valid from 09:00, a ride from 08:50 to 09:30 costs 5.00 PLN.
++///
++/// ## Assumptions
++/// - Return charges are always known by the time the session ends.
++///
++/// ## Verification metrics
++/// - Number of pricing disputes raised in Customer Support per 1000 rides.
++///
++/// ## Open questions
++/// - Does the maximum-rental-time penalty belong to Pricing or Rentals?
++///
++/// Source canvas: `docs/bounded-contexts/velocity/pricing/canvas.md`
++@BoundedContext(name = "Pricing")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.pricing;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListTest.java
+new file mode 100644
+index 0000000..eeb06c8
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListTest.java
+@@ -0,0 +1,129 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.domain.pricelist;
++
++import org.joda.money.CurrencyUnit;
++import org.joda.money.Money;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++@DisplayName("Price list examples")
++class PriceListTest {
++
++    private static final CurrencyUnit PLN = CurrencyUnit.of("PLN");
++    private static final Instant MORNING = Instant.parse("2026-11-02T07:00:00Z");
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a price list with a 10 minute free period,
++         when a ride of 8 minutes is priced,
++         then the total fee is 0.00 PLN
++        """
++    )
++    // @formatter:on
++    @Test
++    void freeRide() {
++        // given
++        var priceList = priceList("PL-1", MORNING, 10, "5.00", "7.00", "9.00", "12.00");
++
++        // when
++        var events = priceList.price(ride(MORNING, Duration.ofMinutes(8)), ReturnCharges.none(PLN));
++
++        // then
++        assertThat(hasTotalFee(events, "PLN 0.00")).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a price list with a 10 minute free period and first-hour fee 5.00 PLN,
++         when a ride of 45 minutes is priced,
++         then the total fee is 5.00 PLN
++        """
++    )
++    // @formatter:on
++    @Test
++    void firstHour() {
++        // given
++        var priceList = priceList("PL-1", MORNING, 10, "5.00", "7.00", "9.00", "12.00");
++
++        // when
++        var events = priceList.price(ride(MORNING, Duration.ofMinutes(45)), ReturnCharges.none(PLN));
++
++        // then
++        assertThat(hasTotalFee(events, "PLN 5.00")).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a price list with a 10 minute free period, first-hour fee 5.00 PLN, second-hour fee 7.00 PLN,
++           third-hour fee 9.00 PLN and subsequent hourly fee 12.00 PLN,
++         when a ride of 3 hours 20 minutes is priced,
++         then the total fee is 33.00 PLN
++        """
++    )
++    // @formatter:on
++    @Test
++    void tieredHours() {
++        // given
++        var priceList = priceList("PL-1", MORNING, 10, "5.00", "7.00", "9.00", "12.00");
++
++        // when
++        var events = priceList.price(ride(MORNING, Duration.ofHours(3).plusMinutes(20)), ReturnCharges.none(PLN));
++
++        // then
++        assertThat(hasTotalFee(events, "PLN 33.00")).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given price list A (first-hour fee 5.00 PLN) valid from 08:00
++           and price list B (first-hour fee 6.00 PLN) valid from 09:00,
++         when a ride that started at 08:50 and ended at 09:30 is priced,
++         then the total fee is 5.00 PLN
++        """
++    )
++    // @formatter:on
++    @Test
++    void priceValidAtRideStart() {
++        // given
++        // The canvas gives no free period or other fees for A and B; any free period shorter than 40 minutes
++        // yields 5.00 PLN, so the test uses the 10 minutes from the other examples.
++        var priceListA = priceList("A", Instant.parse("2026-11-02T08:00:00Z"), 10, "5.00", "7.00", "9.00", "12.00");
++        var priceListB = priceList("B", Instant.parse("2026-11-02T09:00:00Z"), 10, "6.00", "7.00", "9.00", "12.00");
++        var ride = new Ride(new RentalSessionId("session-1"), new RiderId("george"),
++                            Instant.parse("2026-11-02T08:50:00Z"), Instant.parse("2026-11-02T09:30:00Z"));
++
++        // when
++        var priceList = PriceList.validAt(List.of(priceListA, priceListB), ride.startedAt()).orElseThrow();
++        var events = priceList.price(ride, ReturnCharges.none(PLN));
++
++        // then
++        assertThat(hasTotalFee(events, "PLN 5.00")).isTrue();
++    }
++
++    private static PriceList priceList(String id, Instant validFrom, long freePeriodMinutes, String firstHourFee,
++                                       String secondHourFee, String thirdHourFee, String subsequentHourlyFee) {
++        return new PriceList(new PriceListId(id), validFrom, FreePeriod.ofMinutes(freePeriodMinutes),
++                             Money.parse("PLN " + firstHourFee), Money.parse("PLN " + secondHourFee),
++                             Money.parse("PLN " + thirdHourFee), Money.parse("PLN " + subsequentHourlyFee));
++    }
++
++    private static Ride ride(Instant startedAt, Duration duration) {
++        return new Ride(new RentalSessionId("session-1"), new RiderId("george"), startedAt, startedAt.plus(duration));
++    }
++
++    private static boolean hasTotalFee(DomainEvents events, String expectedFee) {
++        return events.hasAtLeastOneEventMatching(
++            event -> event instanceof PriceListEvent.RidePriced ridePriced
++                     && ridePriced.totalFee().amount().equals(Money.parse(expectedFee)));
++    }
++}

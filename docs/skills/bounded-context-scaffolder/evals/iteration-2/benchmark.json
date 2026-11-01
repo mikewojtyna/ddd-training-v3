@@ -1,0 +1,661 @@
+{
+  "metadata": {
+    "skill_name": "bounded-context-scaffolder",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-01T21:07:00Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 18,
+        "failed": 0,
+        "total": 18,
+        "time_seconds": 540.6,
+        "tokens": 185785,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for pricing",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/pricing/plan.md"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+        },
+        {
+          "text": "package-info javadoc has all 8 canvas sections",
+          "passed": true,
+          "evidence": "missing: none"
+        },
+        {
+          "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java"
+        },
+        {
+          "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+        },
+        {
+          "text": "Outbound event is an IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+        },
+        {
+          "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+        },
+        {
+          "text": "Data types are records, no getX() getters in generated main code",
+          "passed": true,
+          "evidence": "records=15; files with getters: none"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=10, GWT DisplayNames=10; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListsTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListTest.java']"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['PriceListTest#freeRide', 'PriceListTest#firstHour', 'PriceListTest#tieredHours', 'PriceListsTest#priceValidAtRideStart', 'PriceListTest#returnCharges', 'PriceListTest#billingPeriodsStartAfterFreePeriod', 'PriceListTest#rideAsLongAsFreePeriodIsFree', 'PriceListTest#rideEndingOnHourBoundary', 'PriceListsTest#rideStartingWhenNewPriceListBecomesValid', 'PriceListsTest#noPriceListValidAtRideStart']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern '8\\\\.00|drop.?zone' in Business decisions"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 16,
+        "failed": 0,
+        "total": 16,
+        "time_seconds": 447.9,
+        "tokens": 168140,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends/creates a markdown canvas for the inline input",
+          "passed": true,
+          "evidence": "canvas files: ['docs/bounded-contexts/velocity/settlement/canvas.md']; final message mentions markdown/canvas.md: False"
+        },
+        {
+          "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+          "passed": true,
+          "evidence": "final_message.md"
+        },
+        {
+          "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+          "passed": true,
+          "evidence": "ACL payment packages: none"
+        },
+        {
+          "text": "Plan markdown file created for settlement",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/settlement/plan.md"
+        },
+        {
+          "text": "Conformist decision recorded in the plan",
+          "passed": true,
+          "evidence": "plan mentions conformist"
+        },
+        {
+          "text": "Vague retry rule flagged as awaiting a strict GWT example",
+          "passed": true,
+          "evidence": "awaiting"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['SettlementTest#thirdFailedChargeAttemptRecordsOutstandingDebt', 'SettlementTest#successfulSecondChargeAttemptSettlesRide']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern '12\\\\.50|3rd|third' in Business decisions"
+        },
+        {
+          "text": "Phase B: retry rule no longer marked 'not modelled yet'",
+          "passed": true,
+          "evidence": "Business decisions"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 98.7,
+        "tokens": 69140,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No Java code generated without a canvas",
+          "passed": true,
+          "evidence": "java files: none"
+        },
+        {
+          "text": "Pre-filled canvas template created for DebtRecovery",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/debtrecovery/canvas.md"
+        },
+        {
+          "text": "Template contains Given/When/Then business-decision section",
+          "passed": true,
+          "evidence": "checked canvas file"
+        },
+        {
+          "text": "Final message asks the user to fill in the canvas",
+          "passed": true,
+          "evidence": "final_message.md"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 17,
+        "failed": 0,
+        "total": 17,
+        "time_seconds": 446.6,
+        "tokens": 180379,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for rentals",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/rentals/plan.md"
+        },
+        {
+          "text": "Plan has a dated Changelog entry",
+          "passed": true,
+          "evidence": "checked plan"
+        },
+        {
+          "text": "returnBike implemented (no UnsupportedOperationException)",
+          "passed": true,
+          "evidence": "BikeStation.java modified"
+        },
+        {
+          "text": "At least 2 GWT tests (@DisplayName text block with given/when/then) covering 'return'",
+          "passed": true,
+          "evidence": "@Test=6, GWT DisplayNames=6, 'return' hits=9; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java']"
+        },
+        {
+          "text": "Existing BikeStationTest methods preserved",
+          "passed": true,
+          "evidence": "removed: none"
+        },
+        {
+          "text": "No files deleted",
+          "passed": true,
+          "evidence": "searched diff"
+        },
+        {
+          "text": "Bike Returned published as IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java"
+        },
+        {
+          "text": "Available Bikes query handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQueryHandler.java"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['BikeStationTest#test0', 'BikeStationTest#test3', 'BikeStationTest#returnRentedBike', 'BikeStationTest#returnBikeThatIsNotRented', 'BikeStationTest#test1']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern 'return' in Business decisions"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.82,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 411.7,
+        "tokens": 114017,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for pricing",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+        },
+        {
+          "text": "package-info javadoc has all 8 canvas sections",
+          "passed": false,
+          "evidence": "missing: ['purpose', 'strategic', 'domain role', 'ubiquitous', 'business decision', 'assumption', 'verification', 'open question']"
+        },
+        {
+          "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java"
+        },
+        {
+          "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+        },
+        {
+          "text": "Outbound event is an IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+        },
+        {
+          "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+        },
+        {
+          "text": "Data types are records, no getX() getters in generated main code",
+          "passed": true,
+          "evidence": "records=14; files with getters: none"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=10, GWT DisplayNames=10; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCaseTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricecatalog/PriceCatalogTest.java']"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 3,
+        "failed": 6,
+        "total": 9,
+        "time_seconds": 408.5,
+        "tokens": 113946,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends/creates a markdown canvas for the inline input",
+          "passed": false,
+          "evidence": "canvas files: []; final message mentions markdown/canvas.md: False"
+        },
+        {
+          "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+          "passed": false,
+          "evidence": "final_message.md"
+        },
+        {
+          "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+          "passed": true,
+          "evidence": "ACL payment packages: none"
+        },
+        {
+          "text": "Plan markdown file created for settlement",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "Conformist decision recorded in the plan",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Vague retry rule flagged as awaiting a strict GWT example",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Retry count not hard-coded from a guessed threshold",
+          "passed": false,
+          "evidence": "Attempts < 1"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": 326.0,
+        "tokens": 109367,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No Java code generated without a canvas",
+          "passed": false,
+          "evidence": "java files: ['src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/package-info.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/CloseRecoveryOnDebtClearedUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/ResumeRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/PauseRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/AttemptCollectionUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/StartRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/DebtCollector.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessRepo.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcess.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessNotPausedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessPausedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessClosedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessEvent.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/FluentLanguage.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/PauseReason.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryStatus.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RiderId.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessId.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/config/DebtRecoveryContextConfig.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/primary/RecoveryProcessRestApi.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/repository/InMemoryRecoveryProcessRepo.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementContextAclConfig.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementDebtCollector.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementEventsTranslator.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementPublishedLanguage.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/package-info.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessTest.java']"
+        },
+        {
+          "text": "Pre-filled canvas template created for DebtRecovery",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "Template contains Given/When/Then business-decision section",
+          "passed": false,
+          "evidence": "checked canvas file"
+        },
+        {
+          "text": "Final message asks the user to fill in the canvas",
+          "passed": false,
+          "evidence": "final_message.md"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 8,
+        "failed": 2,
+        "total": 10,
+        "time_seconds": 226.9,
+        "tokens": 85225,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for rentals",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "Plan has a dated Changelog entry",
+          "passed": false,
+          "evidence": "checked plan"
+        },
+        {
+          "text": "returnBike implemented (no UnsupportedOperationException)",
+          "passed": true,
+          "evidence": "BikeStation.java modified"
+        },
+        {
+          "text": "At least 2 GWT tests (@DisplayName text block with given/when/then) covering 'return'",
+          "passed": true,
+          "evidence": "@Test=9, GWT DisplayNames=9, 'return' hits=14; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCaseTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java']"
+        },
+        {
+          "text": "Existing BikeStationTest methods preserved",
+          "passed": true,
+          "evidence": "removed: none"
+        },
+        {
+          "text": "No files deleted",
+          "passed": true,
+          "evidence": "searched diff"
+        },
+        {
+          "text": "Bike Returned published as IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java"
+        },
+        {
+          "text": "Available Bikes query handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQuery.java"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 383.45,
+        "stddev": 194.8678,
+        "min": 98.7,
+        "max": 540.6
+      },
+      "tokens": {
+        "mean": 150861.0,
+        "stddev": 54978.4315,
+        "min": 69140,
+        "max": 185785
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.4875,
+        "stddev": 0.3961,
+        "min": 0.0,
+        "max": 0.82
+      },
+      "time_seconds": {
+        "mean": 343.275,
+        "stddev": 87.1356,
+        "min": 226.9,
+        "max": 411.7
+      },
+      "tokens": {
+        "mean": 105638.75,
+        "stddev": 13781.9509,
+        "min": 85225,
+        "max": 114017
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.51",
+      "time_seconds": "+40.2",
+      "tokens": "+45222"
+    }
+  },
+  "notes": [
+    "Single run per configuration. Baselines are reused from iteration 1 (the skill change cannot affect a no-skill run).",
+    "With-skill runs now have two phases: A = first request (must stop at a saved draft plan), B = fresh session resuming after a simulated user approval. Time/tokens are A+B summed, so they are not comparable 1:1 with the single-shot baseline.",
+    "New checks (7 per code-generating eval) cover the review gate, resume-from-plan, and javadoc/test sync. They have no baseline counterpart; the baseline would fail the gate by construction (it generated code immediately in every case).",
+    "Phase B honoured mid-review changes: Pricing added the user's return-charges rule (canvas, plan, javadoc, test); Settlement turned the vague retry rule into 2 tested invariants while keeping retry timing marked 'not modelled yet'.",
+    "Watch item: resumed sessions made a few calls outside the approved plan (Settlement: an extra use case + guard; Pricing: modelled 'defaults' as 7 extra tests). Each was surfaced as a judgement call / new open question, which is the behaviour we want, but it shows plans could be more complete."
+  ]
+}

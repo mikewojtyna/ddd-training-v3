@@ -1,0 +1,1362 @@
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+index 154edd3..02123ca 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+@@ -11,7 +11,7 @@ VeloCity is a city bike rental service and the current exercise of the training.
+ 
+ ## Bounded contexts
+ 
+-The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` exists in code so far.** Add the others as new subpackages that follow the root layout.
++The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` and `settlement` exist in code so far.** `pricing` and `payments` contain only the published-language stubs that Settlement consumes. Add the others as new subpackages that follow the root layout.
+ 
+ ## Rentals
+ 
+@@ -22,3 +22,12 @@ The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Pa
+ - Some parts are intentional workshop stubs: `BikeStation.returnBike` throws `UnsupportedOperationException`, and `RentBikeUseCase` only contains the load, execute, save, publish steps as comments.
+ - `rentals/package-info.java` declares the context with `@BoundedContext(name = "Rentals")` and `@Module`. The name matches the CML. Give each new VeloCity context the same kind of `package-info.java`, named after its CML `BoundedContext`.
+ - Tests (`src/test/.../velocity/rentals/domain/bikestation/BikeStationTest`) are written as given/when/then examples, with the scenario in `@DisplayName`, and live in the same package as the domain.
++
++## Settlement
++
++- `Settlement` (`domain/settlement`) is the aggregate root: the process of collecting money for one priced ride. Its id is derived from the ride (`SettlementId.forRide`), so a redelivered Ride Priced event never charges twice. Each try is a `ChargeAttempt`. When the last allowed attempt fails, the fee becomes `OutstandingDebt`.
++- The retry rule lives in `ChargeRetryPolicy`. `standard()` allows 3 attempts in total, 15 minutes apart. These numbers are assumptions that the business has not confirmed.
++- The command is fluent: `settlement.record(chargeResult).at(instant)` returns `DomainEvents`. Events are the sealed `SettlementEvent` hierarchy (`RiderCharged`, `ChargeAttemptFailed`, `DebtRecorded`).
++- Inbound: `pricing.api.events.RidePriced` is handled by `RidePricedListener`, which calls `SettleRideUseCase` (open the settlement and make the first attempt). `ChargeRetryScheduler` (`@Scheduled`, `velocity.settlement.retry-poll-interval`, default `PT1M`) calls `RetryDueChargeAttemptsUseCase`.
++- Settlement is **conformist to Payments with no ACL**. The domain and `AttemptChargeUseCase` use `payments.api.usecases.ChargeRider`, `ChargeResult` and `ChargeRiderUseCase` directly. The Payments bean is a stub that throws `UnsupportedOperationException`.
++- Outbound: `DebtRecordedPublisher` turns the domain `DebtRecorded` into `settlement.api.events.DebtRecorded` for DebtRecovery.
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeResult.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeResult.java
+new file mode 100644
+index 0000000..a520a25
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeResult.java
+@@ -0,0 +1,17 @@
++package pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++/**
++ * Outcome of a {@link ChargeRider} command. A charge either succeeds or fails.
++ */
++public sealed interface ChargeResult {
++
++    @ValueObject
++    record Succeeded(String chargeId) implements ChargeResult {
++    }
++
++    @ValueObject
++    record Failed(String reason) implements ChargeResult {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRider.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRider.java
+new file mode 100644
+index 0000000..e016c11
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRider.java
+@@ -0,0 +1,20 @@
++package pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.Money;
++
++import java.util.Objects;
++
++/**
++ * Command to take {@code amount} from the rider's payment method on file. {@code chargeReference} identifies the
++ * charge on the caller's side, for example a settlement and its attempt number.
++ */
++@ValueObject
++public record ChargeRider(String riderId, String chargeReference, Money amount) {
++
++    public ChargeRider {
++        Objects.requireNonNull(riderId, "riderId");
++        Objects.requireNonNull(chargeReference, "chargeReference");
++        Objects.requireNonNull(amount, "amount");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRiderUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRiderUseCase.java
+new file mode 100644
+index 0000000..547fd5e
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeRiderUseCase.java
+@@ -0,0 +1,12 @@
++package pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++
++/**
++ * Open host service of Payments for charging a rider's payment method.
++ */
++@PrimaryPort
++public interface ChargeRiderUseCase {
++
++    ChargeResult charge(ChargeRider command);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/config/PaymentsContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/config/PaymentsContextConfig.java
+new file mode 100644
+index 0000000..b697101
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/config/PaymentsContextConfig.java
+@@ -0,0 +1,17 @@
++package pl.wojtyna.dddtrainingv3.velocity.payments.infra.config;
++
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRiderUseCase;
++
++@Configuration
++public class PaymentsContextConfig {
++
++    @Bean
++    public ChargeRiderUseCase chargeRiderUseCase() {
++        // workshop stub: the payment processor integration is not implemented yet
++        return command -> {
++            throw new UnsupportedOperationException("Implement charging in the Payments context");
++        };
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/package-info.java
+new file mode 100644
+index 0000000..98437b4
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/package-info.java
+@@ -0,0 +1,11 @@
++/**
++ * Payments bounded context. Verifies payment methods and charges them through the external payment processor. So far
++ * only the open host service that other contexts use exists (the {@code api} package). The payment processor
++ * integration is not implemented yet.
++ */
++@BoundedContext(name = "Payments")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.payments;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java
+new file mode 100644
+index 0000000..b5275b7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java
+@@ -0,0 +1,22 @@
++package pl.wojtyna.dddtrainingv3.velocity.pricing.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++import java.time.Instant;
++import java.util.Objects;
++
++/**
++ * Published by Pricing once the total fee of a finished ride is known.
++ */
++@ValueObject
++public record RidePriced(String rideId, String riderId, Money totalFee, Instant pricedAt) implements IntegrationEvent {
++
++    public RidePriced {
++        Objects.requireNonNull(rideId, "rideId");
++        Objects.requireNonNull(riderId, "riderId");
++        Objects.requireNonNull(totalFee, "totalFee");
++        Objects.requireNonNull(pricedAt, "pricedAt");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java
+new file mode 100644
+index 0000000..c6f6ad0
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java
+@@ -0,0 +1,10 @@
++/**
++ * Pricing bounded context. Calculates the total fee of a ride. So far only the published language that other
++ * contexts use exists (the {@code api} package). The calculation itself is not implemented yet.
++ */
++@BoundedContext(name = "Pricing")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.pricing;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java
+new file mode 100644
+index 0000000..c7de9e9
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++import java.time.Instant;
++
++/**
++ * Published for DebtRecovery when all charge attempts for a ride have failed and the unpaid amount became outstanding
++ * debt.
++ */
++@ValueObject
++public record DebtRecorded(String settlementId, String rideId, String riderId, Money outstandingDebt,
++                           Instant recordedAt) implements IntegrationEvent {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/AttemptChargeUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/AttemptChargeUseCase.java
+new file mode 100644
+index 0000000..b9a2222
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/AttemptChargeUseCase.java
+@@ -0,0 +1,43 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRiderUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++import java.time.Clock;
++
++/**
++ * Makes one charge attempt for a settlement, if one is due. Settlement conforms to Payments, so it calls
++ * Payments' {@link ChargeRiderUseCase} directly, without an anti-corruption layer.
++ */
++@PrimaryPort
++public class AttemptChargeUseCase {
++
++    private final SettlementRepository settlementRepository;
++    private final ChargeRiderUseCase payments;
++    private final DomainEventPublisher eventPublisher;
++    private final Clock clock;
++
++    public AttemptChargeUseCase(SettlementRepository settlementRepository, ChargeRiderUseCase payments,
++                                DomainEventPublisher eventPublisher, Clock clock) {
++        this.settlementRepository = settlementRepository;
++        this.payments = payments;
++        this.eventPublisher = eventPublisher;
++        this.clock = clock;
++    }
++
++    public void attempt(SettlementId settlementId) {
++        settlementRepository.load(settlementId).ifPresent(settlement -> {
++            var now = clock.instant();
++            if (!settlement.isDueForChargeAttempt(now)) {
++                return;
++            }
++            var result = payments.charge(settlement.nextChargeAttempt());
++            var events = settlement.record(result).at(now);
++            settlementRepository.save(settlement);
++            eventPublisher.publish(events);
++        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryDueChargeAttemptsUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryDueChargeAttemptsUseCase.java
+new file mode 100644
+index 0000000..6c552da
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryDueChargeAttemptsUseCase.java
+@@ -0,0 +1,28 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++import java.time.Clock;
++
++/**
++ * Retries every settlement whose next charge attempt is due. Triggered periodically.
++ */
++@PrimaryPort
++public class RetryDueChargeAttemptsUseCase {
++
++    private final SettlementRepository settlementRepository;
++    private final AttemptChargeUseCase attemptChargeUseCase;
++    private final Clock clock;
++
++    public RetryDueChargeAttemptsUseCase(SettlementRepository settlementRepository,
++                                         AttemptChargeUseCase attemptChargeUseCase, Clock clock) {
++        this.settlementRepository = settlementRepository;
++        this.attemptChargeUseCase = attemptChargeUseCase;
++        this.clock = clock;
++    }
++
++    public void retryDue() {
++        settlementRepository.findDueForChargeAttempt(clock.instant()).forEach(attemptChargeUseCase::attempt);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java
+new file mode 100644
+index 0000000..8aa9f15
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java
+@@ -0,0 +1,40 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeRetryPolicy;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.Settlement;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++import java.time.Instant;
++
++/**
++ * Starts settling a priced ride and makes the first charge attempt right away. A ride that is already being settled
++ * is ignored, so a redelivered Ride Priced event never charges the rider twice.
++ */
++@PrimaryPort
++public class SettleRideUseCase {
++
++    private final SettlementRepository settlementRepository;
++    private final AttemptChargeUseCase attemptChargeUseCase;
++    private final ChargeRetryPolicy retryPolicy;
++
++    public SettleRideUseCase(SettlementRepository settlementRepository, AttemptChargeUseCase attemptChargeUseCase,
++                             ChargeRetryPolicy retryPolicy) {
++        this.settlementRepository = settlementRepository;
++        this.attemptChargeUseCase = attemptChargeUseCase;
++        this.retryPolicy = retryPolicy;
++    }
++
++    public void settle(RideId rideId, RiderId riderId, Money totalFee, Instant pricedAt) {
++        var settlementId = SettlementId.forRide(rideId);
++        if (settlementRepository.load(settlementId).isPresent()) {
++            return;
++        }
++        settlementRepository.save(Settlement.open(rideId, riderId, totalFee, pricedAt, retryPolicy));
++        attemptChargeUseCase.attempt(settlementId);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java
+new file mode 100644
+index 0000000..a96b2a6
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java
+@@ -0,0 +1,27 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeResult;
++
++import java.time.Instant;
++import java.util.Objects;
++
++/**
++ * One try to take money from the rider's payment method. Settlement conforms to Payments, so the outcome is
++ * Payments' own {@link ChargeResult}.
++ */
++@ValueObject
++public record ChargeAttempt(int number, Instant attemptedAt, ChargeResult result) {
++
++    public ChargeAttempt {
++        if (number < 1) {
++            throw new IllegalArgumentException("Charge attempt numbers start at 1");
++        }
++        Objects.requireNonNull(attemptedAt, "attemptedAt");
++        Objects.requireNonNull(result, "result");
++    }
++
++    public boolean succeeded() {
++        return result instanceof ChargeResult.Succeeded;
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttemptNotDueException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttemptNotDueException.java
+new file mode 100644
+index 0000000..ca1a860
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttemptNotDueException.java
+@@ -0,0 +1,8 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++public class ChargeAttemptNotDueException extends RuntimeException {
++
++    public ChargeAttemptNotDueException(String message) {
++        super(message);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRetryPolicy.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRetryPolicy.java
+new file mode 100644
+index 0000000..8ccd66b
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRetryPolicy.java
+@@ -0,0 +1,43 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.util.Objects;
++
++/**
++ * "If a charge fails we retry a few times shortly after the ride, then record debt."
++ * <p>
++ * {@code maxAttempts} counts every charge attempt, including the first one. The {@link #standard()} values are
++ * assumptions that still have to be confirmed with the business.
++ */
++@ValueObject
++public record ChargeRetryPolicy(int maxAttempts, Duration delayBetweenAttempts) {
++
++    public ChargeRetryPolicy {
++        if (maxAttempts < 1) {
++            throw new IllegalArgumentException("At least one charge attempt is required");
++        }
++        Objects.requireNonNull(delayBetweenAttempts, "delayBetweenAttempts");
++        if (delayBetweenAttempts.isNegative()) {
++            throw new IllegalArgumentException("Delay between charge attempts cannot be negative");
++        }
++    }
++
++    /**
++     * 3 attempts in total (1 charge + 2 retries), 15 minutes apart, so the last retry happens 30 minutes after the
++     * ride was priced.
++     */
++    public static ChargeRetryPolicy standard() {
++        return new ChargeRetryPolicy(3, Duration.ofMinutes(15));
++    }
++
++    boolean allowsAnotherAttemptAfter(int attemptsMade) {
++        return attemptsMade < maxAttempts;
++    }
++
++    Instant nextAttemptAfter(Instant failedAttemptAt) {
++        return failedAttemptAt.plus(delayBetweenAttempts);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/FluentLanguage.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/FluentLanguage.java
+new file mode 100644
+index 0000000..0f292a5
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/FluentLanguage.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++public interface FluentLanguage {
++
++    @FunctionalInterface
++    interface At<S, R> {
++
++        R at(S s);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java
+new file mode 100644
+index 0000000..a721e93
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java
+@@ -0,0 +1,20 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import org.joda.money.Money;
++
++import java.util.Objects;
++
++/**
++ * The unpaid amount left after all charge attempts for a ride have failed.
++ */
++@ValueObject
++public record OutstandingDebt(Money amount) {
++
++    public OutstandingDebt {
++        Objects.requireNonNull(amount, "amount");
++        if (!amount.isPositive()) {
++            throw new IllegalArgumentException("Outstanding debt must be positive");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java
+new file mode 100644
+index 0000000..f7f5261
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record RideId(String value) {
++
++    public RideId {
++        Objects.requireNonNull(value, "value");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java
+new file mode 100644
+index 0000000..53fc457
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record RiderId(String value) {
++
++    public RiderId {
++        Objects.requireNonNull(value, "value");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java
+new file mode 100644
+index 0000000..5c4f0b8
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java
+@@ -0,0 +1,133 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.AggregateRoot;
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeResult;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRider;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.FluentLanguage.At;
++
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Objects;
++import java.util.Optional;
++
++/**
++ * The process of collecting money for one priced ride. It ends either when a charge attempt succeeds or when the
++ * last allowed attempt fails and the unpaid amount becomes outstanding debt. Either way, every ride ends up settled.
++ * <p>
++ * Settlement conforms to Payments, so it speaks Payments' {@link ChargeRider} and {@link ChargeResult} directly.
++ */
++@AggregateRoot
++public class Settlement {
++
++    private final SettlementId id;
++    private final RideId rideId;
++    private final RiderId riderId;
++    private final Money amount;
++    private final ChargeRetryPolicy retryPolicy;
++    private final List<ChargeAttempt> attempts = new ArrayList<>();
++    private Status status = Status.AWAITING_CHARGE;
++    private Instant nextAttemptAt;
++
++    private Settlement(RideId rideId, RiderId riderId, Money amount, Instant pricedAt,
++                       ChargeRetryPolicy retryPolicy) {
++        this.id = SettlementId.forRide(rideId);
++        this.rideId = rideId;
++        this.riderId = riderId;
++        this.amount = amount;
++        this.retryPolicy = retryPolicy;
++        this.nextAttemptAt = pricedAt;
++    }
++
++    /**
++     * Opens the settlement of a priced ride. The first charge attempt is due immediately.
++     */
++    public static Settlement open(RideId rideId, RiderId riderId, Money amount, Instant pricedAt,
++                                  ChargeRetryPolicy retryPolicy) {
++        Objects.requireNonNull(rideId, "rideId");
++        Objects.requireNonNull(riderId, "riderId");
++        Objects.requireNonNull(amount, "amount");
++        Objects.requireNonNull(pricedAt, "pricedAt");
++        Objects.requireNonNull(retryPolicy, "retryPolicy");
++        if (!amount.isPositive()) {
++            throw new IllegalArgumentException("Only rides with a positive fee need settling");
++        }
++        return new Settlement(rideId, riderId, amount, pricedAt, retryPolicy);
++    }
++
++    public boolean isDueForChargeAttempt(Instant now) {
++        return !isClosed() && !now.isBefore(nextAttemptAt);
++    }
++
++    /**
++     * The command to send to Payments for the next charge attempt.
++     */
++    public ChargeRider nextChargeAttempt() {
++        ensureOpen();
++        return new ChargeRider(riderId.value(), id.value() + "/attempt-" + (attempts.size() + 1), amount);
++    }
++
++    /**
++     * Records the outcome of a charge attempt: {@code settlement.record(result).at(attemptedAt)}.
++     */
++    public At<Instant, DomainEvents> record(ChargeResult result) {
++        Objects.requireNonNull(result, "result");
++        return attemptedAt -> {
++            ensureOpen();
++            if (attemptedAt.isBefore(nextAttemptAt)) {
++                throw new ChargeAttemptNotDueException(
++                    "Next charge attempt of " + id.value() + " is due at " + nextAttemptAt);
++            }
++            var attempt = new ChargeAttempt(attempts.size() + 1, attemptedAt, result);
++            attempts.add(attempt);
++            return switch (result) {
++                case ChargeResult.Succeeded succeeded -> {
++                    status = Status.CHARGED;
++                    nextAttemptAt = null;
++                    yield DomainEvents.of(new SettlementEvent.RiderCharged(id, rideId, riderId, amount,
++                                                                           attempt.number(), attemptedAt));
++                }
++                case ChargeResult.Failed failed when retryPolicy.allowsAnotherAttemptAfter(attempts.size()) -> {
++                    nextAttemptAt = retryPolicy.nextAttemptAfter(attemptedAt);
++                    yield DomainEvents.of(new SettlementEvent.ChargeAttemptFailed(id, attempt.number(),
++                                                                                  failed.reason(), nextAttemptAt));
++                }
++                case ChargeResult.Failed failed -> {
++                    status = Status.DEBT_RECORDED;
++                    nextAttemptAt = null;
++                    yield DomainEvents.of(new SettlementEvent.DebtRecorded(id, rideId, riderId,
++                                                                           new OutstandingDebt(amount),
++                                                                           attempts.size(), attemptedAt));
++                }
++            };
++        };
++    }
++
++    public SettlementId id() {
++        return id;
++    }
++
++    public boolean isClosed() {
++        return status != Status.AWAITING_CHARGE;
++    }
++
++    public Optional<Instant> nextAttemptAt() {
++        return Optional.ofNullable(nextAttemptAt);
++    }
++
++    public List<ChargeAttempt> attempts() {
++        return List.copyOf(attempts);
++    }
++
++    private void ensureOpen() {
++        if (isClosed()) {
++            throw new SettlementAlreadyClosedException("Settlement " + id.value() + " is already closed: " + status);
++        }
++    }
++
++    private enum Status {
++        AWAITING_CHARGE, CHARGED, DEBT_RECORDED
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementAlreadyClosedException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementAlreadyClosedException.java
+new file mode 100644
+index 0000000..aa51824
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementAlreadyClosedException.java
+@@ -0,0 +1,8 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++public class SettlementAlreadyClosedException extends RuntimeException {
++
++    public SettlementAlreadyClosedException(String message) {
++        super(message);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java
+new file mode 100644
+index 0000000..f8d1251
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java
+@@ -0,0 +1,32 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.joda.money.Money;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++
++import java.time.Instant;
++
++public sealed interface SettlementEvent extends DomainEvent {
++
++    SettlementId settlementId();
++
++    /**
++     * A charge attempt succeeded; the ride is paid and the settlement is closed.
++     */
++    record RiderCharged(SettlementId settlementId, RideId rideId, RiderId riderId, Money amount,
++                        int attemptNumber, Instant chargedAt) implements SettlementEvent {
++    }
++
++    /**
++     * A charge attempt failed, and the retry policy allows another one at {@code nextAttemptAt}.
++     */
++    record ChargeAttemptFailed(SettlementId settlementId, int attemptNumber, String reason,
++                               Instant nextAttemptAt) implements SettlementEvent {
++    }
++
++    /**
++     * The last allowed charge attempt failed; the unpaid amount is now outstanding debt and the settlement is closed.
++     */
++    record DebtRecorded(SettlementId settlementId, RideId rideId, RiderId riderId, OutstandingDebt debt,
++                        int attemptsMade, Instant recordedAt) implements SettlementEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementId.java
+new file mode 100644
+index 0000000..8647be2
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementId.java
+@@ -0,0 +1,21 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++/**
++ * Exactly one settlement exists per ride, so the id is derived from the ride. This makes receiving the same
++ * Ride Priced event twice harmless.
++ */
++@ValueObject
++public record SettlementId(String value) {
++
++    public SettlementId {
++        Objects.requireNonNull(value, "value");
++    }
++
++    public static SettlementId forRide(RideId rideId) {
++        return new SettlementId("settlement-" + rideId.value());
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java
+new file mode 100644
+index 0000000..3ac11d7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java
+@@ -0,0 +1,20 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++
++import java.time.Instant;
++import java.util.List;
++import java.util.Optional;
++
++@SecondaryPort
++public interface SettlementRepository {
++
++    Optional<Settlement> load(SettlementId id);
++
++    void save(Settlement settlement);
++
++    /**
++     * Open settlements whose next charge attempt is due at {@code now} or earlier.
++     */
++    List<SettlementId> findDueForChargeAttempt(Instant now);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/ChargeRetryScheduler.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/ChargeRetryScheduler.java
+new file mode 100644
+index 0000000..035c36b
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/ChargeRetryScheduler.java
+@@ -0,0 +1,20 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary;
++
++import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
++import org.springframework.scheduling.annotation.Scheduled;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.RetryDueChargeAttemptsUseCase;
++
++@PrimaryAdapter
++public class ChargeRetryScheduler {
++
++    private final RetryDueChargeAttemptsUseCase retryDueChargeAttemptsUseCase;
++
++    public ChargeRetryScheduler(RetryDueChargeAttemptsUseCase retryDueChargeAttemptsUseCase) {
++        this.retryDueChargeAttemptsUseCase = retryDueChargeAttemptsUseCase;
++    }
++
++    @Scheduled(fixedDelayString = "${velocity.settlement.retry-poll-interval:PT1M}")
++    public void retryDueChargeAttempts() {
++        retryDueChargeAttemptsUseCase.retryDue();
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/RidePricedListener.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/RidePricedListener.java
+new file mode 100644
+index 0000000..21e609c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/RidePricedListener.java
+@@ -0,0 +1,27 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary;
++
++import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.pricing.api.events.RidePriced;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.SettleRideUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderId;
++
++/**
++ * Consumes Pricing's Ride Priced event. Settlement conforms to Pricing's published language.
++ */
++@PrimaryAdapter
++public class RidePricedListener {
++
++    private final SettleRideUseCase settleRideUseCase;
++
++    public RidePricedListener(SettleRideUseCase settleRideUseCase) {
++        this.settleRideUseCase = settleRideUseCase;
++    }
++
++    @EventListener
++    public void on(RidePriced ridePriced) {
++        settleRideUseCase.settle(new RideId(ridePriced.rideId()), new RiderId(ridePriced.riderId()),
++                                 ridePriced.totalFee(), ridePriced.pricedAt());
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/events/DebtRecordedPublisher.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/events/DebtRecordedPublisher.java
+new file mode 100644
+index 0000000..f26ba26
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/events/DebtRecordedPublisher.java
+@@ -0,0 +1,30 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.events;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.events.DebtRecorded;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementEvent;
++
++/**
++ * Turns the internal Debt Recorded domain event into the published {@link DebtRecorded} integration event for
++ * DebtRecovery.
++ */
++@SecondaryAdapter
++public class DebtRecordedPublisher {
++
++    private final ApplicationEventPublisher applicationEventPublisher;
++
++    public DebtRecordedPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        this.applicationEventPublisher = applicationEventPublisher;
++    }
++
++    @EventListener
++    public void on(SettlementEvent.DebtRecorded debtRecorded) {
++        applicationEventPublisher.publishEvent(new DebtRecorded(debtRecorded.settlementId().value(),
++                                                                debtRecorded.rideId().value(),
++                                                                debtRecorded.riderId().value(),
++                                                                debtRecorded.debt().amount(),
++                                                                debtRecorded.recordedAt()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/repository/InMemorySettlementRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/repository/InMemorySettlementRepository.java
+new file mode 100644
+index 0000000..c624c33
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/repository/InMemorySettlementRepository.java
+@@ -0,0 +1,36 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.repository;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.Settlement;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++import java.time.Instant;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemorySettlementRepository implements SettlementRepository {
++
++    private final Map<SettlementId, Settlement> settlements = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<Settlement> load(SettlementId id) {
++        return Optional.ofNullable(settlements.get(id));
++    }
++
++    @Override
++    public void save(Settlement settlement) {
++        settlements.put(settlement.id(), settlement);
++    }
++
++    @Override
++    public List<SettlementId> findDueForChargeAttempt(Instant now) {
++        return settlements.values().stream()
++                          .filter(settlement -> settlement.isDueForChargeAttempt(now))
++                          .map(Settlement::id)
++                          .toList();
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java
+new file mode 100644
+index 0000000..83d6fdb
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java
+@@ -0,0 +1,73 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.config;
++
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.scheduling.annotation.EnableScheduling;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRiderUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.AttemptChargeUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.RetryDueChargeAttemptsUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.SettleRideUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeRetryPolicy;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary.ChargeRetryScheduler;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary.RidePricedListener;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.events.DebtRecordedPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.repository.InMemorySettlementRepository;
++
++import java.time.Clock;
++
++@Configuration
++@EnableScheduling
++public class SettlementContextConfig {
++
++    @Bean
++    public ChargeRetryPolicy settlementChargeRetryPolicy() {
++        return ChargeRetryPolicy.standard();
++    }
++
++    @Bean
++    public Clock settlementClock() {
++        return Clock.systemUTC();
++    }
++
++    @Bean
++    public SettlementRepository settlementRepository() {
++        return new InMemorySettlementRepository();
++    }
++
++    @Bean
++    public AttemptChargeUseCase attemptChargeUseCase(SettlementRepository settlementRepository,
++                                                     ChargeRiderUseCase payments,
++                                                     DomainEventPublisher eventPublisher) {
++        return new AttemptChargeUseCase(settlementRepository, payments, eventPublisher, settlementClock());
++    }
++
++    @Bean
++    public SettleRideUseCase settleRideUseCase(SettlementRepository settlementRepository,
++                                               AttemptChargeUseCase attemptChargeUseCase) {
++        return new SettleRideUseCase(settlementRepository, attemptChargeUseCase, settlementChargeRetryPolicy());
++    }
++
++    @Bean
++    public RetryDueChargeAttemptsUseCase retryDueChargeAttemptsUseCase(SettlementRepository settlementRepository,
++                                                                       AttemptChargeUseCase attemptChargeUseCase) {
++        return new RetryDueChargeAttemptsUseCase(settlementRepository, attemptChargeUseCase, settlementClock());
++    }
++
++    @Bean
++    public RidePricedListener ridePricedListener(SettleRideUseCase settleRideUseCase) {
++        return new RidePricedListener(settleRideUseCase);
++    }
++
++    @Bean
++    public ChargeRetryScheduler chargeRetryScheduler(RetryDueChargeAttemptsUseCase retryDueChargeAttemptsUseCase) {
++        return new ChargeRetryScheduler(retryDueChargeAttemptsUseCase);
++    }
++
++    @Bean
++    public DebtRecordedPublisher debtRecordedPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        return new DebtRecordedPublisher(applicationEventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java
+new file mode 100644
+index 0000000..6fbe6c3
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java
+@@ -0,0 +1,14 @@
++/**
++ * Settlement bounded context. Once a ride is priced, it charges the rider through their payment method so that every
++ * ride eventually gets paid. Failed charges are retried a few times shortly after the ride; if all attempts fail, the
++ * unpaid amount is recorded as outstanding debt and handed over to DebtRecovery.
++ * <p>
++ * Upstream: Pricing (Ride Priced) and Payments (Charge Rider). Settlement conforms to Payments' open host service and
++ * uses it directly, without an anti-corruption layer. Downstream: DebtRecovery (Debt Recorded).
++ */
++@BoundedContext(name = "Settlement")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.settlement;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettlementUseCasesTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettlementUseCasesTest.java
+new file mode 100644
+index 0000000..3028124
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettlementUseCasesTest.java
+@@ -0,0 +1,163 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import org.joda.money.Money;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeResult;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRider;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeRiderUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeRetryPolicy;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementEvent;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.repository.InMemorySettlementRepository;
++
++import java.time.Clock;
++import java.time.Duration;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.util.ArrayDeque;
++import java.util.ArrayList;
++import java.util.Deque;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++@DisplayName("Settlement use case examples")
++class SettlementUseCasesTest {
++
++    private static final Instant PRICED_AT = Instant.parse("2026-11-01T10:00:00Z");
++    private static final Money FEE = Money.parse("EUR 4.50");
++
++    private final ScriptedPayments payments = new ScriptedPayments();
++    private final RecordingPublisher publisher = new RecordingPublisher();
++    private final MutableClock clock = new MutableClock(PRICED_AT);
++    private SettleRideUseCase settleRide;
++    private RetryDueChargeAttemptsUseCase retryDue;
++
++    @BeforeEach
++    void setUp() {
++        var repository = new InMemorySettlementRepository();
++        var attemptCharge = new AttemptChargeUseCase(repository, payments, publisher, clock);
++        settleRide = new SettleRideUseCase(repository, attemptCharge, new ChargeRetryPolicy(3, Duration.ofMinutes(15)));
++        retryDue = new RetryDueChargeAttemptsUseCase(repository, attemptCharge, clock);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given Payments declines every charge,
++         when George's ride is priced and retries run 15 and 30 minutes later,
++         then Payments is charged 3 times and debt is recorded
++        """
++    )
++    // @formatter:on
++    @Test
++    void test0() {
++        // given
++        payments.willReturn(new ChargeResult.Failed("card expired"), new ChargeResult.Failed("card expired"),
++                            new ChargeResult.Failed("card expired"));
++
++        // when
++        settleRide.settle(new RideId("ride01"), new RiderId("george"), FEE, PRICED_AT);
++        clock.advance(Duration.ofMinutes(10));
++        retryDue.retryDue();
++        clock.advance(Duration.ofMinutes(5));
++        retryDue.retryDue();
++        clock.advance(Duration.ofMinutes(15));
++        retryDue.retryDue();
++        clock.advance(Duration.ofHours(1));
++        retryDue.retryDue();
++
++        // then
++        assertThat(payments.received).hasSize(3);
++        assertThat(publisher.events).filteredOn(SettlementEvent.ChargeAttemptFailed.class::isInstance).hasSize(2);
++        assertThat(publisher.events).filteredOn(SettlementEvent.DebtRecorded.class::isInstance).hasSize(1);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given Payments accepts the charge,
++         when the same Ride Priced event is received twice,
++         then George is charged only once
++        """
++    )
++    // @formatter:on
++    @Test
++    void test1() {
++        // given
++        payments.willReturn(new ChargeResult.Succeeded("charge01"), new ChargeResult.Succeeded("charge02"));
++
++        // when
++        settleRide.settle(new RideId("ride01"), new RiderId("george"), FEE, PRICED_AT);
++        settleRide.settle(new RideId("ride01"), new RiderId("george"), FEE, PRICED_AT);
++
++        // then
++        assertThat(payments.received).hasSize(1);
++        assertThat(publisher.events).filteredOn(SettlementEvent.RiderCharged.class::isInstance).hasSize(1);
++    }
++
++    private static class ScriptedPayments implements ChargeRiderUseCase {
++
++        private final Deque<ChargeResult> results = new ArrayDeque<>();
++        private final List<ChargeRider> received = new ArrayList<>();
++
++        void willReturn(ChargeResult... scripted) {
++            results.addAll(List.of(scripted));
++        }
++
++        @Override
++        public ChargeResult charge(ChargeRider command) {
++            received.add(command);
++            return results.removeFirst();
++        }
++    }
++
++    private static class RecordingPublisher implements DomainEventPublisher {
++
++        private final List<DomainEvent> events = new ArrayList<>();
++
++        @Override
++        public void publish(DomainEvents domainEvents) {
++            domainEvents.stream().forEach(events::add);
++        }
++
++        @Override
++        public void publish(DomainEvent event) {
++            events.add(event);
++        }
++    }
++
++    private static class MutableClock extends Clock {
++
++        private Instant now;
++
++        MutableClock(Instant now) {
++            this.now = now;
++        }
++
++        void advance(Duration duration) {
++            now = now.plus(duration);
++        }
++
++        @Override
++        public ZoneOffset getZone() {
++            return ZoneOffset.UTC;
++        }
++
++        @Override
++        public Clock withZone(java.time.ZoneId zone) {
++            return this;
++        }
++
++        @Override
++        public Instant instant() {
++            return now;
++        }
++    }
++}
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java
+new file mode 100644
+index 0000000..a565580
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java
+@@ -0,0 +1,203 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.joda.money.Money;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.velocity.payments.api.usecases.ChargeResult;
++
++import java.time.Duration;
++import java.time.Instant;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.catchThrowable;
++
++@DisplayName("Settlement examples")
++class SettlementTest {
++
++    private static final Instant PRICED_AT = Instant.parse("2026-11-01T10:00:00Z");
++    private static final Money FEE = Money.parse("EUR 4.50");
++    private static final ChargeRetryPolicy POLICY = new ChargeRetryPolicy(3, Duration.ofMinutes(15));
++
++    private static Settlement georgesRideSettlement() {
++        return Settlement.open(new RideId("ride01"), new RiderId("george"), FEE, PRICED_AT, POLICY);
++    }
++
++    private static ChargeResult declined() {
++        return new ChargeResult.Failed("insufficient funds");
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's ride priced at EUR 4.50,
++         when the first charge attempt succeeds,
++         then George is charged EUR 4.50 and the settlement is closed
++        """
++    )
++    // @formatter:on
++    @Test
++    void test0() {
++        // given
++        var settlement = georgesRideSettlement();
++
++        // when
++        var events = settlement.record(new ChargeResult.Succeeded("charge01")).at(PRICED_AT);
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event instanceof SettlementEvent.RiderCharged charged && charged.amount().equals(FEE)
++                     && charged.attemptNumber() == 1)).isTrue();
++        assertThat(settlement.isClosed()).isTrue();
++        assertThat(settlement.isDueForChargeAttempt(PRICED_AT.plus(Duration.ofDays(1)))).isFalse();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's ride priced at EUR 4.50 and a policy of 3 attempts 15 minutes apart,
++         when the first charge attempt fails,
++         then a retry is scheduled 15 minutes later
++        """
++    )
++    // @formatter:on
++    @Test
++    void test1() {
++        // given
++        var settlement = georgesRideSettlement();
++
++        // when
++        var events = settlement.record(declined()).at(PRICED_AT);
++
++        // then
++        var retryAt = PRICED_AT.plus(Duration.ofMinutes(15));
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event instanceof SettlementEvent.ChargeAttemptFailed failed && failed.attemptNumber() == 1
++                     && failed.nextAttemptAt().equals(retryAt))).isTrue();
++        assertThat(settlement.isClosed()).isFalse();
++        assertThat(settlement.isDueForChargeAttempt(retryAt.minusSeconds(1))).isFalse();
++        assertThat(settlement.isDueForChargeAttempt(retryAt)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's first charge attempt failed,
++         when the retry succeeds,
++         then George is charged on the second attempt
++        """
++    )
++    // @formatter:on
++    @Test
++    void test2() {
++        // given
++        var settlement = georgesRideSettlement();
++        settlement.record(declined()).at(PRICED_AT);
++
++        // when
++        var events = settlement.record(new ChargeResult.Succeeded("charge02"))
++                               .at(PRICED_AT.plus(Duration.ofMinutes(15)));
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event instanceof SettlementEvent.RiderCharged charged
++                     && charged.attemptNumber() == 2)).isTrue();
++        assertThat(settlement.isClosed()).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's ride priced at EUR 4.50 and a policy of 3 attempts,
++         when all 3 charge attempts fail,
++         then EUR 4.50 is recorded as outstanding debt and the settlement is closed
++        """
++    )
++    // @formatter:on
++    @Test
++    void test3() {
++        // given
++        var settlement = georgesRideSettlement();
++        settlement.record(declined()).at(PRICED_AT);
++        settlement.record(declined()).at(PRICED_AT.plus(Duration.ofMinutes(15)));
++
++        // when
++        var events = settlement.record(declined()).at(PRICED_AT.plus(Duration.ofMinutes(30)));
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event instanceof SettlementEvent.DebtRecorded debt
++                     && debt.debt().equals(new OutstandingDebt(FEE)) && debt.attemptsMade() == 3)).isTrue();
++        assertThat(events.hasOccurredEventOfType(SettlementEvent.ChargeAttemptFailed.class)).isFalse();
++        assertThat(settlement.isClosed()).isTrue();
++        assertThat(settlement.attempts()).hasSize(3);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's ride is already charged,
++         when another charge attempt is recorded,
++         then it is rejected
++        """
++    )
++    // @formatter:on
++    @Test
++    void test4() {
++        // given
++        var settlement = georgesRideSettlement();
++        settlement.record(new ChargeResult.Succeeded("charge01")).at(PRICED_AT);
++
++        // when
++        var exception = catchThrowable(
++            () -> settlement.record(new ChargeResult.Succeeded("charge02")).at(PRICED_AT.plusSeconds(60)));
++
++        // then
++        assertThat(exception).isInstanceOf(SettlementAlreadyClosedException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's first charge attempt failed and the retry is due in 15 minutes,
++         when a charge attempt is recorded 5 minutes later,
++         then it is rejected as not due yet
++        """
++    )
++    // @formatter:on
++    @Test
++    void test5() {
++        // given
++        var settlement = georgesRideSettlement();
++        settlement.record(declined()).at(PRICED_AT);
++
++        // when
++        var exception = catchThrowable(
++            () -> settlement.record(declined()).at(PRICED_AT.plus(Duration.ofMinutes(5))));
++
++        // then
++        assertThat(exception).isInstanceOf(ChargeAttemptNotDueException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George's ride priced at EUR 4.50,
++         when the next charge attempt is prepared,
++         then Payments is asked to charge George EUR 4.50
++        """
++    )
++    // @formatter:on
++    @Test
++    void test6() {
++        // given
++        var settlement = georgesRideSettlement();
++
++        // when
++        var command = settlement.nextChargeAttempt();
++
++        // then
++        assertThat(command.riderId()).isEqualTo("george");
++        assertThat(command.amount()).isEqualTo(FEE);
++        assertThat(command.chargeReference()).isEqualTo("settlement-ride01/attempt-1");
++    }
++}

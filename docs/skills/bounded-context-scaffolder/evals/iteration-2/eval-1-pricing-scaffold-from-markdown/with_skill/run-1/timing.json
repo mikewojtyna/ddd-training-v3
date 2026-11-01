@@ -1,0 +1,15 @@
+{
+  "total_tokens": 185785,
+  "duration_ms": 540580,
+  "total_duration_seconds": 540.6,
+  "phases": {
+    "A": {
+      "phaseA_tokens": 79529,
+      "phaseA_duration_ms": 200700
+    },
+    "B": {
+      "tokens": 106256,
+      "duration_ms": 339880
+    }
+  }
+}

@@ -1,0 +1,119 @@
+# Settlement bounded context: implementation plan
+
+- **System / package**: `velocity.settlement`
+- **Mode**: scaffold
+- **Source canvas**: `docs/bounded-contexts/velocity/settlement/canvas.md` (saved from inline input, 2026-11-01)
+- **Last updated**: 2026-11-01
+- **Status**: draft - awaiting review
+
+<!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
+     Invoking the skill again resumes from this file. -->
+
+## Review notes
+- 2026-11-01: draft written from the inline description, awaiting review. Open points: the retry rule needs a strict Given/When/Then (Q1-Q4), the "no ACL towards Payments" decision needs a final confirmation after the pushback (D1), and how Settlement learns that a charge failed (Q5).
+
+## Canvas summary
+Settlement collects the money for each priced ride: when Pricing reports a Ride Priced, Settlement charges the rider through Payments, retries failed charges for a short while after the ride, and finally records Outstanding Debt, which it hands to DebtRecovery as Debt Recorded. Strategic classification and domain roles aren't in the canvas yet (Execution Model, "performs or tracks a job", looks like the fitting trait from `docs/model-traits-worksheet.md`).
+
+## Decisions
+| # | Decision | Choice | Reason |
+|---|---|---|---|
+| D1 | ACL towards Payments | **no ACL, conformist** (as you asked), **pending your final confirmation** | See the pushback below. You asked for it explicitly and the reference map also draws Settlement as `[D,CF]` of Payments (OHS/PL), so the plan follows your choice. Risk, recorded on purpose: every change to Payments' published language (renamed fields, new charge statuses, new error codes) ripples straight into Settlement's domain code and tests, and Payments' terms ("charge", "payment method", their status codes) mix with ours ("Charge Attempt", "Outstanding Debt"). |
+| D2 | Modules | 1 module = 1 context | default |
+| D3 | Package name | `settlement` | from the canvas name; matches CML `BoundedContext Settlement` |
+| D4 | Aggregates | **none yet** | The only business decision ("retry a few times shortly after the ride, then record debt") is prose without concrete values. It's not precise enough to test, so no aggregate is built from it until you confirm a strict GWT (see "Rules awaiting GWT"). The ports and adapters are scaffolded now. |
+| D5 | Inbound Ride Priced | our own `RidePriced` record + `SettleRideUseCase`; no Pricing listener yet | Pricing doesn't exist in code, so there is no upstream event type to listen to. The listener is a follow-up. |
+| D6 | Money type | `org.joda.money.Money` | already on the classpath and used by CrowdSorcery; the canvas talks about amounts |
+
+**Pushback on D1 (given once).** Conformist means we take Payments' model as-is, so their model becomes part of ours. A thin ACL (a `RiderCharger` port in Settlement's words plus a translating adapter in `infra/adapters/secondary/paymentsctxacl`) costs one interface and one class, keeps "Charge Attempt" and "Outstanding Debt" free of Payments' vocabulary, and confines Payments upgrades to a single package. I still recommend the ACL. If you confirm "no ACL", the plan stays as written below. If you change your mind, only the adapter package name, the `@AntiCorruptionLayer` annotation and the port's parameter types change.
+
+Note on "use their API directly": Payments doesn't exist in code yet, so there is no Payments API to call. In both variants the adapter is a stub (`UnsupportedOperationException("implement this")`) and I won't invent Payments' types. With the conformist variant, the port will switch to Payments' published types once they exist.
+
+## Mapping: canvas → code
+### Inbound
+| Collaborator | Type | Message | Code |
+|---|---|---|---|
+| Pricing | Event | Ride Priced | `api/usecases/RidePriced` (record: rideId, riderId, price) + `api/usecases/SettleRideUseCase` (`@PrimaryPort`). Listener in `infra/adapters/primary/pricingctxacl` deferred: Pricing isn't in code. |
+
+### Outbound
+| Message | Type | Collaborator | Port | Adapter (package) |
+|---|---|---|---|---|
+| Charge Rider | Command | Payments | `domain/charging/RiderCharger` (`@SecondaryPort`, `chargeRider(...)`) | `infra/adapters/secondary/paymentsctx/PaymentsRiderCharger` (`@SecondaryAdapter`, stub). Package **without** `@AntiCorruptionLayer`; its `package-info.java` javadoc records the conformist decision and its risk (D1). |
+| Debt Recorded | Event | DebtRecovery | n/a | `api/events/DebtRecorded` (record, `IntegrationEvent`, primitives and strings only: rideId, riderId, amount, currency). Publishing it through `infra/adapters/secondary/IntegrationEventsPublisher` needs the domain event from the not-yet-modelled rule, so it's created together with the aggregate once the GWT is confirmed. |
+
+### Ubiquitous language
+| Term | Code type | Kind |
+|---|---|---|
+| Settlement | javadoc only now; `domain/settlement/Settlement` once the rule is confirmed | aggregate root (proposed) |
+| Charge Attempt | javadoc only now; `ChargeAttempt` record inside `Settlement` once confirmed | entity (immutable, record) (proposed) |
+| Outstanding Debt | javadoc only now; `OutstandingDebt` value object once confirmed | VO (proposed) |
+| (ride id, rider id, price: from the messages) | `RideId`, `RiderId` records, `Money` | VO |
+
+### Business rules → aggregates
+| Rule (GWT) | Invariant | Aggregate | Test |
+|---|---|---|---|
+| none yet | | | |
+
+No strict rule exists yet, so this scaffold has **no aggregate and no GWT tests**. `SettleRideUseCase` makes a single charge attempt through `RiderCharger`, which is what the purpose says ("once a ride is priced we charge the rider"). What happens when that attempt fails is left unmodelled and marked in the code with a reference to this plan.
+
+Proposed shape once the rule is confirmed (for your review now, built only after confirmation):
+- Rule → invariant: "a Settlement makes at most N Charge Attempts, spaced as agreed; after the N-th failure it records Outstanding Debt exactly once; after a successful attempt it makes no more attempts". All of it is state of one ride's collection, so the consistency boundary is **one Settlement per priced ride** (`domain/settlement/Settlement`, identified by the ride).
+- Events: sealed `SettlementEvent` with `ChargeAttemptFailed`, `RideSettled`, `DebtRecorded` (the last one translated to `api/events/DebtRecorded`).
+- Retries "shortly after the ride" need a time trigger: a `RetryDueChargesUseCase` called by a scheduled primary adapter, with a `Clock` injected. The exact shape depends on Q2 and Q5.
+
+### Rules awaiting GWT
+- **Retry failed charges, then record debt**, as written: "if a charge fails we retry a few times shortly after the ride, then record debt". Status: awaiting confirmation. Suggested strict versions, with values I made up for you to correct:
+  1. *Given* ride R-1 priced at 12.50 PLN for rider A, *when* Ride Priced is received at 10:00, *then* Charge Attempt 1 of 12.50 PLN is sent to Payments at 10:00.
+  2. *Given* Charge Attempt 1 for ride R-1 failed at 10:00, *when* it is 10:05, *then* Charge Attempt 2 of 12.50 PLN is sent.
+  3. *Given* Charge Attempts 1 and 2 for ride R-1 failed (10:00, 10:05), *when* Charge Attempt 3 fails at 10:35, *then* Debt Recorded with Outstanding Debt of 12.50 PLN for rider A, and no further attempt is made.
+  4. *Given* Charge Attempt 1 for ride R-1 failed, *when* Charge Attempt 2 succeeds, *then* ride R-1 is settled, no further attempt is made, and no debt is recorded.
+- Questions this needs answered:
+  - **Q1** How many attempts in total ("a few")? I suggested 3.
+  - **Q2** When are retries made ("shortly after the ride")? I suggested +5 min and +35 min after the first attempt. Is the clock measured from the ride end or from the first attempt?
+  - **Q3** Can an attempt partially succeed? The definition "the unpaid amount *left* after all attempts fail" suggests partial charges; if attempts are all-or-nothing, Outstanding Debt is always the full ride price.
+  - **Q4** Does a ride priced at 0 (for example a free period) create a Settlement and a charge at all?
+- **Q5 (canvas gap)** How does Settlement learn that a Charge Attempt failed or succeeded? The canvas has no inbound message from Payments. Either Charge Rider is synchronous and returns the result (OHS call), or Payments publishes events such as Charge Succeeded / Charge Failed, which would be a new inbound row in the canvas.
+
+No internal contradictions found among the definitions and the purpose. One wording point: the purpose says "every ride *eventually* gets paid", but Settlement itself stops at recording debt. That's consistent if "eventually" includes DebtRecovery's work; please confirm.
+
+## Differences from the reference context map
+| Canvas says | Reference map says | Covered by "Accepted Alternatives"? |
+|---|---|---|
+| Inbound **Ride Priced event from Pricing** | Rentals sends **Rental Session Ended** to Settlement; Settlement then **asks Pricing** for the price (Pricing OHS, called by Settlement) | Yes: "Pricing reacting to Rental Session Ended instead of being called by Settlement". Then Settlement doesn't need Rental Session Ended. |
+| Outbound event named **Debt Recorded** | **Rental Fee Unpaid** (to DebtRecovery and Accounts) | No. Same fact, different name; please pick one. |
+| No outbound to **Accounts** | Settlement → Accounts: Rental Fee Unpaid (block), Outstanding Debt Cleared (unblock) | No. Who blocks a rider with debt? |
+| No inbound from **DebtRecovery** | DebtRecovery asks Settlement to collect ("attempt collection", Settlement OHS) | No. Is collection during recovery still Settlement's job? |
+| No **rider's balance** | Settlement owns the rider's balance | No |
+| Settlement conformist to Payments | `Payments [U,OHS,PL]->[D,CF] Settlement` | Matches the reference (conformist there too) |
+| Term "ride" | "rental session" / "finished ride" | Terms used interchangeably in the map; fine |
+
+Built from the canvas, as the skill requires. The reference map is not changed.
+
+## Files
+Planned (nothing generated yet):
+```
+src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/
+  package-info.java                                   @BoundedContext(name = "Settlement") + @Module, canvas javadoc
+  api/usecases/RidePriced.java                        record (our language for Pricing's Ride Priced)
+  api/usecases/SettleRideUseCase.java                 @PrimaryPort
+  api/events/DebtRecorded.java                        record implements IntegrationEvent
+  domain/charging/RideId.java                         @ValueObject record
+  domain/charging/RiderId.java                        @ValueObject record
+  domain/charging/RiderCharger.java                   @SecondaryPort (Charge Rider)
+  infra/adapters/secondary/paymentsctx/package-info.java          conformist decision + risk (no @AntiCorruptionLayer)
+  infra/adapters/secondary/paymentsctx/PaymentsRiderCharger.java  @SecondaryAdapter, stub
+  infra/config/SettlementContextConfig.java           @Configuration: settlementRiderCharger, settlementSettleRideUseCase
+```
+After the rule is confirmed (not part of this round): `domain/settlement/{Settlement, SettlementId?, ChargeAttempt, OutstandingDebt, SettlementEvent, SettlementRepository}`, `infra/adapters/secondary/{InMemorySettlementRepository, IntegrationEventsPublisher}`, retry trigger, and `src/test/java/.../velocity/settlement/domain/settlement/SettlementTest` with one test per confirmed GWT.
+
+## Stubs and follow-ups
+- `PaymentsRiderCharger` is a stub: Payments isn't in code yet.
+- Pricing listener (`infra/adapters/primary/pricingctxacl`) deferred: Pricing isn't in code yet.
+- DebtRecovery isn't in code: `DebtRecorded` is published into the void until it exists.
+- CML (`src/main/cml/VeloCity-*.cml`) and `velocity/velocity-context-map.md` would need updating if you keep the differences above (Ride Priced from Pricing, Debt Recorded). Not changed unasked.
+- Canvas sections still empty: strategic classification, domain roles, assumptions, verification metrics, open questions.
+
+## Changelog
+### 2026-11-01: plan drafted
+- Added: plan for the Settlement scaffold; canvas saved from the inline description.
+- Triggered by: request to add a Settlement context to VeloCity.

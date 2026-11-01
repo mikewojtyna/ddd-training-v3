@@ -1,0 +1,80 @@
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-11-01T21:19:06.609+01:00  INFO 105166 --- [ddd-training-v3] [           main] p.w.d.DddTrainingV3ApplicationTests      : Starting DddTrainingV3ApplicationTests using Java 27 with PID 105166 (started by goobar in /home/goobar/IdeaProjects/ddd-training-v3/.claude/worktrees/agent-aaf2beab0a186c51d)
+2026-11-01T21:19:06.610+01:00  INFO 105166 --- [ddd-training-v3] [           main] p.w.d.DddTrainingV3ApplicationTests      : No active profile set, falling back to 1 default profile: "default"
+2026-11-01T21:19:06.963+01:00  INFO 105166 --- [ddd-training-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-01T21:19:07.001+01:00  INFO 105166 --- [ddd-training-v3] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 1 JPA repository interface.
+2026-11-01T21:19:07.229+01:00  INFO 105166 --- [ddd-training-v3] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-01T21:19:07.344+01:00  INFO 105166 --- [ddd-training-v3] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:af3e1667-77c6-49e3-a10f-bc2f00fdb338 user=SA
+2026-11-01T21:19:07.345+01:00  INFO 105166 --- [ddd-training-v3] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-01T21:19:07.369+01:00  INFO 105166 --- [ddd-training-v3] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-01T21:19:07.396+01:00  INFO 105166 --- [ddd-training-v3] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-11-01T21:19:07.596+01:00  INFO 105166 --- [ddd-training-v3] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-01T21:19:07.640+01:00  INFO 105166 --- [ddd-training-v3] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:af3e1667-77c6-49e3-a10f-bc2f00fdb338]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: AF3E1667-77C6-49E3-A10F-BC2F00FDB338/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-01T21:19:08.091+01:00  INFO 105166 --- [ddd-training-v3] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-01T21:19:08.108+01:00  INFO 105166 --- [ddd-training-v3] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-01T21:19:08.212+01:00  WARN 105166 --- [ddd-training-v3] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-01T21:19:08.247+01:00  INFO 105166 --- [ddd-training-v3] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-01T21:19:08.587+01:00  INFO 105166 --- [ddd-training-v3] [           main] p.w.d.DddTrainingV3ApplicationTests      : Started DddTrainingV3ApplicationTests in 2.099 seconds (process running for 2.738)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/home/goobar/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-11-01T21:19:16.756+01:00  INFO 105510 --- [ddd-training-v3] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-01T21:19:16.796+01:00  INFO 105510 --- [ddd-training-v3] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:975e5b4c-73eb-44c8-af9d-f838e82ff9b7]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 975E5B4C-73EB-44C8-AF9D-F838E82FF9B7/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-01T21:19:17.257+01:00  INFO 105510 --- [ddd-training-v3] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-01T21:19:17.274+01:00  INFO 105510 --- [ddd-training-v3] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-01T21:19:17.371+01:00  WARN 105510 --- [ddd-training-v3] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-01T21:19:17.407+01:00  INFO 105510 --- [ddd-training-v3] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-01T21:19:17.755+01:00  INFO 105510 --- [ddd-training-v3] [           main] p.w.d.DddTrainingV3ApplicationTests      : Started DddTrainingV3ApplicationTests in 2.084 seconds (process running for 2.731)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/home/goobar/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.628 s -- in pl.wojtyna.dddtrainingv3.DddTrainingV3ApplicationTests
+[INFO] Running Return bike use case examples
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in Return bike use case examples
+[INFO] Running Bike station examples
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in Bike station examples
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.794 s
+[INFO] Finished at: 2026-11-01T21:19:18+01:00
+[INFO] ------------------------------------------------------------------------

@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Plan markdown file created for rentals",
+      "passed": false,
+      "evidence": "none"
+    },
+    {
+      "text": "Plan has a dated Changelog entry",
+      "passed": false,
+      "evidence": "checked plan"
+    },
+    {
+      "text": "returnBike implemented (no UnsupportedOperationException)",
+      "passed": true,
+      "evidence": "BikeStation.java modified"
+    },
+    {
+      "text": "At least 2 GWT tests (@DisplayName text block with given/when/then) covering 'return'",
+      "passed": true,
+      "evidence": "@Test=9, GWT DisplayNames=9, 'return' hits=14; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCaseTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java']"
+    },
+    {
+      "text": "Existing BikeStationTest methods preserved",
+      "passed": true,
+      "evidence": "removed: none"
+    },
+    {
+      "text": "No files deleted",
+      "passed": true,
+      "evidence": "searched diff"
+    },
+    {
+      "text": "Bike Returned published as IntegrationEvent record in api/events",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java"
+    },
+    {
+      "text": "Available Bikes query handler in api/queries",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQuery.java"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 2,
+    "total": 10,
+    "pass_rate": 0.8
+  }
+}

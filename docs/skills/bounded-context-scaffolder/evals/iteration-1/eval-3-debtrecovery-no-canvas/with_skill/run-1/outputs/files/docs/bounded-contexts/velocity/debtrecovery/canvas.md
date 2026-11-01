@@ -1,0 +1,105 @@
+# Bounded Context Canvas: DebtRecovery
+
+<!--
+Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
+Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
+Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
+
+STATUS: DRAFT, pre-filled by the bounded-context-scaffolder skill. No code has been generated yet.
+Everything marked "TODO" or "(confirm)" needs your input. Pre-filled content comes from your request,
+velocity/velocity-vision.md and the CML model (src/main/cml/VeloCity-*.cml). Delete any of it that is wrong.
+-->
+
+## Name
+DebtRecovery
+
+<!-- Matches `BoundedContext DebtRecovery` in src/main/cml/VeloCity-*.cml. Package: velocity/debtrecovery -->
+
+## Purpose
+<!-- From your request: -->
+Blocks rider accounts that have outstanding debt and unblocks them once the debt is paid.
+
+<!--
+TODO (confirm): the reference context map gives this context a different job. There, DebtRecovery is
+"active pursuit of outstanding debt: reminders, payment plans, pause / resume", Accounts owns account
+blocks and unblocks, and Settlement drives both the debt block and the unblock (Rental Fee Unpaid /
+Outstanding Debt Cleared). Which purpose do you want?
+  (a) blocking/unblocking, as in your request
+  (b) pursuing the debt (reminders, payment plans, pause/resume), as in the reference map
+  (c) both
+Please also rewrite the purpose in business terms: what benefit does VeloCity get, and how?
+-->
+
+## Strategic Classification
+- Domain: TODO <core | supporting | generic | other>
+- Business model: TODO <revenue | engagement | compliance | cost reduction>
+- Evolution: TODO <genesis | custom built | product | commodity>
+
+## Domain Roles
+<!-- Pick traits from docs/model-traits-worksheet.md. Candidates, depending on the purpose you choose: -->
+- TODO Enforcer (confirm): if this context makes sure Accounts blocks/unblocks riders with debt
+- TODO Execution Model (confirm): if this context runs the recovery process (reminders, schedule, payment plans)
+
+## Inbound Communication
+| Collaborator | Type (Query/Command/Event) | Message | Notes |
+|---|---|---|---|
+| Settlement (confirm) | Event | Rental Fee Unpaid (confirm) | Reference map: starts recovery. What data does it carry (rider id, amount, ride id)? |
+| Settlement (confirm) | Event | Outstanding Debt Cleared (confirm) | Is this how DebtRecovery learns the debt is paid? Or is it a Payments event, or a command from somewhere else? |
+| TODO | Command | TODO e.g. Pause recovery / Resume recovery | Vision: disputes, regulatory holds, payment plans. Who sends these (Customer Support, back office)? |
+
+## Outbound Communication
+| Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
+|---|---|---|---|
+| TODO e.g. Block rider account | Command (confirm) | Accounts (confirm) | yes |
+| TODO e.g. Unblock rider account | Command (confirm) | Accounts (confirm) | yes |
+| TODO e.g. Collect outstanding debt | Command (confirm) | Settlement (reference map: "Debt Recovery asks Settlement to collect") | yes |
+| TODO e.g. Recovery Succeeded / Recovery Exhausted | Event | TODO | n/a for events |
+
+## Ubiquitous Language
+<!-- Terms become class names. Pre-filled from velocity-vision.md; correct the definitions to your own words. -->
+- **Outstanding Debt**: Money a rider owes VeloCity for a ride that could not be charged, even after the automatic retries. (from vision, confirm)
+- **Account Block**: A state that prevents a rider from starting new rentals. (from vision, confirm; the vision says it is triggered by an invalid card OR outstanding debt. Does this context deal only with debt blocks?)
+- **Debt Recovery Process**: The business process that pursues an outstanding balance until it is paid, exhausted, or paused. (from vision, confirm)
+- **Paused / Resumed**: TODO definition
+- **Exhausted**: TODO definition (vision: "all attempts have been tried and rejected" - how many attempts, over what time?)
+- **Payment Plan**: TODO definition
+- **Reminder**: TODO definition
+- **TODO**: anything else, e.g. what exactly makes a debt count as "paid" (full amount only, or partial payments too?)
+
+## Business Decisions
+<!-- One rule per block. Concrete values, please (amounts, counts, durations). Only these become aggregate invariants and tests. -->
+### TODO Block a rider with outstanding debt
+- **Given** TODO e.g. rider R1 has no outstanding debt and an active account
+- **When** TODO e.g. Rental Fee Unpaid for R1 with amount 12.50 PLN
+- **Then** TODO e.g. account block for R1 is requested / recovery process started
+
+### TODO Unblock a rider once the debt is paid
+- **Given** TODO e.g. rider R1 is blocked with outstanding debt of 12.50 PLN
+- **When** TODO e.g. R1 pays 12.50 PLN
+- **Then** TODO e.g. unblock for R1 is requested / recovery succeeded
+
+### TODO Partial payment
+- **Given** TODO e.g. rider R1 is blocked with outstanding debt of 12.50 PLN
+- **When** TODO e.g. R1 pays 5.00 PLN
+- **Then** TODO e.g. R1 stays blocked with 7.50 PLN outstanding (confirm)
+
+### TODO Debt from a second ride while already blocked
+- **Given** TODO
+- **When** TODO
+- **Then** TODO
+
+### TODO Pause / resume / exhausted
+- **Given** TODO
+- **When** TODO
+- **Then** TODO
+
+## Assumptions
+- TODO
+
+## Verification Metrics
+- TODO
+
+## Open Questions
+- Who owns the account block: this context, Accounts, or Settlement? (Your request vs. the reference map, see Purpose.)
+- Whose fact is "the debt is paid": Settlement's, Payments', or this context's? (The reference map lists "Debt Recovery -> Accounts for unblocking" as an accepted alternative.)
+- Does an invalid-card block belong here too, or only debt blocks?

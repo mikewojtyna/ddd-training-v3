@@ -1,0 +1,95 @@
+# Bounded Context Canvas: DebtRecovery
+
+<!--
+Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
+Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
+Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
+
+Pre-filled by the bounded-context-scaffolder from your request and from the VeloCity docs
+(velocity/velocity-vision.md, velocity/velocity-context-map.md, src/main/cml/VeloCity-*.cml).
+Everything marked TODO or "(confirm)" is a guess: correct it, delete it, or replace it with your own content.
+-->
+
+## Name
+DebtRecovery
+
+<!-- Matches `BoundedContext DebtRecovery` in src/main/cml/VeloCity-*.cml. Code package: velocity.debtrecovery -->
+
+## Purpose
+<!-- From your request: -->
+Blocks rider accounts that have outstanding debt and unblocks them once the debt is paid.
+
+<!--
+TODO (confirm): the reference context map gives this context a different purpose, and puts blocking elsewhere:
+- DebtRecovery (CML): "Active pursuit of outstanding debt: reminders, payment plans, pause / resume.
+  Key language: recovery process, paused, resumed, exhausted, payment plan."
+- Accounts owns "Account blocks and unblocks". Settlement publishes Rental Fee Unpaid / Outstanding Debt Cleared,
+  and Accounts blocks / unblocks in reaction ("Settlement drives both block and unblock for debt").
+- The map's "Accepted Alternatives" covers "Debt Recovery -> Accounts for unblocking", but not
+  DebtRecovery owning the block itself.
+Decide which purpose this canvas describes:
+  (a) DebtRecovery owns the debt block/unblock decision (differs from the reference map), or
+  (b) DebtRecovery pursues the debt (reminders, payment plans, pause/resume) and Accounts does the blocking, or
+  (c) both.
+Then rewrite this section as the business benefit.
+-->
+
+## Strategic Classification
+- Domain: TODO <core | supporting | generic>
+- Business model: TODO <revenue | engagement | compliance | cost reduction>
+- Evolution: TODO <genesis | custom built | product | commodity>
+
+## Domain Roles
+<!-- Pick traits from docs/model-traits-worksheet.md. Candidates, depending on the purpose you choose: -->
+- TODO Enforcer (confirm): ensures riders with outstanding debt can't rent (if this context owns the block)
+- TODO Execution Model (confirm): performs and tracks the recovery process (if it owns reminders / payment plans)
+
+## Inbound Communication
+| Collaborator | Type (Query/Command/Event) | Message | Notes |
+|---|---|---|---|
+| Settlement | Event | TODO Rental Fee Unpaid (confirm) | name used in the reference map; starts the debt handling |
+| Settlement | Event | TODO Outstanding Debt Cleared (confirm) | name used in the reference map; the debt is paid |
+| TODO | | | |
+
+## Outbound Communication
+| Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
+|---|---|---|---|
+| TODO Account Blocked Due To Debt / Block account (confirm) | Event or Command? | TODO Accounts / Rentals? | |
+| TODO Account Unblocked / Unblock account (confirm) | Event or Command? | TODO Accounts / Rentals? | |
+| TODO Attempt collection (confirm) | Command | Settlement | yes |
+
+## Ubiquitous Language
+<!-- Definitions below are copied from the vision's glossary as a starting point. Confirm or rewrite each one. -->
+- **Outstanding Debt** (confirm): money a rider owes VeloCity for a ride that could not be charged.
+- **Account Block** (confirm): a state that prevents a rider from starting new rentals, triggered by an invalid card or outstanding debt.
+- **Debt Recovery Process** (confirm): the business process that pursues an outstanding balance until it is paid, exhausted, or paused.
+- **TODO <Term>**: <definition>
+
+## Business Decisions
+<!--
+One rule per block. Concrete values, please: rider ids, amounts in PLN, dates, number of reminders.
+Only rules written like this become aggregates and tests. Questions worth answering with examples:
+- Is a rider blocked for any outstanding debt, or above a threshold amount?
+- Does a partial payment unblock the rider?
+- If a rider has two unpaid rides and pays one, are they still blocked?
+- What happens when the rider is also blocked for an invalid card and pays the debt?
+-->
+### TODO Block a rider with outstanding debt
+- **Given** TODO
+- **When** TODO
+- **Then** TODO
+
+### TODO Unblock a rider once the debt is paid
+- **Given** TODO
+- **When** TODO
+- **Then** TODO
+
+## Assumptions
+- TODO
+
+## Verification Metrics
+- TODO
+
+## Open Questions
+- Whose fact is "the debt is paid": Settlement's (it owns the balance) or DebtRecovery's?
+- Who owns the account's blocked status: this context, or Accounts (which also blocks for an invalid card)?

@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "No Java code generated without a canvas",
+      "passed": false,
+      "evidence": "java files: ['src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/package-info.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/CloseRecoveryOnDebtClearedUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/ResumeRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/PauseRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/AttemptCollectionUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/StartRecoveryUseCase.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/DebtCollector.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessRepo.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcess.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessNotPausedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessPausedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessClosedException.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessEvent.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/FluentLanguage.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/PauseReason.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryStatus.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RiderId.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessId.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/config/DebtRecoveryContextConfig.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/primary/RecoveryProcessRestApi.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/repository/InMemoryRecoveryProcessRepo.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementContextAclConfig.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementDebtCollector.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementEventsTranslator.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementPublishedLanguage.java', 'src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/package-info.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessTest.java']"
+    },
+    {
+      "text": "Pre-filled canvas template created for DebtRecovery",
+      "passed": false,
+      "evidence": "none"
+    },
+    {
+      "text": "Template contains Given/When/Then business-decision section",
+      "passed": false,
+      "evidence": "checked canvas file"
+    },
+    {
+      "text": "Final message asks the user to fill in the canvas",
+      "passed": false,
+      "evidence": "final_message.md"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4,
+    "pass_rate": 0.0
+  }
+}

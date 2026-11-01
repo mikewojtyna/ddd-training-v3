@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "No Java code generated without a canvas",
+      "passed": true,
+      "evidence": "java files: none"
+    },
+    {
+      "text": "Pre-filled canvas template created for DebtRecovery",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/debtrecovery/canvas.md"
+    },
+    {
+      "text": "Template contains Given/When/Then business-decision section",
+      "passed": true,
+      "evidence": "checked canvas file"
+    },
+    {
+      "text": "Final message asks the user to fill in the canvas",
+      "passed": true,
+      "evidence": "final_message.md"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

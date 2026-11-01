@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "Recommends/creates a markdown canvas for the inline input",
+      "passed": true,
+      "evidence": "canvas files: ['docs/bounded-contexts/velocity/settlement/canvas.md']; final message mentions markdown/canvas.md: False"
+    },
+    {
+      "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+      "passed": true,
+      "evidence": "final_message.md"
+    },
+    {
+      "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+      "passed": true,
+      "evidence": "ACL payment packages: none"
+    },
+    {
+      "text": "Plan markdown file created for settlement",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/settlement/plan.md"
+    },
+    {
+      "text": "Conformist decision recorded in the plan",
+      "passed": true,
+      "evidence": "plan mentions conformist"
+    },
+    {
+      "text": "Vague retry rule flagged as awaiting a strict GWT example",
+      "passed": true,
+      "evidence": "GWT"
+    },
+    {
+      "text": "Retry count not hard-coded from a guessed threshold",
+      "passed": true,
+      "evidence": "no hard-coded retry threshold"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}
