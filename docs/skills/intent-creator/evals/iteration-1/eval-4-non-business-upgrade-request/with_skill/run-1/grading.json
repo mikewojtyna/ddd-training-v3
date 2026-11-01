@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "No intent file created for a purely technical upgrade",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Final message explains there is no business need behind it",
+      "passed": true,
+      "evidence": "I didn't write an intent for this, and I didn't create or change any files.\n\nAn intent records a business need: someone in the business (a Rider, an Investor, Fleet Operations) wants something, and the intent says why. Upgrading Spring Boot from 4.1 (currently `4.1.1` in `pom.xml`) to 4.2, and jMole"
+    },
+    {
+      "text": "pom.xml untouched",
+      "passed": true,
+      "evidence": ""
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

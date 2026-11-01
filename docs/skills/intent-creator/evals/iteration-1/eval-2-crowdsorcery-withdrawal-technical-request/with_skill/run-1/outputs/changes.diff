@@ -1,0 +1,162 @@
+## git status --short
+?? docs/intents/
+
+## git diff
+(empty: no tracked files changed)
+
+## Untracked files (all new): contents follow
+---
+name: investor-withdraws-money
+sequence: 1
+title: An investor wants to withdraw money from their account
+system: crowdsorcery
+actor: Investor
+activity: Take money out
+task: Withdraw money to a bank account
+status: draft
+date: 2026-11-01
+supersedes:
+superseded_by:
+source: crowdsorcery/CrowdSorcery.md "Investing" ("Investor can withdraw his money at any time"); conversation 2026-11-01
+---
+
+# An investor wants to withdraw money from their account
+
+## Intent
+
+As an **Investor**, I want to **withdraw money from my CrowdSorcery account to my bank account** so that **I can use the money I'm not investing, and the returns I've earned, outside the platform whenever I need it**.
+
+## Why
+
+The vision promises it outright: "Before investor can invest into asset or project, he needs to deposit money into his account. Investor can withdraw his money at any time." Investors can put money in, but without a way to take it out the money is locked in. That breaks the promise and makes depositing a much harder decision for an investor. The request came in on 2026-11-01 phrased as a technical change; this is the business need behind it.
+
+## Business outcome
+
+- Withdrawal Requested: the investor asked for an amount to be taken out of their account.
+- Money Paid Out: the amount left the investor's account and was sent to the investor's verified bank account.
+
+## Success signal
+
+- (suggested) Investors who ask for their money receive it in their verified bank account without having to contact support.
+- (suggested) Share of requested withdrawals that end with the money paid out, compared to those refused or stuck.
+
+## Business rules mentioned
+
+- "Payouts should go to the investor's verified bank account" (conversation).
+- "Cap it at the available balance" (conversation). What "available" means and what "cap" means are not stated, see open questions.
+- "Investor can withdraw his money at any time" (vision).
+
+## Scope
+
+- **In:** an investor asking to take an amount out of their account, and that amount being paid out to their verified bank account, limited by what is available in the account.
+- **Out:**
+  - verifying the investor's bank account (`investor-verifies-bank-account`, candidate);
+  - depositing money (`investor-makes-deposit`, candidate);
+  - cancelling a withdrawal before it is paid out (`investor-cancels-withdrawal`, candidate);
+  - handling a payout the bank rejects or returns (`finance-handles-failed-payout`, candidate);
+  - getting money out of running investments, i.e. exiting an investment early (not discussed).
+
+## Related intents
+
+- builds on: `investor-makes-deposit` (candidate, not written yet)
+- builds on: `investor-verifies-bank-account` (candidate, not written yet)
+
+## Open questions
+
+- What does "available balance" mean? Everything in the account, or does it exclude money committed to investments, deposits still waiting for payment confirmation, and withdrawals requested but not yet paid out?
+- What does "cap it at the available balance" mean when the investor asks for more than is available: is the withdrawal refused, or is the investor paid out only what is available?
+- What happens when the investor has no verified bank account yet? Can they have more than one, and if so, which one receives the money?
+- "At any time" (vision): are there exceptions, e.g. while an account is under review, or limits per withdrawal or per day (minimum, maximum)?
+- Are there fees on withdrawals, and who pays them?
+- Is the money paid out right away, or does the investor wait for a processing period? What is the investor told while waiting?
+- Can the account currency differ from the bank account's currency?
+
+## Notes for the spec
+
+- The user asked for:
+  - a `POST /api/withdrawals` endpoint;
+  - a `withdrawals` table in PostgreSQL;
+  - a `WithdrawalRequested` Kafka event.
+- Existing code: the `deposit` bounded context already sketches withdrawals: `WithdrawUseCase`, the internal domain event `WithdrawalMade`, `DepositAccount.withdraw(Money)` (throws `IllegalStateException("Insufficient funds")` when the balance is lower than the amount, i.e. it refuses rather than capping), and an unfinished `WithdrawRestApi` at `POST /accounts/{accountId}/withdrawals` (`WithdrawRequest` is empty and the mappings throw `UnsupportedOperationException`). The spec and plan should decide whether to build on it or replace it; the requested `/api/withdrawals` path differs from the existing one.
+- The repo runs on H2 and has no Kafka or PostgreSQL dependency. Integration events so far go through Spring's `ApplicationEventPublisher` (e.g. `deposit/api/events/DepositMade`). Adding PostgreSQL and Kafka is a design decision for the plan.
+- Paying out to a bank account would likely go through the `payment` context (`PaymentGateway`, `wire` provider), reached from deposit through the `paymentctxacl` anti-corruption layer. Nothing in the code models a verified bank account yet.
+# Story map
+
+The backbone of each system: who the actors are and the ordered activities of their journey. Intents (`docs/intents/*.md`) hang under these activities through their `activity` and `task` fields. The order of activities here **is** the value stream, and `README.md` uses it to lay intents out. Keep activity names stable, because intents reference them word for word.
+
+Format rules, which `intents.py` parses:
+- `## <system>` for each system, matching the `system` field of the intents.
+- `### <n>. <Activity>` for each activity, numbered in journey order.
+- Under an activity, one `- <Task>` line per known user task. Tasks with no intent yet are allowed and help show the gaps.
+- An optional `Actors:` line under the system heading.
+
+## crowdsorcery
+
+Actors: Investor, Borrower, Project Verifier
+
+<!-- So far only the Investor's journey is mapped, taken from crowdsorcery/CrowdSorcery.md.
+     The Borrower's journey (propose a project, raise funds, receive funds, repay the loan) is not mapped yet. -->
+
+### 1. Join CrowdSorcery
+- Open an account
+- Verify a bank account
+
+### 2. Fund the account
+- Deposit money
+
+### 3. Choose how to invest
+- Run an investment simulation
+
+### 4. Invest
+- Invest using an automated strategy
+- Invest manually into an asset
+- Invest manually into a project
+
+### 5. Earn returns
+- Receive returns
+- Recover money after a default
+
+### 6. Take money out
+- Withdraw money to a bank account
+# Intents
+
+<!-- Generated by .claude/skills/intent-creator/scripts/intents.py build. Do not edit by hand. -->
+
+Each intent is one fine-grained business need. Read the **timeline** to see the product's history, and the **value stream** to see the journey each system supports. The backbone lives in [story-map.md](story-map.md).
+
+## Timeline
+
+| # | Date | Intent | System | Actor | Activity | Status | Outcome |
+|---|------|--------|--------|-------|----------|--------|---------|
+| 1 | 2026-11-01 | [An investor wants to withdraw money from their account](investor-withdraws-money.md) | crowdsorcery | Investor | Take money out | draft | Withdrawal Requested, Money Paid Out |
+
+## Value stream: crowdsorcery
+
+### 1. Join CrowdSorcery
+
+- Open an account: *(no intent yet)*
+- Verify a bank account: *(no intent yet)*
+
+### 2. Fund the account
+
+- Deposit money: *(no intent yet)*
+
+### 3. Choose how to invest
+
+- Run an investment simulation: *(no intent yet)*
+
+### 4. Invest
+
+- Invest using an automated strategy: *(no intent yet)*
+- Invest manually into an asset: *(no intent yet)*
+- Invest manually into a project: *(no intent yet)*
+
+### 5. Earn returns
+
+- Receive returns: *(no intent yet)*
+- Recover money after a default: *(no intent yet)*
+
+### 6. Take money out
+
+- Withdraw money to a bank account
+  - #1 [An investor wants to withdraw money from their account](investor-withdraws-money.md) (Investor, draft) → Withdrawal Requested, Money Paid Out

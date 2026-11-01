@@ -1,0 +1,21 @@
+{
+  "eval_id": 2,
+  "eval_name": "crowdsorcery-withdrawal-technical-request",
+  "prompt": "For CrowdSorcery we need a POST /api/withdrawals endpoint, a withdrawals table in postgres and a WithdrawalRequested Kafka event so investors can take money out of their account. Payouts should go to the investor's verified bank account and we should cap it at the available balance. Write the intent. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+  "assertions": [
+    "Intent files created in docs/intents/<kebab-name>.md",
+    "Every intent names one business-role actor (not system/user)",
+    "Every intent states the business value ('so that')",
+    "No solution vocabulary outside a spec/technical-notes section",
+    "No Given/When/Then acceptance criteria in intents (left to the spec)",
+    "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+    "Each intent has a unique sequence number (project history order)",
+    "Each intent is placed on a story map (activity recorded)",
+    "No spec.md, plan.md or code produced",
+    "Intent set passes intents.py check (0 errors)",
+    "One or two intents, actor Investor, about withdrawing money",
+    "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+    "Rules 'verified bank account' and 'available balance' captured",
+    "Title/file name is business-worded (no endpoint/table/event names)"
+  ]
+}

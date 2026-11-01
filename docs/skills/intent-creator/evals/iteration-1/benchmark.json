@@ -1,0 +1,678 @@
+{
+  "metadata": {
+    "skill_name": "intent-creator",
+    "skill_path": ".claude/skills/intent-creator",
+    "executor_model": "claude-opus-5-5",
+    "analyzer_model": "claude-opus-5-5",
+    "timestamp": "2026-11-01T22:46:40Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 188.8,
+        "tokens": 76782,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "rider-reserves-bike.md, rider-takes-bike-freed-by-expired-reservation.md, technician-reserves-broken-bike.md, technician-retakes-broken-bike-after-reservation-expires.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": true,
+          "evidence": "{'rider-reserves-bike.md': 'Rider', 'rider-takes-bike-freed-by-expired-reservation.md': 'Rider', 'technician-reserves-broken-bike.md': 'Technician', 'technician-retakes-broken-bike-after-reservation-expires.md': 'Technician'}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": true,
+          "evidence": "{'rider-reserves-bike.md': True, 'rider-takes-bike-freed-by-expired-reservation.md': True, 'technician-reserves-broken-bike.md': True, 'technician-retakes-broken-bike-after-reservation-expires.md': True}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": true,
+          "evidence": "{}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": true,
+          "evidence": "['1', '2', '3', '4']"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": true,
+          "evidence": "4/4"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": true,
+          "evidence": "4 intents, 0 error(s), 0 warning(s)"
+        },
+        {
+          "text": "At least 3 separate intent files (epic split)",
+          "passed": true,
+          "evidence": "4"
+        },
+        {
+          "text": "Technician reservation is its own intent, separate from the rider's",
+          "passed": true,
+          "evidence": "['technician-reserves-broken-bike.md', 'technician-retakes-broken-bike-after-reservation-expires.md']"
+        },
+        {
+          "text": "Reservation duration is not invented (no concrete minutes/seconds outside open questions)",
+          "passed": true,
+          "evidence": "[]"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 14,
+        "failed": 0,
+        "total": 14,
+        "time_seconds": 177.2,
+        "tokens": 68704,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "investor-withdraws-money.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": true,
+          "evidence": "{'investor-withdraws-money.md': 'Investor'}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": true,
+          "evidence": "{'investor-withdraws-money.md': True}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": true,
+          "evidence": "{}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": true,
+          "evidence": "['1']"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": true,
+          "evidence": "1/1"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": true,
+          "evidence": "1 intents, 0 error(s), 0 warning(s)"
+        },
+        {
+          "text": "One or two intents, actor Investor, about withdrawing money",
+          "passed": true,
+          "evidence": "['investor-withdraws-money.md']"
+        },
+        {
+          "text": "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+          "passed": true,
+          "evidence": "found"
+        },
+        {
+          "text": "Rules 'verified bank account' and 'available balance' captured",
+          "passed": true,
+          "evidence": ""
+        },
+        {
+          "text": "Title/file name is business-worded (no endpoint/table/event names)",
+          "passed": true,
+          "evidence": "['An investor wants to withdraw money from their account']"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 16,
+        "failed": 0,
+        "total": 16,
+        "time_seconds": 173.3,
+        "tokens": 69612,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "fleet-operations-releases-expired-reservation.md, rider-rents-bike-from-station.md, rider-reserves-bike-at-station.md, rider-returns-bike-to-any-station.md, rider-returns-bike-to-origin-station.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": true,
+          "evidence": "{'fleet-operations-releases-expired-reservation.md': 'Fleet Operations', 'rider-rents-bike-from-station.md': 'Rider', 'rider-reserves-bike-at-station.md': 'Rider', 'rider-returns-bike-to-any-station.md': 'Rider', 'rider-returns-bike-to-origin-station.md': 'Rider'}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": true,
+          "evidence": "{'fleet-operations-releases-expired-reservation.md': True, 'rider-rents-bike-from-station.md': True, 'rider-reserves-bike-at-station.md': True, 'rider-returns-bike-to-any-station.md': True, 'rider-returns-bike-to-origin-station.md': True}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": true,
+          "evidence": "{}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": true,
+          "evidence": "['5', '1', '4', '3', '2']"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": true,
+          "evidence": "5/5"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": true,
+          "evidence": "5 intents, 0 error(s), 0 warning(s)"
+        },
+        {
+          "text": "Accepted return intent's text is preserved (not rewritten)",
+          "passed": true,
+          "evidence": "body identical"
+        },
+        {
+          "text": "Old return intent marked superseded with a pointer to the new one",
+          "passed": true,
+          "evidence": "status=superseded superseded_by=rider-returns-bike-to-any-station"
+        },
+        {
+          "text": "New return-to-any-station intent references the intent it replaces",
+          "passed": true,
+          "evidence": "['rider-returns-bike-to-any-station.md']"
+        },
+        {
+          "text": "Reservation intent keeps '15 minutes' and 'one active reservation per rider'",
+          "passed": true,
+          "evidence": "['fleet-operations-releases-expired-reservation.md', 'rider-reserves-bike-at-station.md']"
+        },
+        {
+          "text": "New intents continue the sequence after 2 (3, 4, ...)",
+          "passed": true,
+          "evidence": "[3, 4, 5]"
+        },
+        {
+          "text": "Reservation intent links to the rent intent",
+          "passed": true,
+          "evidence": ""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 37.7,
+        "tokens": 43993,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No intent file created for a purely technical upgrade",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Final message explains there is no business need behind it",
+          "passed": true,
+          "evidence": "I didn't write an intent for this, and I didn't create or change any files.\n\nAn intent records a business need: someone in the business (a Rider, an Investor, Fleet Operations) wants something, and the intent says why. Upgrading Spring Boot from 4.1 (currently `4.1.1` in `pom.xml`) to 4.2, and jMole"
+        },
+        {
+          "text": "pom.xml untouched",
+          "passed": true,
+          "evidence": ""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.538,
+        "passed": 7,
+        "failed": 6,
+        "total": 13,
+        "time_seconds": 149.3,
+        "tokens": 68953,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "expire-bike-reservation.md, release-reservation-on-failed-unlock.md, reserve-bike-for-ride.md, reserve-broken-bike-for-maintenance.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": true,
+          "evidence": "{'expire-bike-reservation.md': 'The system ', 'release-reservation-on-failed-unlock.md': 'Rider or technician ', 'reserve-bike-for-ride.md': 'Rider', 'reserve-broken-bike-for-maintenance.md': 'Technician'}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": false,
+          "evidence": "{'expire-bike-reservation.md': False, 'release-reservation-on-failed-unlock.md': False, 'reserve-bike-for-ride.md': False, 'reserve-broken-bike-for-maintenance.md': False}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": false,
+          "evidence": "{'expire-bike-reservation.md': ['Bounded context'], 'release-reservation-on-failed-unlock.md': ['Bounded context'], 'reserve-bike-for-ride.md': ['Bounded context', 'aggregate'], 'reserve-broken-bike-for-maintenance.md': ['Bounded contexts']}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": false,
+          "evidence": "['expire-bike-reservation.md', 'release-reservation-on-failed-unlock.md', 'reserve-bike-for-ride.md', 'reserve-broken-bike-for-maintenance.md']"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": false,
+          "evidence": "[None, None, None, None]"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": false,
+          "evidence": "0/4"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": false,
+          "evidence": "## Business outcome' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Success signal' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Business rules mentioned' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Scope' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Related intents' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Notes for the spec' is missing\nWARN  reserve-broken-bike-for-maintenance.md: no business outcome (past-tense business fact) listed\n4 intents, 45 error(s), 33 warning(s)"
+        },
+        {
+          "text": "At least 3 separate intent files (epic split)",
+          "passed": true,
+          "evidence": "4"
+        },
+        {
+          "text": "Technician reservation is its own intent, separate from the rider's",
+          "passed": true,
+          "evidence": "['release-reservation-on-failed-unlock.md', 'reserve-broken-bike-for-maintenance.md']"
+        },
+        {
+          "text": "Reservation duration is not invented (no concrete minutes/seconds outside open questions)",
+          "passed": true,
+          "evidence": "[]"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.429,
+        "passed": 6,
+        "failed": 8,
+        "total": 14,
+        "time_seconds": 119.9,
+        "tokens": 61970,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "crowdsorcery-investor-withdrawal.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": false,
+          "evidence": "{'crowdsorcery-investor-withdrawal.md': ''}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": false,
+          "evidence": "{'crowdsorcery-investor-withdrawal.md': False}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": false,
+          "evidence": "{'crowdsorcery-investor-withdrawal.md': ['Bounded context', 'Endpoint', 'Kafka', 'POST', 'Postgres', 'Spring', 'api']}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": false,
+          "evidence": "['crowdsorcery-investor-withdrawal.md']"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": false,
+          "evidence": "[None]"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": false,
+          "evidence": "0/1"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": false,
+          "evidence": "y-investor-withdrawal.md: no business outcome (past-tense business fact) listed\nWARN  crowdsorcery-investor-withdrawal.md: section 'Proposed technical shape' uses solution vocabulary (Kafka, POST, Postgres, Spring, aggregate, api, database, endpoint, repository, table in, topic, use case); rephrase in business terms or move to '## Notes for the spec'\nWARN  crowdsorcery-investor-withdrawal.md: section 'Open questions' uses solution vocabulary (Endpoint, Kafka, POST, Postgres, Spring, api, topic); rephrase in business terms or move to '## Notes for the spec'\n1 intents, 12 error(s), 10 warning(s)"
+        },
+        {
+          "text": "One or two intents, actor Investor, about withdrawing money",
+          "passed": false,
+          "evidence": "['crowdsorcery-investor-withdrawal.md']"
+        },
+        {
+          "text": "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+          "passed": true,
+          "evidence": "found"
+        },
+        {
+          "text": "Rules 'verified bank account' and 'available balance' captured",
+          "passed": true,
+          "evidence": ""
+        },
+        {
+          "text": "Title/file name is business-worded (no endpoint/table/event names)",
+          "passed": true,
+          "evidence": "['Intent: Investors withdraw money to their verified bank account']"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.875,
+        "passed": 14,
+        "failed": 2,
+        "total": 16,
+        "time_seconds": 126.5,
+        "tokens": 53852,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Intent files created in docs/intents/<kebab-name>.md",
+          "passed": true,
+          "evidence": "rider-rents-bike-from-station.md, rider-reserves-bike.md, rider-returns-bike-to-any-station.md, rider-returns-bike-to-origin-station.md"
+        },
+        {
+          "text": "Every intent names one business-role actor (not system/user)",
+          "passed": true,
+          "evidence": "{'rider-rents-bike-from-station.md': 'Rider', 'rider-reserves-bike.md': 'Rider', 'rider-returns-bike-to-any-station.md': 'Rider', 'rider-returns-bike-to-origin-station.md': 'Rider'}"
+        },
+        {
+          "text": "Every intent states the business value ('so that')",
+          "passed": true,
+          "evidence": "{'rider-rents-bike-from-station.md': True, 'rider-reserves-bike.md': True, 'rider-returns-bike-to-any-station.md': True, 'rider-returns-bike-to-origin-station.md': True}"
+        },
+        {
+          "text": "No solution vocabulary outside a spec/technical-notes section",
+          "passed": true,
+          "evidence": "{}"
+        },
+        {
+          "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Each intent has a unique sequence number (project history order)",
+          "passed": true,
+          "evidence": "['1', '4', '3', '2']"
+        },
+        {
+          "text": "Each intent is placed on a story map (activity recorded)",
+          "passed": true,
+          "evidence": "4/4"
+        },
+        {
+          "text": "No spec.md, plan.md or code produced",
+          "passed": true,
+          "evidence": "[]"
+        },
+        {
+          "text": "Intent set passes intents.py check (0 errors)",
+          "passed": false,
+          "evidence": "ERROR rider-reserves-bike.md: status 'proposed' not in ['accepted', 'delivered', 'draft', 'dropped', 'specified', 'superseded']\n4 intents, 1 error(s), 0 warning(s)"
+        },
+        {
+          "text": "Accepted return intent's text is preserved (not rewritten)",
+          "passed": false,
+          "evidence": "body changed"
+        },
+        {
+          "text": "Old return intent marked superseded with a pointer to the new one",
+          "passed": true,
+          "evidence": "status=superseded superseded_by=rider-returns-bike-to-any-station"
+        },
+        {
+          "text": "New return-to-any-station intent references the intent it replaces",
+          "passed": true,
+          "evidence": "['rider-returns-bike-to-any-station.md']"
+        },
+        {
+          "text": "Reservation intent keeps '15 minutes' and 'one active reservation per rider'",
+          "passed": true,
+          "evidence": "['rider-reserves-bike.md']"
+        },
+        {
+          "text": "New intents continue the sequence after 2 (3, 4, ...)",
+          "passed": true,
+          "evidence": "[3, 4]"
+        },
+        {
+          "text": "Reservation intent links to the rent intent",
+          "passed": true,
+          "evidence": ""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 133.0,
+        "tokens": 55773,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No intent file created for a purely technical upgrade",
+          "passed": false,
+          "evidence": "['upgrade-spring-boot-4.2-and-jmolecules.md']"
+        },
+        {
+          "text": "Final message explains there is no business need behind it",
+          "passed": false,
+          "evidence": "I wrote the intent at `docs/intents/upgrade-spring-boot-4.2-and-jmolecules.md`. `pom.xml` is unchanged and nothing is committed.\n\nI checked Maven Central on 2026-11-01 before writing it, and both parts of the request run into a problem:\n\n- **Spring Boot 4.2.0 GA isn't released yet.** The newest 4.2 "
+        },
+        {
+          "text": "pom.xml untouched",
+          "passed": true,
+          "evidence": ""
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 144.25,
+        "stddev": 71.3377,
+        "min": 37.7,
+        "max": 188.8
+      },
+      "tokens": {
+        "mean": 64772.75,
+        "stddev": 14316.5774,
+        "min": 43993,
+        "max": 76782
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5437,
+        "stddev": 0.2362,
+        "min": 0.333,
+        "max": 0.875
+      },
+      "time_seconds": {
+        "mean": 132.175,
+        "stddev": 12.6072,
+        "min": 119.9,
+        "max": 149.3
+      },
+      "tokens": {
+        "mean": 60137.0,
+        "stddev": 6822.2056,
+        "min": 53852,
+        "max": 68953
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.46",
+      "time_seconds": "+12.1",
+      "tokens": "+4636"
+    }
+  },
+  "notes": [
+    "Single run per configuration (n=1); the \u00b1 values are across evals, not repeat runs.",
+    "Format assertions (sequence number, story-map placement, intents.py check) can only pass with the skill, because they test its own conventions. The discriminating assertions are about behaviour: business framing, no Given/When/Then in intents, technician split, preserving superseded history, and declining the technical-only request.",
+    "Baselines are strong at domain analysis (vision quotes, open questions) but drift into the spec: all 4 eval-1 baseline intents and the eval-2 baseline have Given/When/Then scenarios, name the bounded context, and eval-2 proposes a technical shape and 202 response code.",
+    "Eval 4 shows the clearest difference: the baseline wrote a technical 'intent' for a dependency upgrade (it even researched Maven Central), while with the skill it declined and asked for the business driver.",
+    "Eval 3: both configurations superseded the return intent rather than editing it in place, but the baseline also edited the old intent's body. The with-skill run added a second reservation intent (expiry, actor Fleet Operations), which the request didn't strictly ask for.",
+    "Inconsistency to review: for reservation expiry, eval 1 (with skill) used actor Rider ('wants a bike whose reservation ran out to be available again'), while eval 3 used Fleet Operations. The skill's guidance on time-triggered intents could be sharper.",
+    "Cost: with skill uses about 8% more tokens and about 10% more time on average. The eval-4 decline was much faster (38s compared with 133s)."
+  ]
+}

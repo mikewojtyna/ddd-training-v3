@@ -1,0 +1,23 @@
+{
+  "eval_id": 3,
+  "eval_name": "velocity-changed-need-and-new-intent-with-history",
+  "prompt": "Two things changed after the pilot. First, operations now lets riders return a bike to any VeloCity station, not just the one they rented from - rebalancing trucks are cheaper than angry riders. Second, product wants reservations: hold a bike for 15 minutes, one active reservation per rider. Update the intents. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+  "assertions": [
+    "Intent files created in docs/intents/<kebab-name>.md",
+    "Every intent names one business-role actor (not system/user)",
+    "Every intent states the business value ('so that')",
+    "No solution vocabulary outside a spec/technical-notes section",
+    "No Given/When/Then acceptance criteria in intents (left to the spec)",
+    "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+    "Each intent has a unique sequence number (project history order)",
+    "Each intent is placed on a story map (activity recorded)",
+    "No spec.md, plan.md or code produced",
+    "Intent set passes intents.py check (0 errors)",
+    "Accepted return intent's text is preserved (not rewritten)",
+    "Old return intent marked superseded with a pointer to the new one",
+    "New return-to-any-station intent references the intent it replaces",
+    "Reservation intent keeps '15 minutes' and 'one active reservation per rider'",
+    "New intents continue the sequence after 2 (3, 4, ...)",
+    "Reservation intent links to the rent intent"
+  ]
+}

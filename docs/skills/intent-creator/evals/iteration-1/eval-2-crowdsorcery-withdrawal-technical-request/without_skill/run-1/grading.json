@@ -1,0 +1,80 @@
+{
+  "expectations": [
+    {
+      "text": "Intent files created in docs/intents/<kebab-name>.md",
+      "passed": true,
+      "evidence": "crowdsorcery-investor-withdrawal.md"
+    },
+    {
+      "text": "Every intent names one business-role actor (not system/user)",
+      "passed": false,
+      "evidence": "{'crowdsorcery-investor-withdrawal.md': ''}"
+    },
+    {
+      "text": "Every intent states the business value ('so that')",
+      "passed": false,
+      "evidence": "{'crowdsorcery-investor-withdrawal.md': False}"
+    },
+    {
+      "text": "No solution vocabulary outside a spec/technical-notes section",
+      "passed": false,
+      "evidence": "{'crowdsorcery-investor-withdrawal.md': ['Bounded context', 'Endpoint', 'Kafka', 'POST', 'Postgres', 'Spring', 'api']}"
+    },
+    {
+      "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+      "passed": false,
+      "evidence": "['crowdsorcery-investor-withdrawal.md']"
+    },
+    {
+      "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent has a unique sequence number (project history order)",
+      "passed": false,
+      "evidence": "[None]"
+    },
+    {
+      "text": "Each intent is placed on a story map (activity recorded)",
+      "passed": false,
+      "evidence": "0/1"
+    },
+    {
+      "text": "No spec.md, plan.md or code produced",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Intent set passes intents.py check (0 errors)",
+      "passed": false,
+      "evidence": "y-investor-withdrawal.md: no business outcome (past-tense business fact) listed\nWARN  crowdsorcery-investor-withdrawal.md: section 'Proposed technical shape' uses solution vocabulary (Kafka, POST, Postgres, Spring, aggregate, api, database, endpoint, repository, table in, topic, use case); rephrase in business terms or move to '## Notes for the spec'\nWARN  crowdsorcery-investor-withdrawal.md: section 'Open questions' uses solution vocabulary (Endpoint, Kafka, POST, Postgres, Spring, api, topic); rephrase in business terms or move to '## Notes for the spec'\n1 intents, 12 error(s), 10 warning(s)"
+    },
+    {
+      "text": "One or two intents, actor Investor, about withdrawing money",
+      "passed": false,
+      "evidence": "['crowdsorcery-investor-withdrawal.md']"
+    },
+    {
+      "text": "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+      "passed": true,
+      "evidence": "found"
+    },
+    {
+      "text": "Rules 'verified bank account' and 'available balance' captured",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "text": "Title/file name is business-worded (no endpoint/table/event names)",
+      "passed": true,
+      "evidence": "['Intent: Investors withdraw money to their verified bank account']"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 8,
+    "total": 14,
+    "pass_rate": 0.429
+  }
+}

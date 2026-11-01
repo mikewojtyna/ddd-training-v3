@@ -1,0 +1,89 @@
+{
+  "skill_name": "intent-creator",
+  "evals": [
+    {
+      "id": 1,
+      "name": "velocity-reservations-epic",
+      "prompt": "riders should be able to reserve bikes in VeloCity before unlocking them, and technicians too when they go pick up a broken one. Can you capture the intents for reservations? (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+      "expected_output": "Several fine-grained intents (rider reserves, technician reserves broken bike, reservation expiry/release...), each one actor + one goal, business language only, no GWT; story-map.md and README.md index created; duration left as open question; stops for review.",
+      "files": [],
+      "assertions": [
+        "Intent files created in docs/intents/<kebab-name>.md",
+        "Every intent names one business-role actor (not system/user)",
+        "Every intent states the business value ('so that')",
+        "No solution vocabulary outside a spec/technical-notes section",
+        "No Given/When/Then acceptance criteria in intents (left to the spec)",
+        "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+        "Each intent has a unique sequence number (project history order)",
+        "Each intent is placed on a story map (activity recorded)",
+        "No spec.md, plan.md or code produced",
+        "Intent set passes intents.py check (0 errors)",
+        "At least 3 separate intent files (epic split)",
+        "Technician reservation is its own intent, separate from the rider's",
+        "Reservation duration is not invented (no concrete minutes/seconds outside open questions)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "crowdsorcery-withdrawal-technical-request",
+      "prompt": "For CrowdSorcery we need a POST /api/withdrawals endpoint, a withdrawals table in postgres and a WithdrawalRequested Kafka event so investors can take money out of their account. Payouts should go to the investor's verified bank account and we should cap it at the available balance. Write the intent. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+      "expected_output": "A business intent like investor-withdraws-money with actor Investor; endpoint/table/Kafka only under 'Notes for the spec'; rules (verified bank account, cap at available balance) kept verbatim not as GWT; no spec/plan/code.",
+      "files": [],
+      "assertions": [
+        "Intent files created in docs/intents/<kebab-name>.md",
+        "Every intent names one business-role actor (not system/user)",
+        "Every intent states the business value ('so that')",
+        "No solution vocabulary outside a spec/technical-notes section",
+        "No Given/When/Then acceptance criteria in intents (left to the spec)",
+        "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+        "Each intent has a unique sequence number (project history order)",
+        "Each intent is placed on a story map (activity recorded)",
+        "No spec.md, plan.md or code produced",
+        "Intent set passes intents.py check (0 errors)",
+        "One or two intents, actor Investor, about withdrawing money",
+        "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+        "Rules 'verified bank account' and 'available balance' captured",
+        "Title/file name is business-worded (no endpoint/table/event names)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "velocity-changed-need-and-new-intent-with-history",
+      "prompt": "Two things changed after the pilot. First, operations now lets riders return a bike to any VeloCity station, not just the one they rented from - rebalancing trucks are cheaper than angry riders. Second, product wants reservations: hold a bike for 15 minutes, one active reservation per rider. Update the intents. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+      "expected_output": "Accepted return intent is not rewritten: a new intent supersedes it (old gets status superseded + superseded_by only); reservation intent gets the next sequence and keeps '15 minutes' and 'one active reservation per rider' as stated rules; story map and index updated.",
+      "files": [
+        "evals/files/seed-velocity-intents/"
+      ],
+      "assertions": [
+        "Intent files created in docs/intents/<kebab-name>.md",
+        "Every intent names one business-role actor (not system/user)",
+        "Every intent states the business value ('so that')",
+        "No solution vocabulary outside a spec/technical-notes section",
+        "No Given/When/Then acceptance criteria in intents (left to the spec)",
+        "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+        "Each intent has a unique sequence number (project history order)",
+        "Each intent is placed on a story map (activity recorded)",
+        "No spec.md, plan.md or code produced",
+        "Intent set passes intents.py check (0 errors)",
+        "Accepted return intent's text is preserved (not rewritten)",
+        "Old return intent marked superseded with a pointer to the new one",
+        "New return-to-any-station intent references the intent it replaces",
+        "Reservation intent keeps '15 minutes' and 'one active reservation per rider'",
+        "New intents continue the sequence after 2 (3, 4, ...)",
+        "Reservation intent links to the rent intent"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "non-business-upgrade-request",
+      "prompt": "write an intent for upgrading Spring Boot from 4.1 to 4.2 and bumping jmolecules to the latest version. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+      "expected_output": "Declines to create an intent because there is no business need; explains it belongs in a plan/technical task; no intent file created (or asks for a business driver).",
+      "files": [],
+      "assertions": [
+        "No intent file created for a purely technical upgrade",
+        "Final message explains there is no business need behind it",
+        "pom.xml untouched"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "No intent file created for a purely technical upgrade",
+      "passed": false,
+      "evidence": "['upgrade-spring-boot-4.2-and-jmolecules.md']"
+    },
+    {
+      "text": "Final message explains there is no business need behind it",
+      "passed": false,
+      "evidence": "I wrote the intent at `docs/intents/upgrade-spring-boot-4.2-and-jmolecules.md`. `pom.xml` is unchanged and nothing is committed.\n\nI checked Maven Central on 2026-11-01 before writing it, and both parts of the request run into a problem:\n\n- **Spring Boot 4.2.0 GA isn't released yet.** The newest 4.2 "
+    },
+    {
+      "text": "pom.xml untouched",
+      "passed": true,
+      "evidence": ""
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.333
+  }
+}

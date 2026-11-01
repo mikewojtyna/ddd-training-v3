@@ -1,0 +1,75 @@
+{
+  "expectations": [
+    {
+      "text": "Intent files created in docs/intents/<kebab-name>.md",
+      "passed": true,
+      "evidence": "expire-bike-reservation.md, release-reservation-on-failed-unlock.md, reserve-bike-for-ride.md, reserve-broken-bike-for-maintenance.md"
+    },
+    {
+      "text": "Every intent names one business-role actor (not system/user)",
+      "passed": true,
+      "evidence": "{'expire-bike-reservation.md': 'The system ', 'release-reservation-on-failed-unlock.md': 'Rider or technician ', 'reserve-bike-for-ride.md': 'Rider', 'reserve-broken-bike-for-maintenance.md': 'Technician'}"
+    },
+    {
+      "text": "Every intent states the business value ('so that')",
+      "passed": false,
+      "evidence": "{'expire-bike-reservation.md': False, 'release-reservation-on-failed-unlock.md': False, 'reserve-bike-for-ride.md': False, 'reserve-broken-bike-for-maintenance.md': False}"
+    },
+    {
+      "text": "No solution vocabulary outside a spec/technical-notes section",
+      "passed": false,
+      "evidence": "{'expire-bike-reservation.md': ['Bounded context'], 'release-reservation-on-failed-unlock.md': ['Bounded context'], 'reserve-bike-for-ride.md': ['Bounded context', 'aggregate'], 'reserve-broken-bike-for-maintenance.md': ['Bounded contexts']}"
+    },
+    {
+      "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+      "passed": false,
+      "evidence": "['expire-bike-reservation.md', 'release-reservation-on-failed-unlock.md', 'reserve-bike-for-ride.md', 'reserve-broken-bike-for-maintenance.md']"
+    },
+    {
+      "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent has a unique sequence number (project history order)",
+      "passed": false,
+      "evidence": "[None, None, None, None]"
+    },
+    {
+      "text": "Each intent is placed on a story map (activity recorded)",
+      "passed": false,
+      "evidence": "0/4"
+    },
+    {
+      "text": "No spec.md, plan.md or code produced",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Intent set passes intents.py check (0 errors)",
+      "passed": false,
+      "evidence": "## Business outcome' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Success signal' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Business rules mentioned' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Scope' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Related intents' is missing\nWARN  reserve-broken-bike-for-maintenance.md: section '## Notes for the spec' is missing\nWARN  reserve-broken-bike-for-maintenance.md: no business outcome (past-tense business fact) listed\n4 intents, 45 error(s), 33 warning(s)"
+    },
+    {
+      "text": "At least 3 separate intent files (epic split)",
+      "passed": true,
+      "evidence": "4"
+    },
+    {
+      "text": "Technician reservation is its own intent, separate from the rider's",
+      "passed": true,
+      "evidence": "['release-reservation-on-failed-unlock.md', 'reserve-broken-bike-for-maintenance.md']"
+    },
+    {
+      "text": "Reservation duration is not invented (no concrete minutes/seconds outside open questions)",
+      "passed": true,
+      "evidence": "[]"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 6,
+    "total": 13,
+    "pass_rate": 0.538
+  }
+}
