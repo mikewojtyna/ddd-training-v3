@@ -95,6 +95,16 @@ Settle these before writing the plan. Each one ends up in the plan's "Decisions"
 3. **One module per context (default).** A bounded context maps 1:1 to a module: one `package-info.java` with `@BoundedContext` and `@Module`. If the user asks for several modules, first ask whether those modules are really separate bounded contexts. If each would map 1:1 to its own context, suggest splitting the canvas into several canvases instead. If they still want several modules in one context, do it. They know their domain. Put the modules in subpackages under the context root, each with its own `package-info.java` carrying `@Module` only (the `@BoundedContext` stays on the root). Record the decision.
 4. **ACL for every outbound query or command (default).** Each one gets a secondary port named in *this* context's language, and an adapter inside an `@AntiCorruptionLayer` package that translates to the collaborator's language. That way the collaborator's model can't leak into this one. If the user says explicitly that they don't want an ACL (typically a Conformist relationship), push back once and explain the cost: upstream changes ripple straight into this domain model, and the ubiquitous language gets mixed. Suggest the ACL again. If they insist, go without it, and record it in the plan as a conscious decision with that risk spelled out.
 5. **Mode.** If `src/main/java/pl/wojtyna/dddtrainingv3/<system>/<package>/` exists, use update mode (Step 5).
+6. **Context boundaries: talk only through `api`.** Context A may depend on context B **only through B's `api` package** (its use cases, queries, events and their records). The generated architecture test (Step 6) enforces this in both directions. A conformist that uses only B's `api` types already follows the rule and needs no exception.
+
+   Exceptions exist only when the user **explicitly** asks to break the rule. Examples: "share Settlement's money types with us as a shared kernel", or "we're conformist, use their domain classes directly". Never infer an exception from the canvas or invent one for convenience.
+   - Challenge it once. A dependency on another context's internals couples the two models: every internal refactoring in B becomes a breaking change for A, and the boundary stops protecting either language. Suggest B publishing what A needs in its `api`, or an ACL.
+   - If the user insists, comply, and make the decision impossible to miss:
+     - a numbered row in the plan's Decisions table (D-number, date, the exact class or package allowed, the risk)
+     - one commented exception clause in the architecture test, exactly as narrow as the decision: one class if the user named a class, a package only if they asked for a package
+     - a comment where the foreign type is used (the using package's `package-info.java` javadoc, or the class javadoc), citing the same D-number
+
+   Without such a request there are no exceptions, and the test stays two plain rules.
 
 ## Step 4: Save the plan, then stop for review
 
@@ -136,13 +146,18 @@ Follow `references/canvas-mapping.md` and `references/code-templates.md`. The ke
 - **No Spring in `domain/` or `api/`.** All wiring goes in `infra/config/<Context>ContextConfig`. Give bean methods context-prefixed names (for example `pricingTariffRepository`), because bean names are global and Spring Boot fails on duplicates.
 - **Tests for every strict GWT rule**, in `src/test/java/...` in the same package as the aggregate. Use the `BikeStationTest` style: the scenario in a `@DisplayName` text block, and `// given`, `// when`, `// then` sections. Implement the aggregate so these tests pass. The rules are precise, so make them real.
 - **The `package-info.java` javadoc follows the rules in the code.** Its "Business decisions" section is the readable form of the rules the module actually enforces. Each rule that is implemented appears in its Given/When/Then form and names its test (for example "see `PriceListTest#freeRide`"). Each rule that isn't implemented yet is marked *not modelled yet* and points to the plan. Whenever a change adds, changes or removes a rule or its test, update this section **in the same change**, along with the plan's rule tables. This applies in update mode and when a rule moves from "awaiting GWT" to implemented. If the javadoc says something the tests don't enforce, it misleads the next reader.
+- **An architecture test guards the boundary.** Generate `src/test/java/.../<system>/<context>/<Context>ArchitectureTest.java` from the template in `references/code-templates.md`. It has two ArchUnit rules:
+  - *incoming*: other contexts use only this context's `api`
+  - *outgoing*: this context uses only other contexts' `api`
+
+  Shared code (top-level `common`, a system's `common` and `contextmap`) isn't a context and is always allowed. Add a commented exception clause only for a decision recorded under Step 3, item 6. If `pom.xml` doesn't have `com.tngtech.archunit:archunit-junit5` (test scope), add it at version **1.5.1**, and record that in the plan. Older versions can't read the class files of the locally installed JDK 27.
 - **Stubs are allowed only at the edges**: ACL adapters to contexts that don't exist in code yet, and REST endpoints the canvas doesn't describe. They throw `UnsupportedOperationException("implement this")` and carry a comment naming the canvas message. In-memory repositories are implemented, not stubbed.
 
 ## Step 7: Verify
 
 ```bash
 ./mvnw compile
-./mvnw test -Dtest='<NewOrChangedTestClasses>'
+./mvnw test -Dtest='<NewOrChangedTestClasses>,<Context>ArchitectureTest'
 ./mvnw test        # the Spring context must still start with the new config
 ```
 
@@ -154,7 +169,7 @@ Before reporting, check that the javadoc matches the tests. Every GWT test shoul
 
 Tell the user:
 - the paths of the plan and the module
-- the decisions made and the pushbacks given (ACL, multiple modules, non-GWT rules)
+- the decisions made and the pushbacks given (ACL, multiple modules, non-GWT rules, boundary exceptions)
 - the open points: rules awaiting GWT (including contradictions found in the canvas), collaborators that don't exist in code yet, open questions from the canvas
 - the differences from the reference context map, if any
 - for VeloCity: whether `src/main/cml/VeloCity-*.cml` and `velocity/velocity-context-map.md` need updating to match. The VeloCity `CLAUDE.md` asks to keep them in sync. Offer to do it, but don't do it unasked, because the context map may be a workshop exercise.

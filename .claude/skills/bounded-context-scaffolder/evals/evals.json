@@ -21,7 +21,8 @@
         "No Lombok used",
         "At least 4 GWT tests (@DisplayName text block with given/when/then)",
         "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
-      ]
+      ],
+      "followup_prompt": "I reviewed the Pricing plan in docs/bounded-contexts/velocity/pricing/plan.md. Approved, with these answers: yes, copy the canvas to the default docs location; your suggested defaults for the edge cases are fine. One addition - add this rule: Return charges \u2014 Given a price list with a 10 minute free period and first-hour fee 5.00 PLN, When a ride of 45 minutes with a 3.00 PLN drop-zone return charge is priced, Then the total fee is 8.00 PLN. Go ahead."
     },
     {
       "id": 2,
@@ -39,7 +40,8 @@
         "Retry count not hard-coded from a guessed threshold",
         "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
         "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
-      ]
+      ],
+      "followup_prompt": "I reviewed the Settlement plan. Here's the strict retry rule. Rule 1: Given a priced ride of 12.50 PLN with 2 failed charge attempts, When the 3rd charge attempt fails, Then an Outstanding Debt of 12.50 PLN is recorded and Debt Recorded is published. Rule 2: Given a priced ride of 12.50 PLN with 1 failed charge attempt, When the 2nd charge attempt succeeds, Then the ride is settled and no Outstanding Debt is recorded. Otherwise the plan is approved, go ahead."
     },
     {
       "id": 3,
@@ -73,7 +75,17 @@
         "Available Bikes query handler in api/queries",
         "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
         "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
-      ]
+      ],
+      "followup_prompt": "Rentals plan reviewed - approved. Go with your suggested defaults on the open questions, and yes, fill in the returnBike and RentBikeUseCase stubs. Go ahead."
+    },
+    {
+      "id": 5,
+      "name": "accounts-shared-kernel-exception",
+      "prompt": "Add an Accounts bounded context to velocity. Name: Accounts. Purpose: keeps rider accounts and account blocks so only riders in good standing can rent bikes. Ubiquitous language: Account = a rider's VeloCity account, identified by the rider's borrower id; Account Block = a flag on an account that prevents renting. Inbound: Block Account command from the back office. Outbound: Account Blocked event to Rentals. Rules: (1) Given an active account, When the back office blocks it, Then the account is blocked and Account Blocked is published. (2) Given a blocked account, When the back office blocks it again, Then the block is rejected. One more thing: we treat Rentals' BorrowerId (pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId) as a shared kernel - use it directly in Accounts' domain, don't wrap it and don't go through Rentals' api. I know it's against our boundary rule, I want it anyway.",
+      "followup_prompt": "Reviewed the Accounts plan - approved, and yes, keep the shared kernel with Rentals' BorrowerId. Go ahead.",
+      "expected_output": "Phase A: plan with the shared-kernel decision challenged once and recorded (D-number, risk), no code. Phase B: Accounts module + AccountsArchitectureTest with exactly one commented exception for velocity.rentals.domain.bikestation, DECISION comment at the usage site, ArchUnit 1.5.1 added to pom, build green.",
+      "files": [],
+      "assertions": []
     }
   ]
 }

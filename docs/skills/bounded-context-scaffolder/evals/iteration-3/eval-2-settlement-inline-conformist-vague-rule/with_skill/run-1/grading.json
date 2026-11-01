@@ -1,0 +1,110 @@
+{
+  "expectations": [
+    {
+      "text": "Recommends/creates a markdown canvas for the inline input",
+      "passed": true,
+      "evidence": "canvas files: ['docs/bounded-contexts/velocity/settlement/canvas.md']; final message mentions markdown/canvas.md: False"
+    },
+    {
+      "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+      "passed": true,
+      "evidence": "final_message.md"
+    },
+    {
+      "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+      "passed": true,
+      "evidence": "ACL payment packages: none"
+    },
+    {
+      "text": "Plan markdown file created for settlement",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/settlement/plan.md"
+    },
+    {
+      "text": "Conformist decision recorded in the plan",
+      "passed": true,
+      "evidence": "plan mentions conformist"
+    },
+    {
+      "text": "Vague retry rule flagged as awaiting a strict GWT example",
+      "passed": true,
+      "evidence": "GWT"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    },
+    {
+      "text": "Phase A: no Java code before the plan is approved",
+      "passed": true,
+      "evidence": "java files in phase A: none"
+    },
+    {
+      "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+      "passed": true,
+      "evidence": "phaseA_plan.md"
+    },
+    {
+      "text": "Phase A: final message asks the user to review/approve the plan",
+      "passed": true,
+      "evidence": "phaseA_final_message.md"
+    },
+    {
+      "text": "Phase B: plan Status set to 'implemented'",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: Review notes record the approval",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+      "passed": true,
+      "evidence": "test refs: ['SettlementTest#debtRecordedWhenThirdChargeAttemptFails', 'IntegrationEventsPublisherTest#outstandingDebtIsPublishedAsDebtRecorded', 'SettlementTest#rideSettledWhenSecondChargeAttemptSucceeds']"
+    },
+    {
+      "text": "Phase B: javadoc reflects the rule added/changed at approval",
+      "passed": true,
+      "evidence": "pattern '12\\\\.50|3rd|third' in Business decisions"
+    },
+    {
+      "text": "Phase B: the supplied retry rule is listed as enforced (with its test), not as 'not modelled yet'",
+      "passed": true,
+      "evidence": "1 bullet(s) for the 3rd-attempt rule"
+    },
+    {
+      "text": "Architecture test exists with the incoming and outgoing api-only rules",
+      "passed": true,
+      "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/SettlementArchitectureTest.java"
+    },
+    {
+      "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+      "passed": true,
+      "evidence": "pom.xml diff"
+    },
+    {
+      "text": "Architecture test ran green in the verified build",
+      "passed": true,
+      "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.583 s -- in pl.wojtyna.dddtrainingv3.velocity.settleme"
+    },
+    {
+      "text": "No boundary exceptions without an explicit request",
+      "passed": true,
+      "evidence": "none"
+    }
+  ],
+  "summary": {
+    "passed": 20,
+    "failed": 0,
+    "total": 20,
+    "pass_rate": 1.0
+  }
+}

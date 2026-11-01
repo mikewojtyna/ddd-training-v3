@@ -1,0 +1,962 @@
+diff --git a/docs/bounded-contexts/velocity/settlement/canvas.md b/docs/bounded-contexts/velocity/settlement/canvas.md
+new file mode 100644
+index 0000000..97898f9
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/settlement/canvas.md
+@@ -0,0 +1,61 @@
++# Bounded Context Canvas: Settlement
++
++<!--
++Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
++Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
++Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
++
++Saved on 2026-11-01 from the user's inline request. Content is as the user wrote it, only put into the template structure.
++Sections marked "not provided yet" were empty in the request; please fill them in where you can.
++-->
++
++## Name
++Settlement
++
++## Purpose
++Once a ride is priced, we charge the rider through their payment method, so that every ride eventually gets paid.
++
++## Strategic Classification
++<!-- not provided yet -->
++- Domain: <core | supporting | generic | other>
++- Business model: <revenue | engagement | compliance | cost reduction>
++- Evolution: <genesis | custom built | product | commodity>
++
++## Domain Roles
++<!-- not provided yet. Pick traits from docs/model-traits-worksheet.md -->
++
++## Inbound Communication
++| Collaborator | Type (Query/Command/Event) | Message | Notes |
++|---|---|---|---|
++| Pricing | Event | Ride Priced | |
++
++## Outbound Communication
++| Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
++|---|---|---|---|
++| Charge Rider | Command | Payments | no: "we're conformist to Payments, skip the ACL and use their API directly" |
++| Debt Recorded | Event | DebtRecovery | n/a for events |
++
++## Ubiquitous Language
++- **Settlement**: the process of collecting money for one priced ride.
++- **Charge Attempt**: one try to take money from the rider's payment method.
++- **Outstanding Debt**: the unpaid amount left after all attempts fail.
++
++## Business Decisions
++### Retry failed charges, then record debt
++If a charge fails, we retry a few times shortly after the ride, then record debt.
++
++Strict examples, given by the user in review on 2026-11-01:
++
++- **Rule 1**: Given a priced ride of 12.50 PLN with 2 failed charge attempts, When the 3rd charge attempt fails, Then an Outstanding Debt of 12.50 PLN is recorded and Debt Recorded is published.
++- **Rule 2**: Given a priced ride of 12.50 PLN with 1 failed charge attempt, When the 2nd charge attempt succeeds, Then the ride is settled and no Outstanding Debt is recorded.
++
++<!-- "Shortly after the ride" (when retries happen) is still not a strict Given/When/Then example. See "Rules awaiting GWT" in plan.md. -->
++
++## Assumptions
++<!-- not provided yet -->
++
++## Verification Metrics
++<!-- not provided yet -->
++
++## Open Questions
++<!-- not provided yet -->
+diff --git a/docs/bounded-contexts/velocity/settlement/plan.md b/docs/bounded-contexts/velocity/settlement/plan.md
+new file mode 100644
+index 0000000..1d2c65e
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/settlement/plan.md
+@@ -0,0 +1,154 @@
++# Settlement bounded context: implementation plan
++
++- **System / package**: `velocity.settlement` (`pl.wojtyna.dddtrainingv3.velocity.settlement`)
++- **Mode**: scaffold (the package doesn't exist yet)
++- **Source canvas**: `docs/bounded-contexts/velocity/settlement/canvas.md` (saved from the inline request, 2026-11-01)
++- **Last updated**: 2026-11-01
++- **Status**: implemented
++
++<!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
++     Invoking the skill again resumes from this file. -->
++
++## Review notes
++- 2026-11-01 (review 1, user): "I reviewed the Settlement plan. Here's the strict retry rule." The user gave two strict GWT rules and approved the rest of the plan ("Otherwise the plan is approved, go ahead"). Changes made:
++  - **Q1** answered in part: Rule 1 (debt after the 3rd failed attempt) and Rule 2 (successful 2nd attempt settles the ride) are now R1 and R2, modelled in the `Settlement` aggregate with tests. Rule 1 fixes the attempt limit at **3**. Both rules were added to `canvas.md` under Business Decisions. Still awaiting: the timing of retries ("shortly after the ride") and the other suggestions (see "Rules awaiting GWT").
++  - **Q2** (ACL): the plan was approved with the no-ACL variant, so D1 is final: conformist, no ACL. The pushback stands in this plan and in `paymentsctx/package-info.java`.
++  - **Q3**: default (b) applied: temporary `ChargeRider` / `ChargeResult` records until Payments publishes its `api`.
++  - **Q4**: not answered, so classification and domain roles stay out of the code (the suggestions were not applied).
++  - **Q5**: not answered; the Accounts and DebtRecovery-inbound relationships stay out of scope and remain listed as differences.
++  - "Use case behaviour before Q1" no longer applies: the aggregate exists, so `SettleRideUseCase` runs the four steps for the first Charge Attempt.
++  - Status set to `approved`, then `implemented` after the build passed.
++- 2026-11-01: draft written from the inline request, awaiting review. The inline text was saved as `canvas.md` (template structure, wording unchanged). Three things need an answer before code is generated: Q1 (the retry rule as strict GWT), Q2 (ACL towards Payments, after the pushback below), Q3 (the shape of the Payments API we conform to). See "Questions for the reviewer".
++
++## Canvas summary
++Settlement collects the money for each priced ride by charging the rider's payment method through Payments, so that every ride is eventually paid. It reacts to *Ride Priced* from Pricing, sends *Charge Rider* to Payments, and when all charge attempts fail it records *Outstanding Debt* and publishes *Debt Recorded* to DebtRecovery. Strategic classification and domain roles aren't given in the canvas.
++
++## Questions for the reviewer
++<!-- Review 1 (2026-11-01): Q1 answered in part (R1, R2; timing still open as S2), Q2 resolved as no ACL (D1), Q3 default (b) applied, Q4 and Q5 still open. -->
++1. **Q1: the retry rule is not a strict Given/When/Then yet.** "Retry a few times shortly after the ride, then record debt" doesn't say how many attempts, how far apart, or what is recorded. I won't guess these numbers into the domain model. Please confirm or correct the suggested GWT examples under "Rules awaiting GWT" (number of attempts, delay between attempts, debt amount).
++2. **Q2: ACL towards Payments (pushback).** You asked to skip the ACL because Settlement is conformist to Payments. The reference map agrees that the relationship is `Payments [U,OHS,PL] -> [D,CF] Settlement`, so conformist is a legitimate choice here. The cost of going without an ACL is still real: every change to Payments' published language (renamed fields, a new failure code, a changed charge result) ripples straight into Settlement's domain model and tests, and Payments' words ("charge", "payment method", processor result codes) mix into Settlement's language next to *Charge Attempt* and *Outstanding Debt*. A thin ACL (a `RiderCharging` port in our words, one translating adapter in `paymentsctxacl`) costs one interface and one class. **Recommendation: keep the ACL.** If you still want no ACL, reply "no ACL" and the plan below already shows that variant (decision D1).
++3. **Q3: Payments doesn't exist in code yet.** "Use their API directly" needs `velocity.payments.api` types, and there are none. I won't invent Payments' API. Until Payments exists, the conformist adapter can only be a stub, and the port has to use temporary types. Options: (a) scaffold Payments first (or at least its `api` for *Charge Rider*), then Settlement conforms to it; (b) scaffold Settlement now with a port that takes a plain `ChargeRider` record shaped after the canvas message, and replace it with Payments' `api` type later (a breaking change inside Settlement, by design of conformism). The plan assumes (b) unless you pick (a).
++4. **Q4: classification and roles.** Domain / business model / evolution and domain roles are empty. Suggestion only, not used until you confirm: Domain *supporting* (or *core*, if collection rate is a differentiator), Business model *revenue*, Evolution *custom built*, Role *Execution Model* (performs and tracks the job of collecting money per ride).
++5. **Q5: differences from the reference context map** (see the table below), in particular the missing Accounts relationship (blocking a rider with outstanding debt) and the missing inbound "attempt collection" from DebtRecovery. Are they intentionally out of scope for this canvas?
++
++## Decisions
++| # | Decision | Choice | Reason |
++|---|---|---|---|
++| D0 | System | `velocity` | Settlement is a VeloCity context in the canvas, the vision and the CML. |
++| D0a | Name / package | `@BoundedContext(name = "Settlement")`, package `settlement` | Canvas name matches the CML `BoundedContext Settlement`. |
++| D0b | Modules | 1 module = 1 context | default |
++| D1 | ACL towards Payments | **No ACL (conformist, user insisted; plan approved with this variant on 2026-11-01).** Adapter in `infra/adapters/secondary/paymentsctx/` without `@AntiCorruptionLayer`; the port may use Payments' published (`api`) types. | User asked explicitly for conformist without ACL; the reference map also marks Settlement CF towards Payments. Pushback given (Q2). **Risk:** upstream changes in Payments' published language ripple straight into Settlement's domain model; Payments' terms mix into Settlement's UL. The risk is spelled out in `paymentsctx/package-info.java`. If you choose the ACL, the package becomes `paymentsctxacl` with `@AntiCorruptionLayer` and the port takes only Settlement types. |
++| D2 | Boundary exceptions | none | Conformist through Payments' `api` already follows the "talk only through `api`" rule. No one asked to use another context's internals. `SettlementArchitectureTest` stays two plain rules. |
++| D3 | Aggregates | `Settlement` (one per priced ride, identified by `RideId`) | R1 and R2 share the same Given (a priced ride and its Charge Attempts so far) and the same kind of When (a Charge Attempt result). See "Business rules → aggregates". |
++| D6 | Money | `org.joda.money.Money` instead of an own `Money` record | The code templates say to use joda-money for amounts in a currency, and it's already on the classpath. `OutstandingDebt` wraps it. |
++| D7 | Attempt limit | `Settlement.MAX_CHARGE_ATTEMPTS = 3` | Fixed by R1 ("with 2 failed ... when the 3rd fails, then debt"). Not a guess. |
++| D8 | Finished Settlement receiving another attempt | `IllegalStateException` as a programming-error guard, no domain exception, no test | The business answer (suggested S3) isn't confirmed. Something has to happen in code; a guard is the least domain-committing option. Replace with a domain exception once S3 is confirmed. |
++| D9 | Retry trigger | none yet | When a retry happens ("shortly after the ride") is still awaiting GWT. `SettleRideUseCase` makes only the first attempt; nothing calls the aggregate for attempts 2 and 3 in the running app yet. |
++| D4 | Inbound *Ride Priced* | our own record + use case; no listener yet | Pricing doesn't exist in code, so there's no upstream type to listen to. Listener `infra/adapters/primary/pricingctxacl/PricingEventsListener` is a follow-up. |
++| D5 | ArchUnit | add `com.tngtech.archunit:archunit-junit5:1.5.1` (test scope) to `pom.xml` | Not on the classpath yet; older versions can't read JDK 27 class files. |
++
++## Mapping: canvas → code
++Paths relative to `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/`.
++
++### Inbound
++| Collaborator | Type | Message | Code |
++|---|---|---|---|
++| Pricing | Event | Ride Priced | `api/usecases/RidePriced` (our record: `rideId`, `riderId`, `amount`, `currency`) and `api/usecases/SettleRideUseCase` (`@PrimaryPort`): creates the `Settlement`, sends *Charge Rider* through `RiderCharging`, records the result (`chargeAttemptSucceeded` / `chargeAttemptFailed`), saves, publishes the events. Listener on Pricing's `api.events.RidePriced`: follow-up (Pricing not in code). |
++
++(The earlier "Use case behaviour before Q1" options are obsolete now that R1 and R2 exist.)
++
++### Outbound
++| Message | Type | Collaborator | Port | Adapter (package) |
++|---|---|---|---|---|
++| Charge Rider | Command | Payments | `domain/settlement/RiderCharging` (`@SecondaryPort`), method `ChargeResult charge(ChargeRider command)`; under conformism `ChargeRider`/`ChargeResult` are meant to be Payments' `api` types (temporary local records until Payments exists, Q3) | `infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter` (`@SecondaryAdapter`), **stub** throwing `UnsupportedOperationException("implement this")`, comment quoting the canvas message "Charge Rider → Payments". `package-info.java` javadoc records D1 and its risk. |
++| Debt Recorded | Event | DebtRecovery | n/a | `api/events/DebtRecorded` (record, primitives/strings only: `rideId`, `riderId`, `amount`, `currency`) implementing `IntegrationEvent`. Emitted from the domain event `SettlementEvent.OutstandingDebtRecorded` by `infra/adapters/secondary/IntegrationEventsPublisher` (R1). |
++
++### Ubiquitous language
++| Term | Code type | Kind |
++|---|---|---|
++| Settlement | `domain/settlement/Settlement` | aggregate root (one per priced ride) |
++| Charge Attempt | `domain/settlement/ChargeAttempt` | entity inside Settlement (`@Entity`, `@Identity number`); immutable after it's made, so a record |
++| Outstanding Debt | `domain/settlement/OutstandingDebt` | value object record wrapping joda `Money` (D6) |
++| (ride, rider identifiers used by messages) | `RideId`, `RiderId` records in `domain/settlement` | value objects |
++| (ride settled, debt recorded) | `SettlementEvent.RideSettled`, `SettlementEvent.OutstandingDebtRecorded` | domain events (sealed hierarchy) |
++
++### Business rules → aggregates
++**Aggregate reasoning:** both rules have the same Given (the charge attempts made so far for one priced ride) and the same When (a charge attempt result). So the consistency boundary is one Settlement per ride: it holds its Charge Attempts, decides whether another attempt is due, and records Outstanding Debt when the limit is reached. Nothing else needs to be loaded.
++
++| Rule (GWT) | Invariant | Aggregate | Test |
++|---|---|---|---|
++| **R1** (user's Rule 1): Given a priced ride of 12.50 PLN with 2 failed charge attempts, When the 3rd charge attempt fails, Then an Outstanding Debt of 12.50 PLN is recorded and Debt Recorded is published. | the 3rd failed Charge Attempt records Outstanding Debt equal to the ride price; it's published as *Debt Recorded* | `Settlement` (+ `IntegrationEventsPublisher` for the publishing) | `SettlementTest#debtRecordedWhenThirdChargeAttemptFails`, `IntegrationEventsPublisherTest#outstandingDebtIsPublishedAsDebtRecorded` |
++| **R2** (user's Rule 2): Given a priced ride of 12.50 PLN with 1 failed charge attempt, When the 2nd charge attempt succeeds, Then the ride is settled and no Outstanding Debt is recorded. | a successful Charge Attempt within the limit settles the ride; failed attempts below the limit record no debt | `Settlement` | `SettlementTest#rideSettledWhenSecondChargeAttemptSucceeds` |
++
++Consistency check: both rules agree with the UL ("Outstanding Debt: the unpaid amount left after all attempts fail" → 12.50 PLN unpaid of a 12.50 PLN ride after all 3 attempts). No contradictions found.
++
++### Rules awaiting GWT
++The number of attempts is settled by R1 (3). The earlier suggestions that the review didn't confirm remain open (the numbers are placeholders):
++- **S1 First charge succeeds.** Given a priced ride of 12.50 PLN with no charge attempts, when the 1st charge attempt succeeds, then the ride is settled and no Outstanding Debt is recorded. Status: awaiting confirmation. The code generalises R2 (any successful attempt within the limit settles), but there is no test for it until you confirm.
++- **S2 When a failed charge is retried ("shortly after the ride").** Given a priced ride whose 1st charge attempt failed at 10:00, when the failure is recorded, then the 2nd charge attempt is scheduled for 10:15 (**15 minutes** apart). Status: awaiting confirmation. Is it a fixed delay, a total window (e.g. "within 1 hour of Ride Priced"), or both? Until answered, nothing triggers attempts 2 and 3 (D9).
++- **S3 A finished Settlement takes no more attempts.** Given a settled ride (or one with Outstanding Debt recorded), when another charge attempt is made, then it is rejected. Status: awaiting confirmation. Guarded as a programming error for now (D8).
++- **S4 Partial charges.** Can a charge take less than the price, leaving Outstanding Debt smaller than the price? The UL says "unpaid amount left", which hints it might. Status: open question. R1 records the full price.
++
++## Differences from the reference context map
++| Canvas says | Reference map says | Covered by "Accepted Alternatives"? |
++|---|---|---|
++| Inbound *Ride Priced* event from Pricing (Pricing pushes the price) | Rentals publishes *Rental Session Ended* to Settlement, and Settlement *calls* Pricing ("price for session", `Pricing [U,OHS] -> [D,CF] Settlement`) | Yes: "Pricing reacting to *Rental Session Ended* instead of being called by Settlement". Consequence: Settlement no longer depends on Rentals directly; the CML relationship `Rentals -> Settlement : RentalSessionEnded` and `Pricing -> Settlement : PriceCalculation` would change to an event-based Pricing → Settlement relationship. |
++| Outbound event *Debt Recorded* to DebtRecovery | *Rental Fee Unpaid* to DebtRecovery (`Settlement [U,OHS,PL] -> [D,CF] DebtRecovery`) | No, it's a naming difference ("Debt Recorded" vs. "Rental Fee Unpaid"). Building the canvas name. |
++| No relationship to Accounts | *Rental Fee Unpaid* → Accounts (block) and *Outstanding Debt Cleared* → Accounts (unblock), `Settlement [U,PL] -> [D,CF] Accounts : DebtBlocking`; key decision "Settlement drives both block and unblock for debt" | No. Missing in the canvas (Q5). |
++| No inbound from DebtRecovery | DebtRecovery asks Settlement to "attempt collection" (OHS) | No. Missing in the canvas (Q5). |
++| No "rider's balance" | Settlement owns the rider's balance | No. Not in the canvas UL. |
++| Conformist to Payments, *Charge Rider* | `Payments [U,OHS,PL] -> [D,CF] Settlement : Charging` | Matches the map (CF). |
++| UL: Settlement, Charge Attempt, Outstanding Debt | Key language: charge, settled, outstanding debt | Compatible; "Charge Attempt" refines "charge". |
++
++The reference map is not changed.
++
++## Files
++Implemented (no ACL to Payments, D1):
++
++```
++pom.xml                                                         + archunit-junit5 1.5.1 (test)
++docs/bounded-contexts/velocity/settlement/canvas.md             (saved from inline input, done)
++docs/bounded-contexts/velocity/settlement/plan.md               (this file)
++src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/
++  package-info.java                                             @BoundedContext(name = "Settlement") + @Module, canvas javadoc; R1, R2 implemented, timing and S3 "not modelled yet"
++  api/usecases/RidePriced.java                                  record
++  api/usecases/SettleRideUseCase.java                           @PrimaryPort
++  api/events/DebtRecorded.java                                  record implements IntegrationEvent
++  domain/settlement/Settlement.java                             @AggregateRoot
++  domain/settlement/ChargeAttempt.java                          @Entity record
++  domain/settlement/OutstandingDebt.java                        @ValueObject record
++  domain/settlement/RideId.java, RiderId.java                   @ValueObject records
++  domain/settlement/SettlementEvent.java                        sealed domain events: RideSettled, OutstandingDebtRecorded
++  domain/settlement/SettlementRepository.java                   @Repository @SecondaryPort
++  domain/settlement/RiderCharging.java                          @SecondaryPort
++  domain/settlement/ChargeRider.java                            record (temporary stand-in for Payments' api type, Q3)
++  domain/settlement/ChargeResult.java                           record (temporary stand-in for Payments' api type, Q3)
++  infra/adapters/secondary/InMemorySettlementRepository.java    @SecondaryAdapter
++  infra/adapters/secondary/IntegrationEventsPublisher.java      @SecondaryAdapter, OutstandingDebtRecorded → DebtRecorded
++  infra/adapters/secondary/paymentsctx/package-info.java        conformist decision D1 + risk (no @AntiCorruptionLayer)
++  infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter.java   stub
++  infra/config/SettlementContextConfig.java                     @Configuration, beans prefixed "settlement"
++src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/
++  SettlementArchitectureTest.java                               incoming/outgoing api-only rules, no exceptions
++  domain/settlement/SettlementTest.java                         R1, R2
++  infra/adapters/secondary/IntegrationEventsPublisherTest.java  R1 ("Debt Recorded is published")
++```
++
++## Stubs and follow-ups
++- `PaymentsRiderChargingAdapter` is a stub: Payments isn't in code yet (Q3). So `SettleRideUseCase` throws `UnsupportedOperationException` at runtime until Payments exists.
++- No retry trigger (D9): attempts 2 and 3 are modelled in the aggregate but nothing calls them until S2 (timing) is confirmed.
++- Listener for Pricing's *Ride Priced*: follow-up, Pricing isn't in code yet.
++- DebtRecovery consumer of *Debt Recorded*: DebtRecovery isn't in code yet.
++- CML (`src/main/cml/VeloCity-*.cml`) and `velocity/velocity-context-map.md` don't match the canvas (see differences). Not changed; can be updated on request.
++- Canvas sections still empty: classification, domain roles, assumptions, verification metrics, open questions (Q4).
++
++## Changelog
++### 2026-11-01: scaffolded
++- Added: the module and tests listed under "Files"; `com.tngtech.archunit:archunit-junit5:1.5.1` (test) in `pom.xml` (D5).
++- Changed: canvas Business Decisions now carry the user's two strict GWT rules (R1, R2); plan decisions D1 finalised, D3 changed from "none" to `Settlement`, D6 to D9 added.
++- Verified: `./mvnw compile`, `./mvnw test -Dtest='SettlementTest,IntegrationEventsPublisherTest,SettlementArchitectureTest'` and `./mvnw test` pass (10 tests).
++- Triggered by: review 1, the user's strict retry rules and approval.
++
++### 2026-11-01: draft
++- Added: canvas saved from inline input; plan drafted. No code generated yet (awaiting review).
++- Triggered by: initial request to add the Settlement context.
+diff --git a/pom.xml b/pom.xml
+index 9d6502a..d7a03b1 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -83,6 +83,12 @@
+ 			<artifactId>h2</artifactId>
+ 			<scope>runtime</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>com.tngtech.archunit</groupId>
++			<artifactId>archunit-junit5</artifactId>
++			<version>1.5.1</version>
++			<scope>test</scope>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java
+new file mode 100644
+index 0000000..083a7ed
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/events/DebtRecorded.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++import java.math.BigDecimal;
++
++/// Published language: canvas outbound event "Debt Recorded" to DebtRecovery.
++/// Carries primitives and strings only, so Settlement's domain types don't leak to consumers.
++@ValueObject
++public record DebtRecorded(String rideId, String riderId, BigDecimal amount, String currency)
++    implements IntegrationEvent {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RidePriced.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RidePriced.java
+new file mode 100644
+index 0000000..fd726a0
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RidePriced.java
+@@ -0,0 +1,8 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import java.math.BigDecimal;
++
++/// Settlement's own record of the inbound canvas event "Ride Priced" from Pricing.
++/// A listener translating Pricing's published event into this record is a follow-up: Pricing isn't in code yet.
++public record RidePriced(String rideId, String riderId, BigDecimal amount, String currency) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java
+new file mode 100644
+index 0000000..646b5e5
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/SettleRideUseCase.java
+@@ -0,0 +1,45 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases;
++
++import org.joda.money.CurrencyUnit;
++import org.joda.money.Money;
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeResult;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeRider;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderCharging;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.Settlement;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++/// Reacts to "Ride Priced": opens the Settlement for the ride and makes the first Charge Attempt through Payments.
++/// Retrying a failed attempt is not triggered yet: when retries happen is awaiting a strict GWT rule (see the plan).
++@PrimaryPort
++public class SettleRideUseCase {
++
++    private final SettlementRepository settlements;
++    private final RiderCharging riderCharging;
++    private final DomainEventPublisher eventPublisher;
++
++    public SettleRideUseCase(SettlementRepository settlements,
++                             RiderCharging riderCharging,
++                             DomainEventPublisher eventPublisher) {
++        this.settlements = settlements;
++        this.riderCharging = riderCharging;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void handle(RidePriced ridePriced) {
++        var price = Money.of(CurrencyUnit.of(ridePriced.currency()), ridePriced.amount());
++        var settlement = new Settlement(new RideId(ridePriced.rideId()), new RiderId(ridePriced.riderId()), price);
++
++        ChargeResult result = riderCharging.charge(new ChargeRider(ridePriced.rideId(),
++                                                                   ridePriced.riderId(),
++                                                                   ridePriced.amount(),
++                                                                   ridePriced.currency()));
++        var events = result.succeeded() ? settlement.chargeAttemptSucceeded() : settlement.chargeAttemptFailed();
++
++        settlements.save(settlement);
++        eventPublisher.publish(events);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java
+new file mode 100644
+index 0000000..4dba0bb
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeAttempt.java
+@@ -0,0 +1,28 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.Entity;
++import org.jmolecules.ddd.annotation.Identity;
++
++/// **Charge Attempt**: one try to take money from the rider's payment method.
++/// An entity inside `Settlement`, identified by its number within the Settlement. It never changes once made, so it's a record.
++@Entity
++public record ChargeAttempt(@Identity int number, Outcome outcome) {
++
++    public ChargeAttempt {
++        if (number < 1) {
++            throw new IllegalArgumentException("Charge Attempt number starts at 1");
++        }
++        if (outcome == null) {
++            throw new IllegalArgumentException("Charge Attempt needs an outcome");
++        }
++    }
++
++    public boolean failed() {
++        return outcome == Outcome.FAILED;
++    }
++
++    public enum Outcome {
++        SUCCEEDED,
++        FAILED
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeResult.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeResult.java
+new file mode 100644
+index 0000000..5c73bb0
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeResult.java
+@@ -0,0 +1,5 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++/// Temporary stand-in for Payments' published result of "Charge Rider" (plan D1, Q3). Replace with Payments' `api` type.
++public record ChargeResult(boolean succeeded) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRider.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRider.java
+new file mode 100644
+index 0000000..ff6a58a
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/ChargeRider.java
+@@ -0,0 +1,7 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import java.math.BigDecimal;
++
++/// Temporary stand-in for Payments' published "Charge Rider" command (plan D1, Q3). Replace with Payments' `api` type.
++public record ChargeRider(String rideId, String riderId, BigDecimal amount, String currency) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java
+new file mode 100644
+index 0000000..8baf48b
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/OutstandingDebt.java
+@@ -0,0 +1,18 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.joda.money.Money;
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++/// **Outstanding Debt**: the unpaid amount left after all attempts fail.
++@ValueObject
++public record OutstandingDebt(Money amount) {
++
++    public OutstandingDebt {
++        Objects.requireNonNull(amount, "amount");
++        if (!amount.isPositive()) {
++            throw new IllegalArgumentException("Outstanding Debt must be positive");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java
+new file mode 100644
+index 0000000..dd17942
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RideId.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record RideId(String value) {
++
++    public RideId {
++        Objects.requireNonNull(value, "value");
++        if (value.isBlank()) {
++            throw new IllegalArgumentException("Ride id cannot be blank");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderCharging.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderCharging.java
+new file mode 100644
+index 0000000..8a099c4
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderCharging.java
+@@ -0,0 +1,14 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++
++/// Outbound canvas command "Charge Rider" to Payments.
++///
++/// Conformist to Payments (plan decision D1): `ChargeRider` and `ChargeResult` stand for Payments' published types.
++/// Payments isn't in code yet, so they are temporary local records shaped after the canvas message (plan Q3, option b).
++/// When Payments publishes its `api`, they are replaced by its types, which is a breaking change inside Settlement by design.
++@SecondaryPort
++public interface RiderCharging {
++
++    ChargeResult charge(ChargeRider command);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java
+new file mode 100644
+index 0000000..f368230
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/RiderId.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.Objects;
++
++@ValueObject
++public record RiderId(String value) {
++
++    public RiderId {
++        Objects.requireNonNull(value, "value");
++        if (value.isBlank()) {
++            throw new IllegalArgumentException("Rider id cannot be blank");
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java
+new file mode 100644
+index 0000000..de0c451
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/Settlement.java
+@@ -0,0 +1,75 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.joda.money.Money;
++import org.jmolecules.ddd.annotation.AggregateRoot;
++import org.jmolecules.ddd.annotation.Identity;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Objects;
++
++/// **Settlement**: the process of collecting money for one priced ride. One Settlement per ride, identified by the ride.
++///
++/// It holds the ride's Charge Attempts and decides, after each one, whether the ride is settled (R2) or, when the
++/// last allowed attempt fails, records Outstanding Debt equal to the ride price (R1).
++@AggregateRoot
++public class Settlement {
++
++    /// R1: "with 2 failed charge attempts, when the 3rd charge attempt fails, then an Outstanding Debt is recorded".
++    static final int MAX_CHARGE_ATTEMPTS = 3;
++
++    private final RideId rideId;
++    private final RiderId riderId;
++    private final Money price;
++    private final List<ChargeAttempt> attempts = new ArrayList<>();
++    private Status status = Status.OPEN;
++
++    public Settlement(RideId rideId, RiderId riderId, Money price) {
++        this.rideId = Objects.requireNonNull(rideId, "rideId");
++        this.riderId = Objects.requireNonNull(riderId, "riderId");
++        this.price = Objects.requireNonNull(price, "price");
++        if (!price.isPositive()) {
++            throw new IllegalArgumentException("A priced ride to settle must have a positive price");
++        }
++    }
++
++    public DomainEvents chargeAttemptSucceeded() {
++        record(ChargeAttempt.Outcome.SUCCEEDED);
++        status = Status.SETTLED;
++        return DomainEvents.of(new SettlementEvent.RideSettled(rideId, riderId));
++    }
++
++    public DomainEvents chargeAttemptFailed() {
++        record(ChargeAttempt.Outcome.FAILED);
++        if (failedAttempts() < MAX_CHARGE_ATTEMPTS) {
++            return DomainEvents.empty();
++        }
++        status = Status.DEBT_RECORDED;
++        return DomainEvents.of(new SettlementEvent.OutstandingDebtRecorded(rideId, riderId, new OutstandingDebt(price)));
++    }
++
++    @Identity
++    public RideId id() {
++        return rideId;
++    }
++
++    private void record(ChargeAttempt.Outcome outcome) {
++        // What a finished Settlement does with another Charge Attempt is not a confirmed business rule yet
++        // (awaiting GWT, see the plan). Until then it's guarded as a programming error, not modelled.
++        if (status != Status.OPEN) {
++            throw new IllegalStateException("Settlement for ride " + rideId.value() + " is already " + status);
++        }
++        attempts.add(new ChargeAttempt(attempts.size() + 1, outcome));
++    }
++
++    private long failedAttempts() {
++        return attempts.stream().filter(ChargeAttempt::failed).count();
++    }
++
++    private enum Status {
++        OPEN,
++        SETTLED,
++        DEBT_RECORDED
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java
+new file mode 100644
+index 0000000..a5a875b
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementEvent.java
+@@ -0,0 +1,14 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++
++public sealed interface SettlementEvent extends DomainEvent {
++
++    /// The ride is paid: a Charge Attempt succeeded (R2).
++    record RideSettled(RideId rideId, RiderId riderId) implements SettlementEvent {
++    }
++
++    /// All Charge Attempts failed and the unpaid amount is recorded (R1). Published as `api.events.DebtRecorded`.
++    record OutstandingDebtRecorded(RideId rideId, RiderId riderId, OutstandingDebt debt) implements SettlementEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java
+new file mode 100644
+index 0000000..97e3f4e
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementRepository.java
+@@ -0,0 +1,15 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++import org.jmolecules.ddd.annotation.Repository;
++
++import java.util.Optional;
++
++@Repository
++@SecondaryPort
++public interface SettlementRepository {
++
++    Optional<Settlement> load(RideId rideId);
++
++    void save(Settlement settlement);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/InMemorySettlementRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/InMemorySettlementRepository.java
+new file mode 100644
+index 0000000..32eef33
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/InMemorySettlementRepository.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.Settlement;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemorySettlementRepository implements SettlementRepository {
++
++    private final Map<RideId, Settlement> settlements = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<Settlement> load(RideId rideId) {
++        return Optional.ofNullable(settlements.get(rideId));
++    }
++
++    @Override
++    public void save(Settlement settlement) {
++        settlements.put(settlement.id(), settlement);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisher.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisher.java
+new file mode 100644
+index 0000000..bcea13d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisher.java
+@@ -0,0 +1,28 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.events.DebtRecorded;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementEvent;
++
++/// Translates Settlement's domain events into its published language.
++@SecondaryAdapter
++public class IntegrationEventsPublisher {
++
++    private final ApplicationEventPublisher publisher;
++
++    public IntegrationEventsPublisher(ApplicationEventPublisher publisher) {
++        this.publisher = publisher;
++    }
++
++    /// Canvas outbound event "Debt Recorded" to DebtRecovery (R1).
++    @EventListener
++    public void on(SettlementEvent.OutstandingDebtRecorded event) {
++        var amount = event.debt().amount();
++        publisher.publishEvent(new DebtRecorded(event.rideId().value(),
++                                                event.riderId().value(),
++                                                amount.getAmount(),
++                                                amount.getCurrencyUnit().getCode()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter.java
+new file mode 100644
+index 0000000..a1d9182
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctx;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeResult;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.ChargeRider;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderCharging;
++
++@SecondaryAdapter
++public class PaymentsRiderChargingAdapter implements RiderCharging {
++
++    @Override
++    public ChargeResult charge(ChargeRider command) {
++        // Canvas outbound command: "Charge Rider" → Payments (conformist, D1). Payments isn't in code yet.
++        throw new UnsupportedOperationException("implement this");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/package-info.java
+new file mode 100644
+index 0000000..0053a34
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctx/package-info.java
+@@ -0,0 +1,10 @@
++/// Conformist adapter towards Payments, **without an anti-corruption layer**.
++///
++/// DECISION D1 (2026-11-01): the user asked for a conformist relationship to Payments without an ACL ("we're conformist
++/// to Payments, skip the ACL and use their API directly"). The skill pushed back once and recommended a thin ACL; the
++/// user approved the plan with the no-ACL variant. The reference map agrees: `Payments [U,OHS,PL] -> [D,CF] Settlement`.
++///
++/// Risk, accepted consciously: every change to Payments' published language (renamed fields, new failure codes, a
++/// changed charge result) ripples straight into Settlement's domain model and tests, and Payments' words mix into
++/// Settlement's ubiquitous language. Only Payments' `api` types may be used here, never its internals.
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctx;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java
+new file mode 100644
+index 0000000..6047695
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/config/SettlementContextConfig.java
+@@ -0,0 +1,38 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.config;
++
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.usecases.SettleRideUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderCharging;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementRepository;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.InMemorySettlementRepository;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.IntegrationEventsPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctx.PaymentsRiderChargingAdapter;
++
++@Configuration
++public class SettlementContextConfig {
++
++    @Bean
++    public SettlementRepository settlementSettlementRepository() {
++        return new InMemorySettlementRepository();
++    }
++
++    @Bean
++    public RiderCharging settlementRiderCharging() {
++        return new PaymentsRiderChargingAdapter();
++    }
++
++    @Bean
++    public SettleRideUseCase settlementSettleRideUseCase(SettlementRepository settlementSettlementRepository,
++                                                         RiderCharging settlementRiderCharging,
++                                                         DomainEventPublisher eventPublisher) {
++        return new SettleRideUseCase(settlementSettlementRepository, settlementRiderCharging, eventPublisher);
++    }
++
++    @Bean
++    public IntegrationEventsPublisher settlementIntegrationEventsPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        return new IntegrationEventsPublisher(applicationEventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java
+new file mode 100644
+index 0000000..52b266d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java
+@@ -0,0 +1,31 @@
++/// # Settlement bounded context
++///
++/// ## Purpose
++/// Once a ride is priced, we charge the rider through their payment method, so that every ride eventually gets paid.
++///
++/// ## Ubiquitous language
++/// - **Settlement**: the process of collecting money for one priced ride.
++/// - **Charge Attempt**: one try to take money from the rider's payment method.
++/// - **Outstanding Debt**: the unpaid amount left after all attempts fail.
++///
++/// ## Business decisions
++/// - **Debt after the 3rd failed charge attempt** (R1): given a priced ride of 12.50 PLN with 2 failed charge
++///   attempts, when the 3rd charge attempt fails, then an Outstanding Debt of 12.50 PLN is recorded and Debt Recorded
++///   is published. Enforced by `Settlement`, see `SettlementTest#debtRecordedWhenThirdChargeAttemptFails`; the
++///   Debt Recorded translation is checked in `IntegrationEventsPublisherTest#outstandingDebtIsPublishedAsDebtRecorded`.
++/// - **Successful retry settles the ride** (R2): given a priced ride of 12.50 PLN with 1 failed charge attempt, when the
++///   2nd charge attempt succeeds, then the ride is settled and no Outstanding Debt is recorded. Enforced by
++///   `Settlement`, see `SettlementTest#rideSettledWhenSecondChargeAttemptSucceeds`.
++/// - **When retries happen** (*not modelled yet*): "If a charge fails, we retry a few times shortly after the ride,
++///   then record debt." The number of attempts (3) is now fixed by R1; the timing ("shortly after the ride", suggestion S2) is still
++///   awaiting a strict Given/When/Then example, see the plan. Nothing schedules a retry yet.
++/// - **A finished Settlement takes no more charge attempts** (*not modelled yet*): suggestion S3 in the plan, awaiting
++///   confirmation. The aggregate only guards it as a programming error, without a business rule or test.
++///
++/// Source canvas: `docs/bounded-contexts/velocity/settlement/canvas.md`
++@BoundedContext(name = "Settlement")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.settlement;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/SettlementArchitectureTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/SettlementArchitectureTest.java
+new file mode 100644
+index 0000000..b7aa450
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/SettlementArchitectureTest.java
+@@ -0,0 +1,50 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement;
++
++import com.tngtech.archunit.base.DescribedPredicate;
++import com.tngtech.archunit.core.domain.JavaClass;
++import com.tngtech.archunit.core.importer.ImportOption;
++import com.tngtech.archunit.junit.AnalyzeClasses;
++import com.tngtech.archunit.junit.ArchTest;
++import com.tngtech.archunit.lang.ArchRule;
++
++import java.util.Set;
++
++import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
++import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage;
++import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
++
++/// Context boundary rules for the Settlement bounded context: other contexts may depend on Settlement only through
++/// its `api` package, and Settlement may depend on other contexts only through their `api` packages.
++@AnalyzeClasses(packages = "pl.wojtyna.dddtrainingv3", importOptions = ImportOption.DoNotIncludeTests.class)
++class SettlementArchitectureTest {
++
++    private static final String ROOT = "pl.wojtyna.dddtrainingv3";
++    private static final String CONTEXT = ROOT + ".velocity.settlement";
++
++    @ArchTest
++    static final ArchRule other_contexts_use_only_settlement_api =
++        noClasses().that().resideOutsideOfPackage(CONTEXT + "..")
++                   .should().dependOnClassesThat(resideInAPackage(CONTEXT + "..")
++                                                     .and(resideOutsideOfPackage(CONTEXT + ".api..")));
++
++    @ArchTest
++    static final ArchRule settlement_uses_only_other_contexts_api =
++        noClasses().that().resideInAPackage(CONTEXT + "..")
++                   .should().dependOnClassesThat(nonApiClassOfAnotherContext());
++
++    /// A class of another bounded context (`<root>.<system>.<context>..`) outside its `api` package.
++    /// Shared code (`<root>.common..`, `<root>.<system>.common..`, `<root>.<system>.contextmap..`) is not a context.
++    private static DescribedPredicate<JavaClass> nonApiClassOfAnotherContext() {
++        return DescribedPredicate.describe("non-api class of another bounded context", javaClass -> {
++            var pkg = javaClass.getPackageName();
++            if (!pkg.startsWith(ROOT + ".") || pkg.equals(CONTEXT) || pkg.startsWith(CONTEXT + ".")) {
++                return false;
++            }
++            var parts = pkg.substring(ROOT.length() + 1).split("\\.");
++            if (parts.length < 2 || parts[0].equals("common") || Set.of("common", "contextmap").contains(parts[1])) {
++                return false;
++            }
++            return !(parts.length >= 3 && parts[2].equals("api"));
++        });
++    }
++}
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java
+new file mode 100644
+index 0000000..1dcdaf9
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/settlement/SettlementTest.java
+@@ -0,0 +1,68 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement;
++
++import org.joda.money.Money;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++@DisplayName("Settlement examples")
++class SettlementTest {
++
++    private static final Money PRICE = Money.parse("PLN 12.50");
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a priced ride of 12.50 PLN with 2 failed charge attempts,
++         when the 3rd charge attempt fails,
++         then an Outstanding Debt of 12.50 PLN is recorded
++        """
++    )
++    // @formatter:on
++    @Test
++    void debtRecordedWhenThirdChargeAttemptFails() {
++        // given
++        var settlement = pricedRide();
++        settlement.chargeAttemptFailed();
++        settlement.chargeAttemptFailed();
++
++        // when
++        var events = settlement.chargeAttemptFailed();
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event instanceof SettlementEvent.OutstandingDebtRecorded recorded
++                     && recorded.debt().equals(new OutstandingDebt(Money.parse("PLN 12.50")))
++                     && recorded.rideId().equals(new RideId("R-1"))
++                     && recorded.riderId().equals(new RiderId("rider-1")))).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a priced ride of 12.50 PLN with 1 failed charge attempt,
++         when the 2nd charge attempt succeeds,
++         then the ride is settled and no Outstanding Debt is recorded
++        """
++    )
++    // @formatter:on
++    @Test
++    void rideSettledWhenSecondChargeAttemptSucceeds() {
++        // given
++        var settlement = pricedRide();
++        var eventsAfterFirstAttempt = settlement.chargeAttemptFailed();
++
++        // when
++        var events = settlement.chargeAttemptSucceeded();
++
++        // then
++        assertThat(events.hasOccurredEventOfType(SettlementEvent.RideSettled.class)).isTrue();
++        assertThat(events.hasOccurredEventOfType(SettlementEvent.OutstandingDebtRecorded.class)).isFalse();
++        assertThat(eventsAfterFirstAttempt.hasOccurredEventOfType(SettlementEvent.OutstandingDebtRecorded.class)).isFalse();
++    }
++
++    private static Settlement pricedRide() {
++        return new Settlement(new RideId("R-1"), new RiderId("rider-1"), PRICE);
++    }
++}
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisherTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisherTest.java
+new file mode 100644
+index 0000000..4d5bafe
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisherTest.java
+@@ -0,0 +1,45 @@
++package pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary;
++
++import org.joda.money.Money;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.api.events.DebtRecorded;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.OutstandingDebt;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RideId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.RiderId;
++import pl.wojtyna.dddtrainingv3.velocity.settlement.domain.settlement.SettlementEvent;
++
++import java.math.BigDecimal;
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++@DisplayName("Settlement published language")
++class IntegrationEventsPublisherTest {
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an Outstanding Debt of 12.50 PLN recorded for ride R-1,
++         when Settlement publishes its integration events,
++         then Debt Recorded of 12.50 PLN for ride R-1 is published
++        """
++    )
++    // @formatter:on
++    @Test
++    void outstandingDebtIsPublishedAsDebtRecorded() {
++        // given
++        List<Object> published = new ArrayList<>();
++        var publisher = new IntegrationEventsPublisher(published::add);
++        var recorded = new SettlementEvent.OutstandingDebtRecorded(new RideId("R-1"),
++                                                                   new RiderId("rider-1"),
++                                                                   new OutstandingDebt(Money.parse("PLN 12.50")));
++
++        // when
++        publisher.on(recorded);
++
++        // then
++        assertThat(published).containsExactly(new DebtRecorded("R-1", "rider-1", new BigDecimal("12.50"), "PLN"));
++    }
++}

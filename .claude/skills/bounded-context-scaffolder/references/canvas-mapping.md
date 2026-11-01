@@ -114,6 +114,10 @@ Use-case flow, same as in deposit: load the aggregate, call the behaviour that r
 
 `infra/config/<Context>ContextConfig` is a `@Configuration` with `@Bean` methods building use cases, query handlers, policies, repositories and adapters by hand. Domain and API classes have no Spring annotations. Prefix bean method names with the context name (`rentalsBikeStationRepository`), because Spring Boot refuses duplicate bean names across contexts. Inject `DomainEventPublisher`, which `common/infra/spring/CommonInfraConfig` already provides.
 
+## 6a. Context boundaries
+
+Every message between contexts goes through the other context's `api` package: its use cases, queries, events and their records. This applies to inbound and outbound messages, and to ACL adapters too. An ACL translates *B's api types* into our language, never B's domain types. `<Context>ArchitectureTest` enforces it in both directions (template in `code-templates.md`). The only exceptions are the explicit, challenged, recorded decisions from SKILL.md Step 3, item 6.
+
 ## 7. Several modules in one context
 
 Only after the pushback in SKILL.md Step 3:

@@ -111,6 +111,9 @@ elif name == "debtrecovery-no-canvas":
     check("Template contains Given/When/Then business-decision section", re.search(r"given", c, re.I) and re.search(r"then", c, re.I), "checked canvas file")
     check("Final message asks the user to fill in the canvas", re.search(r"fill", final, re.I), "final_message.md")
 
+elif name == "accounts-shared-kernel-exception":
+    plan_file("accounts"); bc_name("accounts", "Accounts"); tests("accounts", 2); no_lombok(); build_green()
+
 elif name == "rentals-update-with-changelog":
     plan = plan_file("rentals")
     check("Plan has a dated Changelog entry", re.search(r"changelog", plan, re.I) and re.search(r"20\d\d-\d\d-\d\d", plan), "checked plan")
@@ -130,7 +133,8 @@ elif name == "rentals-update-with-changelog":
 # --- Iteration 2: review gate + resume + javadoc/rule sync (only when phase A outputs exist) ---
 ctx = {"pricing-scaffold-from-markdown": ("pricing", r"8\.00|drop.?zone"),
        "settlement-inline-conformist-vague-rule": ("settlement", r"12\.50|3rd|third"),
-       "rentals-update-with-changelog": ("rentals", r"return")}.get(name)
+       "rentals-update-with-changelog": ("rentals", r"return"),
+       "accounts-shared-kernel-exception": ("accounts", r"block")}.get(name)
 pa_diff, pa_plan, pa_final = read(out / "phaseA_changes.diff"), read(out / "phaseA_plan.md"), read(out / "phaseA_final_message.md")
 if ctx and (pa_diff or pa_plan or pa_final):
     c, follow = ctx
@@ -147,7 +151,40 @@ if ctx and (pa_diff or pa_plan or pa_final):
     check("Phase B: javadoc Business decisions name the tests that enforce them", len(refs) >= 2, f"test refs: {refs}")
     check("Phase B: javadoc reflects the rule added/changed at approval", re.search(follow, bd, re.I), f"pattern {follow!r} in Business decisions")
     if c == "settlement":
-        check("Phase B: retry rule no longer marked 'not modelled yet'", not re.search(r"retry[^\n]*\n?[^\n]*not modell?ed", bd, re.I), "Business decisions")
+        bullets = re.split(r"\n/// - ", bd)
+        r1 = [b for b in bullets if re.search(r"3rd charge attempt fails", b, re.I)]
+        ok = r1 and all(re.search(r"Test#", b) and not re.search(r"not modell?ed", b, re.I) for b in r1)
+        check("Phase B: the supplied retry rule is listed as enforced (with its test), not as 'not modelled yet'", ok,
+              f"{len(r1)} bullet(s) for the 3rd-attempt rule")
+
+# --- Iteration 3: architecture test guarding the context boundary ---
+arch_ctx = {"pricing-scaffold-from-markdown": "pricing", "settlement-inline-conformist-vague-rule": "settlement",
+            "accounts-shared-kernel-exception": "accounts"}.get(name)
+if arch_ctx and ((out / "phaseA_plan.md").exists() or arch_ctx == "accounts"):
+    at = {p_: c_ for p_, c_ in files.items() if re.search(rf"test/java/.*/velocity/{arch_ctx}/\w+ArchitectureTest\.java$", p_)}
+    src = next(iter(at.values()), "")
+    two = src.count("dependOnClassesThat") >= 2 and ".api" in src
+    check("Architecture test exists with the incoming and outgoing api-only rules", at and two, ", ".join(at) or "none")
+    pom = re.search(r"archunit-junit5</artifactId>\s*<version>1\.5\.1", files.get("pom.xml", "")) or re.search(r"^\+.*1\.5\.1", diff, re.M) and "archunit-junit5" in diff
+    check("ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)", pom, "pom.xml diff")
+    ran = re.search(r"Tests run: [1-9]\d*, Failures: 0, Errors: 0.*ArchitectureTest", build)
+    check("Architecture test ran green in the verified build", ran, ran.group(0)[:120] if ran else "no green ArchitectureTest line in build_verified.txt")
+    exc = re.search(r"DescribedPredicate\.not\(|\bnot\(resideIn|ArchIgnore|ignoreDependency", src)
+    if arch_ctx == "accounts":
+        check("Exactly the requested exception: rentals' bikestation package excluded, with a DECISION comment in the test",
+              exc and "DECISION" in src and re.search(r"velocity\.rentals\.domain\.bikestation", src) and len(re.findall(r"DescribedPredicate\.not\(|\bnot\(resideIn", src)) == 1,
+              "exception clauses: %d" % len(re.findall(r"DescribedPredicate\.not\(|\bnot\(resideIn", src)))
+        main_dec = [p_ for p_, c_ in files.items() if "main/java" in p_ and "/velocity/accounts/" in p_ and re.search(r"DECISION D\d+", c_)]
+        check("DECISION comment at the usage site in Accounts' main code", main_dec, ", ".join(main_dec) or "none")
+        plan_txt = next((v for k, v in files.items() if k.endswith("accounts/plan.md")), "") + read(out / "phaseA_plan.md")
+        check("Plan records the shared-kernel decision with a D-number and its risk",
+              re.search(r"shared kernel", plan_txt, re.I) and re.search(r"\bD\d+\b", plan_txt) and re.search(r"risk", plan_txt, re.I), "plan.md")
+        chal = re.search(r"shared kernel", pa_final + final, re.I) and re.search(r"(coupl|risk|refactor|break|instead|recommend|suggest)", pa_final + final, re.I)
+        check("Challenged the shared-kernel request before complying", chal, "phaseA/final message")
+        uses = [p_ for p_, c_ in files.items() if "/velocity/accounts/domain/" in p_ and "rentals.domain.bikestation.BorrowerId" in c_]
+        check("Complied: Accounts' domain uses Rentals' BorrowerId directly", uses, ", ".join(uses) or "none")
+    else:
+        check("No boundary exceptions without an explicit request", at and not exc and "DECISION" not in src, "exception found" if exc else "none")
 
 p = sum(r["passed"] for r in results)
 json.dump({"expectations": results, "summary": {"passed": p, "failed": len(results) - p, "total": len(results),

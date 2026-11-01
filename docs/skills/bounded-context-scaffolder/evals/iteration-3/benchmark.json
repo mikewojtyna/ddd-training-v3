@@ -1,0 +1,656 @@
+{
+  "metadata": {
+    "skill_name": "bounded-context-scaffolder",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-01T21:53:21Z",
+    "evals_run": [
+      1,
+      2,
+      5
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 22,
+        "failed": 0,
+        "total": 22,
+        "time_seconds": 541.9,
+        "tokens": 198654,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for pricing",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/pricing/plan.md"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+        },
+        {
+          "text": "package-info javadoc has all 8 canvas sections",
+          "passed": true,
+          "evidence": "missing: none"
+        },
+        {
+          "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java"
+        },
+        {
+          "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+        },
+        {
+          "text": "Outbound event is an IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+        },
+        {
+          "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+        },
+        {
+          "text": "Data types are records, no getX() getters in generated main code",
+          "passed": true,
+          "evidence": "records=18; files with getters: none"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=8, GWT DisplayNames=8; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingArchitectureTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelists/PriceListsTest.java']"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['PriceListsTest#freeRide', 'PriceListsTest#firstHour', 'PriceListsTest#tieredHours', 'PriceListsTest#priceValidAtRideStart', 'PriceListsTest#billingHoursStartAfterFreePeriod', 'PriceListsTest#returnCharges', 'PriceListsTest#noPriceListValidAtRideStart', 'PriceListsTest#republishedPriceListReplacesEarlierOne']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern '8\\\\.00|drop.?zone' in Business decisions"
+        },
+        {
+          "text": "Architecture test exists with the incoming and outgoing api-only rules",
+          "passed": true,
+          "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingArchitectureTest.java"
+        },
+        {
+          "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+          "passed": true,
+          "evidence": "pom.xml diff"
+        },
+        {
+          "text": "Architecture test ran green in the verified build",
+          "passed": true,
+          "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.606 s -- in pl.wojtyna.dddtrainingv3.velocity.pricing."
+        },
+        {
+          "text": "No boundary exceptions without an explicit request",
+          "passed": true,
+          "evidence": "none"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 20,
+        "failed": 0,
+        "total": 20,
+        "time_seconds": 433.3,
+        "tokens": 174133,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends/creates a markdown canvas for the inline input",
+          "passed": true,
+          "evidence": "canvas files: ['docs/bounded-contexts/velocity/settlement/canvas.md']; final message mentions markdown/canvas.md: False"
+        },
+        {
+          "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+          "passed": true,
+          "evidence": "final_message.md"
+        },
+        {
+          "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+          "passed": true,
+          "evidence": "ACL payment packages: none"
+        },
+        {
+          "text": "Plan markdown file created for settlement",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/settlement/plan.md"
+        },
+        {
+          "text": "Conformist decision recorded in the plan",
+          "passed": true,
+          "evidence": "plan mentions conformist"
+        },
+        {
+          "text": "Vague retry rule flagged as awaiting a strict GWT example",
+          "passed": true,
+          "evidence": "GWT"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['SettlementTest#debtRecordedWhenThirdChargeAttemptFails', 'IntegrationEventsPublisherTest#outstandingDebtIsPublishedAsDebtRecorded', 'SettlementTest#rideSettledWhenSecondChargeAttemptSucceeds']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern '12\\\\.50|3rd|third' in Business decisions"
+        },
+        {
+          "text": "Phase B: the supplied retry rule is listed as enforced (with its test), not as 'not modelled yet'",
+          "passed": true,
+          "evidence": "1 bullet(s) for the 3rd-attempt rule"
+        },
+        {
+          "text": "Architecture test exists with the incoming and outgoing api-only rules",
+          "passed": true,
+          "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/SettlementArchitectureTest.java"
+        },
+        {
+          "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+          "passed": true,
+          "evidence": "pom.xml diff"
+        },
+        {
+          "text": "Architecture test ran green in the verified build",
+          "passed": true,
+          "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.583 s -- in pl.wojtyna.dddtrainingv3.velocity.settleme"
+        },
+        {
+          "text": "No boundary exceptions without an explicit request",
+          "passed": true,
+          "evidence": "none"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 20,
+        "failed": 0,
+        "total": 20,
+        "time_seconds": 368.0,
+        "tokens": 170717,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for accounts",
+          "passed": true,
+          "evidence": "docs/bounded-contexts/velocity/accounts/plan.md"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Accounts\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java"
+        },
+        {
+          "text": "At least 2 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=2, GWT DisplayNames=2; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java']"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Phase A: no Java code before the plan is approved",
+          "passed": true,
+          "evidence": "java files in phase A: none"
+        },
+        {
+          "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+          "passed": true,
+          "evidence": "phaseA_plan.md"
+        },
+        {
+          "text": "Phase A: final message asks the user to review/approve the plan",
+          "passed": true,
+          "evidence": "phaseA_final_message.md"
+        },
+        {
+          "text": "Phase B: plan Status set to 'implemented'",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: Review notes record the approval",
+          "passed": true,
+          "evidence": "final plan.md"
+        },
+        {
+          "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+          "passed": true,
+          "evidence": "test refs: ['AccountTest#blockActiveAccount', 'AccountTest#blockAlreadyBlockedAccount']"
+        },
+        {
+          "text": "Phase B: javadoc reflects the rule added/changed at approval",
+          "passed": true,
+          "evidence": "pattern 'block' in Business decisions"
+        },
+        {
+          "text": "Architecture test exists with the incoming and outgoing api-only rules",
+          "passed": true,
+          "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java"
+        },
+        {
+          "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+          "passed": true,
+          "evidence": "pom.xml diff"
+        },
+        {
+          "text": "Architecture test ran green in the verified build",
+          "passed": true,
+          "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.575 s -- in pl.wojtyna.dddtrainingv3.velocity.accounts"
+        },
+        {
+          "text": "Exactly the requested exception: rentals' bikestation package excluded, with a DECISION comment in the test",
+          "passed": true,
+          "evidence": "exception clauses: 1"
+        },
+        {
+          "text": "DECISION comment at the usage site in Accounts' main code",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java"
+        },
+        {
+          "text": "Plan records the shared-kernel decision with a D-number and its risk",
+          "passed": true,
+          "evidence": "plan.md"
+        },
+        {
+          "text": "Challenged the shared-kernel request before complying",
+          "passed": true,
+          "evidence": "phaseA/final message"
+        },
+        {
+          "text": "Complied: Accounts' domain uses Rentals' BorrowerId directly",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountNotFound.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountAlreadyBlocked.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java, src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.82,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 411.7,
+        "tokens": 114017,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for pricing",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+        },
+        {
+          "text": "package-info javadoc has all 8 canvas sections",
+          "passed": false,
+          "evidence": "missing: ['purpose', 'strategic', 'domain role', 'ubiquitous', 'business decision', 'assumption', 'verification', 'open question']"
+        },
+        {
+          "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java"
+        },
+        {
+          "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+        },
+        {
+          "text": "Outbound event is an IntegrationEvent record in api/events",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+        },
+        {
+          "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+        },
+        {
+          "text": "Data types are records, no getX() getters in generated main code",
+          "passed": true,
+          "evidence": "records=14; files with getters: none"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=10, GWT DisplayNames=10; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCaseTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricecatalog/PriceCatalogTest.java']"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 3,
+        "failed": 6,
+        "total": 9,
+        "time_seconds": 408.5,
+        "tokens": 113946,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends/creates a markdown canvas for the inline input",
+          "passed": false,
+          "evidence": "canvas files: []; final message mentions markdown/canvas.md: False"
+        },
+        {
+          "text": "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+          "passed": false,
+          "evidence": "final_message.md"
+        },
+        {
+          "text": "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+          "passed": true,
+          "evidence": "ACL payment packages: none"
+        },
+        {
+          "text": "Plan markdown file created for settlement",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "Conformist decision recorded in the plan",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Vague retry rule flagged as awaiting a strict GWT example",
+          "passed": false,
+          "evidence": "not found"
+        },
+        {
+          "text": "Retry count not hard-coded from a guessed threshold",
+          "passed": false,
+          "evidence": "Attempts < 1"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/package-info.java"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.38,
+        "passed": 5,
+        "failed": 8,
+        "total": 13,
+        "time_seconds": 243.6,
+        "tokens": 88018,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Plan markdown file created for accounts",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "package-info.java has @BoundedContext(name = \"Accounts\") and @Module",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java"
+        },
+        {
+          "text": "At least 2 GWT tests (@DisplayName text block with given/when/then)",
+          "passed": true,
+          "evidence": "@Test=5, GWT DisplayNames=5; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCaseTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java']"
+        },
+        {
+          "text": "No Lombok used",
+          "passed": true,
+          "evidence": "searched changes.diff"
+        },
+        {
+          "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+          "passed": true,
+          "evidence": "build.txt: success"
+        },
+        {
+          "text": "Architecture test exists with the incoming and outgoing api-only rules",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+          "passed": false,
+          "evidence": "pom.xml diff"
+        },
+        {
+          "text": "Architecture test ran green in the verified build",
+          "passed": false,
+          "evidence": "no green ArchitectureTest line in build_verified.txt"
+        },
+        {
+          "text": "Exactly the requested exception: rentals' bikestation package excluded, with a DECISION comment in the test",
+          "passed": false,
+          "evidence": "exception clauses: 0"
+        },
+        {
+          "text": "DECISION comment at the usage site in Accounts' main code",
+          "passed": false,
+          "evidence": "none"
+        },
+        {
+          "text": "Plan records the shared-kernel decision with a D-number and its risk",
+          "passed": false,
+          "evidence": "plan.md"
+        },
+        {
+          "text": "Challenged the shared-kernel request before complying",
+          "passed": false,
+          "evidence": "phaseA/final message"
+        },
+        {
+          "text": "Complied: Accounts' domain uses Rentals' BorrowerId directly",
+          "passed": true,
+          "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java, src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 447.7333,
+        "stddev": 87.8439,
+        "min": 368.0,
+        "max": 541.9
+      },
+      "tokens": {
+        "mean": 181168.0,
+        "stddev": 15239.3376,
+        "min": 170717,
+        "max": 198654
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.51,
+        "stddev": 0.2696,
+        "min": 0.33,
+        "max": 0.82
+      },
+      "time_seconds": {
+        "mean": 354.6,
+        "stddev": 96.1421,
+        "min": 243.6,
+        "max": 411.7
+      },
+      "tokens": {
+        "mean": 105327.0,
+        "stddev": 14990.0758,
+        "min": 88018,
+        "max": 114017
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.49",
+      "time_seconds": "+93.1",
+      "tokens": "+75841"
+    }
+  },
+  "notes": [
+    "Single run per configuration. Pricing/Settlement baselines reused from iteration 1; Accounts (new eval 5) has a fresh baseline.",
+    "With-skill runs are two-phase (A: plan + stop, B: resume after simulated approval); time/tokens are A+B summed.",
+    "Every with-skill run generated <Context>ArchitectureTest with the two api-only rules and added ArchUnit 1.5.1; all ran green in independently re-verified builds.",
+    "Mutation check on the generated PricingArchitectureTest: a Pricing class referencing rentals.domain.BikeId made the test fail; reverting made it pass.",
+    "Exceptions only on explicit request: Pricing and Settlement (conformist via api) have none; Accounts has exactly one, scoped to the single class BorrowerId, with DECISION D1 comments in the test, the aggregate and package-info, after a challenge that named coupling + a dependency cycle.",
+    "Baseline Accounts honoured the shared kernel but did not challenge it and has no architecture test, so nothing would stop the exception from spreading.",
+    "Grader fixes this iteration: the settlement retry check was too broad (it flagged the correctly 'not modelled' retry timing); the Accounts baseline now also gets the architecture checks."
+  ]
+}

@@ -1,0 +1,694 @@
+diff --git a/docs/bounded-contexts/velocity/accounts/canvas.md b/docs/bounded-contexts/velocity/accounts/canvas.md
+new file mode 100644
+index 0000000..9d60b1a
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/accounts/canvas.md
+@@ -0,0 +1,43 @@
++# Bounded Context Canvas: Accounts
++
++<!--
++Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
++Saved on 2026-11-01 from the user's inline request, structured into the template. Sections the user did not
++provide are left out, not guessed. Add them here if you have them; the plan points to this file.
++-->
++
++## Name
++Accounts
++
++## Purpose
++Keeps rider accounts and account blocks so only riders in good standing can rent bikes.
++
++## Inbound Communication
++| Collaborator | Type (Query/Command/Event) | Message | Notes |
++|---|---|---|---|
++| Back office | Command | Block Account | |
++
++## Outbound Communication
++| Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
++|---|---|---|---|
++| Account Blocked | Event | Rentals | n/a for events |
++
++## Ubiquitous Language
++- **Account**: a rider's VeloCity account, identified by the rider's borrower id.
++- **Account Block**: a flag on an account that prevents renting.
++
++## Business Decisions
++### Block an active account
++- **Given** an active account
++- **When** the back office blocks it
++- **Then** the account is blocked and Account Blocked is published
++
++### Block an already blocked account
++- **Given** a blocked account
++- **When** the back office blocks it again
++- **Then** the block is rejected
++
++## Additional instructions from the user (not part of the canvas v5 structure)
++- Treat Rentals' `BorrowerId` (`pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId`) as a shared
++  kernel: use it directly in Accounts' domain, don't wrap it and don't go through Rentals' api. The user acknowledged
++  this breaks the context-boundary rule and asked for it anyway.
+diff --git a/docs/bounded-contexts/velocity/accounts/plan.md b/docs/bounded-contexts/velocity/accounts/plan.md
+new file mode 100644
+index 0000000..2bd3624
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/accounts/plan.md
+@@ -0,0 +1,161 @@
++# Accounts bounded context: implementation plan
++
++- **System / package**: `velocity.accounts`
++- **Mode**: scaffold
++- **Source canvas**: `docs/bounded-contexts/velocity/accounts/canvas.md` (saved on 2026-11-01 from the user's inline request)
++- **Last updated**: 2026-11-01
++- **Status**: implemented
++
++<!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
++     Invoking the skill again resumes from this file. -->
++
++## Review notes
++- 2026-11-01: draft written, awaiting review. The inline canvas was saved to `canvas.md`. The shared-kernel request
++  (D1) was challenged once in this draft; see D1 and the questions at the end.
++- 2026-11-01: **approved by the user** as written ("Reviewed the Accounts plan - approved, and yes, keep the shared
++  kernel with Rentals' BorrowerId"). Question 1 answered: D1 stays as written, the alternatives are dropped. No other
++  changes requested. Canvas unchanged since the draft. Questions 2-5 got no answer, so the plan's defaults apply
++  ("active" = not blocked, block is a plain flag, no REST endpoint, context map not changed); they stay open below.
++
++## Canvas summary
++Accounts keeps rider accounts and account blocks so that only riders in good standing can rent bikes. In this first
++slice the back office blocks an account, and Accounts tells Rentals with an Account Blocked event. The canvas gives no
++strategic classification and no domain roles, so `package-info.java` leaves those sections out.
++
++## Decisions
++| # | Decision | Choice | Reason |
++|---|---|---|---|
++| - | System | `velocity` | Accounts is one of the VeloCity contexts in the reference map. |
++| - | Package | `pl.wojtyna.dddtrainingv3.velocity.accounts` | Derived from the name "Accounts". |
++| - | Context name | `@BoundedContext(name = "Accounts")` | Matches the canvas and `BoundedContext Accounts` in `VeloCity-*.cml`. |
++| - | Modules | 1 module = 1 context | Default. |
++| - | ACLs | none needed | The canvas has no outbound query or command. The only outbound message is an event, published as an integration record in `api/events`. |
++| - | Inbound adapter | use case only, no REST controller | The back office is a person or app, but the canvas doesn't describe an endpoint. Listed as a question rather than inventing one. |
++| **D1** | **Boundary exception: shared kernel with Rentals' `BorrowerId`** (user insisted, 2026-11-01; confirmed after the challenge at plan approval, 2026-11-01) | Accounts' domain uses `pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId` directly as the `Account` identity: not wrapped, not through Rentals' api. Allowed scope: **only that one class** in package `pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation` (no subpackages, no other class of that package). | **Risk:** Accounts couples to Rentals' internal domain package. Any refactoring of `BorrowerId` or of the `bikestation` package (rename, move, extra field, validation) becomes a breaking change in Accounts, and the boundary no longer protects either language. It also creates a **code-level cycle**: Accounts depends on Rentals (`BorrowerId`), and Rentals is meant to depend on Accounts (it consumes Account Blocked), which contradicts the reference map's "No cycles" decision. Enforcement: one commented exception clause in `AccountsArchitectureTest` (outgoing rule) naming exactly that class; a `DECISION D1` comment in `domain/account/package-info.java` and in the `Account` class javadoc. **Challenge given (see below).** |
++| - | ArchUnit | add `com.tngtech.archunit:archunit-junit5:1.5.1` (test scope) to `pom.xml` | Not on the classpath yet; older versions can't read JDK 27 class files. |
++
++### D1 challenge (given once, as the skill requires)
++You told us up front that you know this breaks the boundary rule, so I'm planning it as you asked. Before you approve,
++here are the cheaper ways to get the same effect, in order of preference:
++1. **Move `BorrowerId` into `velocity.common`** (for example `velocity/common/domain/BorrowerId`). That package exists
++   exactly for code shared between VeloCity's contexts. Both Rentals and Accounts would use it, the architecture
++   test needs no exception, and the cycle disappears. It's a one-class move in Rentals plus import changes.
++2. **Rentals publishes `BorrowerId` in its `api`** (for example `rentals/api/BorrowerId`). This makes it published
++   language, and Accounts depends on it legally. The cycle (Accounts -> Rentals api, Rentals -> Accounts api) remains.
++3. **Accounts owns its own identifier** (a `BorrowerId` record in Accounts, or `RiderId`) and integration events carry a
++   plain string, as they must anyway.
++
++If you still want D1 as written, approve the plan as is. If you pick 1, 2 or 3, D1 is dropped and the architecture test
++stays the two plain rules.
++
++**Outcome (2026-11-01):** the user kept D1 as written. Implemented as: the outgoing rule in `AccountsArchitectureTest`
++has one commented `.and(not(HasName.Predicates.name("...rentals.domain.bikestation.BorrowerId")))` clause; verified
++that any other Rentals internal class (probe with `BikeId`) still fails the rule. `DECISION D1` comments are in the
++root `package-info.java`, `domain/account/package-info.java` and the `Account` class javadoc, and also on the other
++classes that import `BorrowerId` (`AccountEvent`, `BlockAccountUseCase`).
++
++## Mapping: canvas -> code
++Base path: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`.
++
++### Inbound
++| Collaborator | Type | Message | Code |
++|---|---|---|---|
++| Back office | Command | Block Account | `api/usecases/BlockAccount` (record: `String borrowerId`) + `api/usecases/BlockAccountUseCase` (`@PrimaryPort`): load `Account` by `BorrowerId`, `account.block()`, save, `DomainEventPublisher.publish(events)`. Unknown account -> `domain/account/AccountNotFound`. |
++
++### Outbound
++| Message | Type | Collaborator | Port | Adapter (ACL package) |
++|---|---|---|---|---|
++| Account Blocked | Event | Rentals | n/a (event). Domain event `domain/account/AccountEvent.AccountBlocked(BorrowerId borrowerId)` | `infra/adapters/secondary/IntegrationEventsPublisher` (`@SecondaryAdapter`, `@EventListener`) translates it into `api/events/AccountBlocked(String borrowerId)` (implements `IntegrationEvent`, primitives only) and publishes it via `ApplicationEventPublisher`. Rentals' listener is not part of this module (follow-up). |
++
++### Ubiquitous language
++| Term | Code type | Kind |
++|---|---|---|
++| Account | `domain/account/Account` | aggregate root (class; only accessor is `@Identity BorrowerId id()`) |
++| borrower id | `rentals.domain.bikestation.BorrowerId` (**D1**, used as is) | value object owned by Rentals |
++| Account Block | private `blocked` flag on `Account`; javadoc term | state of the aggregate, not a separate type: the canvas defines it as a plain flag with no attributes (no reason, no date) |
++| Block Account | `api/usecases/BlockAccount`, `BlockAccountUseCase`, `Account#block()` | command record + use case + aggregate behaviour |
++| Account Blocked | `domain/account/AccountEvent.AccountBlocked` (domain) and `api/events/AccountBlocked` (integration) | domain event in sealed `AccountEvent extends DomainEvent`; integration event record |
++| "active" / "blocked" (used by the rules) | `Account.active(BorrowerId)` factory; `blocked` flag | state names. "Active" is read as "not blocked" (see questions). |
++
++### Business rules -> aggregates
++Reasoning: both rules have the same Given (the block state of one account) and the same When (block). The smallest
++consistency boundary that checks both is a single `Account`, so `Account` is the aggregate.
++
++| Rule (GWT) | Invariant | Aggregate | Test |
++|---|---|---|---|
++| **Block an active account**: given an active account, when the back office blocks it, then the account is blocked and Account Blocked is published | blocking an unblocked account sets the block and records `AccountBlocked` | `Account#block()` returns `DomainEvents` with `AccountEvent.AccountBlocked` | `src/test/.../velocity/accounts/domain/account/AccountTest#blockActiveAccount` (asserts the event; a second `block()` failing proves the state changed) |
++| **Block an already blocked account**: given a blocked account, when the back office blocks it again, then the block is rejected | an account carries at most one block | `Account#block()` throws `domain/account/AccountAlreadyBlocked` | `AccountTest#blockAlreadyBlockedAccount` |
++
++Consistency check: both examples agree with the definitions (Account Block = a flag; a flag is either set or not, so a
++second block has nothing to add). No contradictions found. "Published" in rule 1 is checked at the aggregate level as the
++returned domain event; the use case hands it to `DomainEventPublisher`, and `IntegrationEventsPublisher` turns it into the
++published `AccountBlocked`.
++
++### Rules awaiting GWT
++- none
++
++## Differences from the reference context map
++| Canvas says | Reference map says | Covered by "Accepted Alternatives"? |
++|---|---|---|
++| Accounts pushes an **Account Blocked event** to Rentals | `Accounts [U]->[D] Rentals : AccountStatus`, Rentals asks "is account active?" (a query) | No. Direction (Accounts upstream) is the same; the integration style (event instead of query) differs. |
++| Blocks come from the **back office** (Block Account command) | "Account blocks have exactly two reasons, each from one source: invalid card (Payments) and outstanding debt (Settlement)" (`Payments -> Accounts : PaymentMethodVerification`, `Settlement -> Accounts : DebtBlocking`) | No. A manual back-office block is a third source not in the map. |
++| **Shared kernel** on `BorrowerId` with Rentals (D1) | No shared kernel; Accounts and Rentals are plain upstream/downstream. CML would need `Accounts [SK]<->[SK] Rentals`. | No. Also conflicts with the "No cycles" key decision, see D1. |
++| Scope: blocking only | Accounts also owns onboarding, activation and unblocking | Not a conflict, the canvas is a first slice. The vision's "block notification to the rider" is also not in the canvas. |
++
++## Files
++```
++docs/bounded-contexts/velocity/accounts/
++  canvas.md                                   (saved from the inline request)
++  plan.md                                     (this file)
++pom.xml                                       (+ archunit-junit5 1.5.1, test scope)
++src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/
++  package-info.java                           @BoundedContext(name = "Accounts") + @Module, canvas javadoc, D1 note
++  api/usecases/BlockAccount.java
++  api/usecases/BlockAccountUseCase.java
++  api/events/AccountBlocked.java
++  domain/account/package-info.java            DECISION D1 comment
++  domain/account/Account.java                 DECISION D1 comment in class javadoc
++  domain/account/AccountEvent.java            sealed, with AccountBlocked
++  domain/account/AccountAlreadyBlocked.java
++  domain/account/AccountNotFound.java
++  domain/account/AccountRepository.java       @Repository + @SecondaryPort
++  infra/adapters/secondary/InMemoryAccountRepository.java
++  infra/adapters/secondary/IntegrationEventsPublisher.java
++  infra/config/AccountsContextConfig.java     beans: accountsAccountRepository, accountsBlockAccountUseCase, accountsIntegrationEventsPublisher
++src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/
++  AccountsArchitectureTest.java               two rules + one commented D1 exception clause (outgoing rule, BorrowerId only)
++  domain/account/AccountTest.java
++```
++No Rentals file is changed.
++
++## Stubs and follow-ups
++- No stubs: there are no outbound queries or commands, and no REST endpoint is generated.
++- **Rentals doesn't consume Account Blocked yet.** A Rentals listener (`rentals/infra/adapters/primary/accountsctxacl`) that translates `accounts.api.events.AccountBlocked` is a follow-up in Rentals, outside this module.
++- **If Rentals later gets a `RentalsArchitectureTest`**, its incoming rule will flag Accounts' use of `BorrowerId`; it will need the mirrored D1 exception.
++- No way to create accounts yet (onboarding is out of the canvas). Accounts exist only through `Account.active(...)` in tests and the in-memory repository.
++- CML (`VeloCity-Context-Map.cml`, `VeloCity-Bounded-Contexts.cml`) and `velocity/velocity-context-map.md` differ from this canvas (see above). Not changed unless you ask.
++
++## Questions for the reviewer
++1. ~~**D1:** keep the shared kernel on Rentals' internal `BorrowerId` as asked, or take one of the alternatives?~~ Answered 2026-11-01: keep D1.
++2. Does "active account" just mean "not blocked", or is there an activation state (the vision has incomplete / activated / blocked)? The plan reads it as "not blocked".
++3. Should a block carry a reason (invalid card, outstanding debt, back office)? The canvas defines it as a plain flag, so the plan models it as one.
++4. Do you want a REST endpoint for the back office (for example `POST /velocity/accounts/{borrowerId}/block`), or is the use case enough for now?
++5. Should the context map (CML and `velocity-context-map.md`) be updated to the event-based, back-office-driven, shared-kernel version?
++
++## Changelog
++### 2026-11-01: plan drafted (no code yet)
++- Added: plan for scaffolding `velocity.accounts` from the canvas.
++- Triggered by: new canvas (inline request, saved as `canvas.md`).
++
++### 2026-11-01: scaffolded
++- Added: `velocity.accounts` module as planned: `package-info.java`; `api/usecases/BlockAccount`, `BlockAccountUseCase`;
++  `api/events/AccountBlocked`; `domain/account/` (`package-info.java`, `Account`, `AccountEvent`, `AccountAlreadyBlocked`,
++  `AccountNotFound`, `AccountRepository`); `infra/adapters/secondary/InMemoryAccountRepository`,
++  `IntegrationEventsPublisher`; `infra/config/AccountsContextConfig`.
++- Added tests: `domain/account/AccountTest` (`blockActiveAccount`, `blockAlreadyBlockedAccount`) and
++  `AccountsArchitectureTest` (two rules, one commented D1 exception clause for `BorrowerId` only).
++- Changed: `pom.xml` (+ `com.tngtech.archunit:archunit-junit5:1.5.1`, test scope).
++- No Rentals file changed.
++- Verified: `./mvnw compile`, `./mvnw test -Dtest='AccountTest,AccountsArchitectureTest'` (4 tests) and `./mvnw test`
++  (9 tests, Spring context starts) all pass.
++- Triggered by: plan approval (2026-11-01).
+diff --git a/pom.xml b/pom.xml
+index 9d6502a..b32f827 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -46,6 +46,12 @@
+ 			<artifactId>spring-boot-starter-test</artifactId>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>com.tngtech.archunit</groupId>
++			<artifactId>archunit-junit5</artifactId>
++			<version>1.5.1</version>
++			<scope>test</scope>
++		</dependency>
+ 		<dependency>
+ 			<groupId>org.jmolecules</groupId>
+ 			<artifactId>jmolecules-ddd</artifactId>
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/events/AccountBlocked.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/events/AccountBlocked.java
+new file mode 100644
+index 0000000..71e3bf7
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/events/AccountBlocked.java
+@@ -0,0 +1,9 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++/// Published language for the canvas outbound event "Account Blocked" (to Rentals). Primitives only.
++@ValueObject
++public record AccountBlocked(String borrowerId) implements IntegrationEvent {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccount.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccount.java
+new file mode 100644
+index 0000000..d98fe32
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccount.java
+@@ -0,0 +1,5 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.api.usecases;
++
++/// Canvas inbound command "Block Account" from the back office.
++public record BlockAccount(String borrowerId) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java
+new file mode 100644
+index 0000000..7140e47
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java
+@@ -0,0 +1,30 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountNotFound;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountRepository;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++/// Handles the back office's "Block Account" command.
++///
++/// DECISION D1 (2026-11-01): builds Rentals' internal `BorrowerId` (shared kernel). See the plan.
++@PrimaryPort
++public class BlockAccountUseCase {
++
++    private final AccountRepository accounts;
++    private final DomainEventPublisher eventPublisher;
++
++    public BlockAccountUseCase(AccountRepository accounts, DomainEventPublisher eventPublisher) {
++        this.accounts = accounts;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void handle(BlockAccount command) {
++        var id = new BorrowerId(command.borrowerId());
++        var account = accounts.load(id).orElseThrow(() -> new AccountNotFound(id));
++        var events = account.block();
++        accounts.save(account);
++        eventPublisher.publish(events);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java
+new file mode 100644
+index 0000000..a38c4d4
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java
+@@ -0,0 +1,46 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import org.jmolecules.ddd.annotation.AggregateRoot;
++import org.jmolecules.ddd.annotation.Identity;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++import java.util.Objects;
++
++/// A rider's VeloCity account, identified by the rider's borrower id. It carries at most one Account Block, a flag
++/// that prevents renting.
++///
++/// DECISION D1 (2026-11-01): the identity is Rentals' internal `BorrowerId`, used as a shared kernel instead of a type
++/// from Rentals' api. Deliberate, and excluded from `AccountsArchitectureTest`. See the plan.
++@AggregateRoot
++public class Account {
++
++    private final BorrowerId id;
++    private boolean blocked;
++
++    private Account(BorrowerId id, boolean blocked) {
++        this.id = Objects.requireNonNull(id, "id");
++        this.blocked = blocked;
++    }
++
++    /// An active account: one without an Account Block.
++    public static Account active(BorrowerId id) {
++        return new Account(id, false);
++    }
++
++    /// Block Account: sets the Account Block and records Account Blocked.
++    ///
++    /// @throws AccountAlreadyBlocked if the account is already blocked
++    public DomainEvents block() {
++        if (blocked) {
++            throw new AccountAlreadyBlocked(id);
++        }
++        blocked = true;
++        return DomainEvents.of(new AccountEvent.AccountBlocked(id));
++    }
++
++    @Identity
++    public BorrowerId id() {
++        return id;
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountAlreadyBlocked.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountAlreadyBlocked.java
+new file mode 100644
+index 0000000..d78dd31
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountAlreadyBlocked.java
+@@ -0,0 +1,11 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++/// Rule "Block an already blocked account": the block is rejected.
++public class AccountAlreadyBlocked extends RuntimeException {
++
++    public AccountAlreadyBlocked(BorrowerId id) {
++        super("Account " + id.value() + " is already blocked");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java
+new file mode 100644
+index 0000000..0be2afb
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++/// Domain events of the `Account` aggregate.
++///
++/// DECISION D1 (2026-11-01): carries Rentals' internal `BorrowerId` (shared kernel). See the plan.
++public sealed interface AccountEvent extends DomainEvent {
++
++    record AccountBlocked(BorrowerId borrowerId) implements AccountEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountNotFound.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountNotFound.java
+new file mode 100644
+index 0000000..2b219c5
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountNotFound.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++public class AccountNotFound extends RuntimeException {
++
++    public AccountNotFound(BorrowerId id) {
++        super("Account " + id.value() + " not found");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java
+new file mode 100644
+index 0000000..1762c98
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++import org.jmolecules.ddd.annotation.Repository;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++import java.util.Optional;
++
++@Repository
++@SecondaryPort
++public interface AccountRepository {
++
++    Optional<Account> load(BorrowerId id);
++
++    void save(Account account);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java
+new file mode 100644
+index 0000000..c197123
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java
+@@ -0,0 +1,7 @@
++/// The `Account` aggregate: a rider's account and its block.
++///
++/// DECISION D1 (2026-11-01): this package uses Rentals' internal
++/// `pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId` directly as the account identity
++/// (shared kernel), not a type from Rentals' api. Deliberate, user insisted after challenge, and excluded from
++/// `AccountsArchitectureTest` for that one class only. Risk: Rentals' internal refactorings break Accounts. See the plan.
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/InMemoryAccountRepository.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/InMemoryAccountRepository.java
+new file mode 100644
+index 0000000..7fa101a
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/InMemoryAccountRepository.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.Account;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountRepository;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemoryAccountRepository implements AccountRepository {
++
++    private final Map<BorrowerId, Account> accounts = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<Account> load(BorrowerId id) {
++        return Optional.ofNullable(accounts.get(id));
++    }
++
++    @Override
++    public void save(Account account) {
++        accounts.put(account.id(), account);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/IntegrationEventsPublisher.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/IntegrationEventsPublisher.java
+new file mode 100644
+index 0000000..91d1e3a
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/IntegrationEventsPublisher.java
+@@ -0,0 +1,24 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.api.events.AccountBlocked;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountEvent;
++
++/// Translates Accounts' domain events into its published language (`api/events`).
++@SecondaryAdapter
++public class IntegrationEventsPublisher {
++
++    private final ApplicationEventPublisher publisher;
++
++    public IntegrationEventsPublisher(ApplicationEventPublisher publisher) {
++        this.publisher = publisher;
++    }
++
++    /// Canvas outbound event "Account Blocked" -> Rentals.
++    @EventListener
++    public void on(AccountEvent.AccountBlocked event) {
++        publisher.publishEvent(new AccountBlocked(event.borrowerId().value()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/config/AccountsContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/config/AccountsContextConfig.java
+new file mode 100644
+index 0000000..8844a74
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/config/AccountsContextConfig.java
+@@ -0,0 +1,30 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.infra.config;
++
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.api.usecases.BlockAccountUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountRepository;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary.InMemoryAccountRepository;
++import pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary.IntegrationEventsPublisher;
++
++@Configuration
++public class AccountsContextConfig {
++
++    @Bean
++    public AccountRepository accountsAccountRepository() {
++        return new InMemoryAccountRepository();
++    }
++
++    @Bean
++    public BlockAccountUseCase accountsBlockAccountUseCase(AccountRepository accountsAccountRepository,
++                                                           DomainEventPublisher eventPublisher) {
++        return new BlockAccountUseCase(accountsAccountRepository, eventPublisher);
++    }
++
++    @Bean
++    public IntegrationEventsPublisher accountsIntegrationEventsPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        return new IntegrationEventsPublisher(applicationEventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java
+new file mode 100644
+index 0000000..5a255e4
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java
+@@ -0,0 +1,30 @@
++/// # Accounts bounded context
++///
++/// ## Purpose
++/// Keeps rider accounts and account blocks so only riders in good standing can rent bikes.
++///
++/// ## Ubiquitous language
++/// - **Account**: a rider's VeloCity account, identified by the rider's borrower id.
++/// - **Account Block**: a flag on an account that prevents renting.
++///
++/// ## Business decisions
++/// - **Block an active account**: given an active account, when the back office blocks it, then the account is
++///   blocked and Account Blocked is published. Enforced by `Account`, see `AccountTest#blockActiveAccount`.
++/// - **Block an already blocked account**: given a blocked account, when the back office blocks it again, then the
++///   block is rejected. Enforced by `Account`, see `AccountTest#blockAlreadyBlockedAccount`.
++///
++/// ## Boundary exception
++/// DECISION D1 (2026-11-01): Accounts uses Rentals' internal
++/// `pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId` as a shared kernel (the `Account`
++/// identity), instead of a type from Rentals' api. The user asked for it explicitly and kept it after the challenge.
++/// Deliberate, and excluded (that one class only) from `AccountsArchitectureTest`. Risk: any refactoring of
++/// `BorrowerId` or of Rentals' `bikestation` package breaks Accounts, and it creates a code-level cycle once Rentals
++/// consumes Account Blocked. See the plan.
++///
++/// Source canvas: `docs/bounded-contexts/velocity/accounts/canvas.md`
++@BoundedContext(name = "Accounts")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.accounts;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java
+new file mode 100644
+index 0000000..86dff70
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java
+@@ -0,0 +1,57 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts;
++
++import com.tngtech.archunit.base.DescribedPredicate;
++import com.tngtech.archunit.core.domain.JavaClass;
++import com.tngtech.archunit.core.domain.properties.HasName;
++import com.tngtech.archunit.core.importer.ImportOption;
++import com.tngtech.archunit.junit.AnalyzeClasses;
++import com.tngtech.archunit.junit.ArchTest;
++import com.tngtech.archunit.lang.ArchRule;
++
++import java.util.Set;
++
++import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
++import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage;
++import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
++
++/// Context boundary rules for the Accounts bounded context: other contexts may depend on Accounts only through
++/// its `api` package, and Accounts may depend on other contexts only through their `api` packages, with the single
++/// recorded exception D1 (see the plan).
++@AnalyzeClasses(packages = "pl.wojtyna.dddtrainingv3", importOptions = ImportOption.DoNotIncludeTests.class)
++class AccountsArchitectureTest {
++
++    private static final String ROOT = "pl.wojtyna.dddtrainingv3";
++    private static final String CONTEXT = ROOT + ".velocity.accounts";
++
++    @ArchTest
++    static final ArchRule other_contexts_use_only_accounts_api =
++        noClasses().that().resideOutsideOfPackage(CONTEXT + "..")
++                   .should().dependOnClassesThat(resideInAPackage(CONTEXT + "..")
++                                                     .and(resideOutsideOfPackage(CONTEXT + ".api..")));
++
++    @ArchTest
++    static final ArchRule accounts_uses_only_other_contexts_api =
++        noClasses().that().resideInAPackage(CONTEXT + "..")
++                   .should().dependOnClassesThat(nonApiClassOfAnotherContext()
++                       // DECISION D1 (2026-11-01): shared kernel with Rentals' internal BorrowerId (that one class only),
++                       // user insisted after challenge. Deliberately NOT enforced. Risk: Rentals' internal refactorings
++                       // of BorrowerId or its bikestation package break Accounts.
++                       .and(DescribedPredicate.not(HasName.Predicates.name(
++                           "pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId"))));
++
++    /// A class of another bounded context (`<root>.<system>.<context>..`) outside its `api` package.
++    /// Shared code (`<root>.common..`, `<root>.<system>.common..`, `<root>.<system>.contextmap..`) is not a context.
++    private static DescribedPredicate<JavaClass> nonApiClassOfAnotherContext() {
++        return DescribedPredicate.describe("non-api class of another bounded context", javaClass -> {
++            var pkg = javaClass.getPackageName();
++            if (!pkg.startsWith(ROOT + ".") || pkg.equals(CONTEXT) || pkg.startsWith(CONTEXT + ".")) {
++                return false;
++            }
++            var parts = pkg.substring(ROOT.length() + 1).split("\\.");
++            if (parts.length < 2 || parts[0].equals("common") || Set.of("common", "contextmap").contains(parts[1])) {
++                return false;
++            }
++            return !(parts.length >= 3 && parts[2].equals("api"));
++        });
++    }
++}
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java
+new file mode 100644
+index 0000000..43ec454
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java
+@@ -0,0 +1,57 @@
++package pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account;
++
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.catchThrowable;
++
++@DisplayName("Account examples")
++class AccountTest {
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an active account,
++         when the back office blocks it,
++         then the account is blocked and Account Blocked is published
++        """
++    )
++    // @formatter:on
++    @Test
++    void blockActiveAccount() {
++        // given
++        var account = Account.active(new BorrowerId("george"));
++
++        // when
++        var events = account.block();
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event.equals(new AccountEvent.AccountBlocked(new BorrowerId("george"))))).isTrue();
++        assertThat(catchThrowable(account::block)).isInstanceOf(AccountAlreadyBlocked.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a blocked account,
++         when the back office blocks it again,
++         then the block is rejected
++        """
++    )
++    // @formatter:on
++    @Test
++    void blockAlreadyBlockedAccount() {
++        // given
++        var account = Account.active(new BorrowerId("george"));
++        account.block();
++
++        // when
++        var exception = catchThrowable(account::block);
++
++        // then
++        assertThat(exception).isInstanceOf(AccountAlreadyBlocked.class);
++    }
++}

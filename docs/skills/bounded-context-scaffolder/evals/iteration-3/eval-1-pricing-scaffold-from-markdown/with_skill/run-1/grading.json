@@ -1,0 +1,120 @@
+{
+  "expectations": [
+    {
+      "text": "Plan markdown file created for pricing",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/pricing/plan.md"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+    },
+    {
+      "text": "package-info javadoc has all 8 canvas sections",
+      "passed": true,
+      "evidence": "missing: none"
+    },
+    {
+      "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java"
+    },
+    {
+      "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+    },
+    {
+      "text": "Outbound event is an IntegrationEvent record in api/events",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+    },
+    {
+      "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+    },
+    {
+      "text": "Data types are records, no getX() getters in generated main code",
+      "passed": true,
+      "evidence": "records=18; files with getters: none"
+    },
+    {
+      "text": "No Lombok used",
+      "passed": true,
+      "evidence": "searched changes.diff"
+    },
+    {
+      "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+      "passed": true,
+      "evidence": "@Test=8, GWT DisplayNames=8; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingArchitectureTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelists/PriceListsTest.java']"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    },
+    {
+      "text": "Phase A: no Java code before the plan is approved",
+      "passed": true,
+      "evidence": "java files in phase A: none"
+    },
+    {
+      "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+      "passed": true,
+      "evidence": "phaseA_plan.md"
+    },
+    {
+      "text": "Phase A: final message asks the user to review/approve the plan",
+      "passed": true,
+      "evidence": "phaseA_final_message.md"
+    },
+    {
+      "text": "Phase B: plan Status set to 'implemented'",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: Review notes record the approval",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+      "passed": true,
+      "evidence": "test refs: ['PriceListsTest#freeRide', 'PriceListsTest#firstHour', 'PriceListsTest#tieredHours', 'PriceListsTest#priceValidAtRideStart', 'PriceListsTest#billingHoursStartAfterFreePeriod', 'PriceListsTest#returnCharges', 'PriceListsTest#noPriceListValidAtRideStart', 'PriceListsTest#republishedPriceListReplacesEarlierOne']"
+    },
+    {
+      "text": "Phase B: javadoc reflects the rule added/changed at approval",
+      "passed": true,
+      "evidence": "pattern '8\\\\.00|drop.?zone' in Business decisions"
+    },
+    {
+      "text": "Architecture test exists with the incoming and outgoing api-only rules",
+      "passed": true,
+      "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingArchitectureTest.java"
+    },
+    {
+      "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+      "passed": true,
+      "evidence": "pom.xml diff"
+    },
+    {
+      "text": "Architecture test ran green in the verified build",
+      "passed": true,
+      "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.606 s -- in pl.wojtyna.dddtrainingv3.velocity.pricing."
+    },
+    {
+      "text": "No boundary exceptions without an explicit request",
+      "passed": true,
+      "evidence": "none"
+    }
+  ],
+  "summary": {
+    "passed": 22,
+    "failed": 0,
+    "total": 22,
+    "pass_rate": 1.0
+  }
+}

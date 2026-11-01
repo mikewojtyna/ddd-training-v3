@@ -1,0 +1,201 @@
+diff --git a/docs/bounded-contexts/velocity/settlement/canvas.md b/docs/bounded-contexts/velocity/settlement/canvas.md
+new file mode 100644
+index 0000000..0fcb620
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/settlement/canvas.md
+@@ -0,0 +1,56 @@
++# Bounded Context Canvas: Settlement
++
++<!--
++Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
++Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
++Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
++
++Saved on 2026-11-01 from the user's inline request. Content is as the user wrote it, only put into the template structure.
++Sections marked "not provided yet" were empty in the request; please fill them in where you can.
++-->
++
++## Name
++Settlement
++
++## Purpose
++Once a ride is priced, we charge the rider through their payment method, so that every ride eventually gets paid.
++
++## Strategic Classification
++<!-- not provided yet -->
++- Domain: <core | supporting | generic | other>
++- Business model: <revenue | engagement | compliance | cost reduction>
++- Evolution: <genesis | custom built | product | commodity>
++
++## Domain Roles
++<!-- not provided yet. Pick traits from docs/model-traits-worksheet.md -->
++
++## Inbound Communication
++| Collaborator | Type (Query/Command/Event) | Message | Notes |
++|---|---|---|---|
++| Pricing | Event | Ride Priced | |
++
++## Outbound Communication
++| Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
++|---|---|---|---|
++| Charge Rider | Command | Payments | no: "we're conformist to Payments, skip the ACL and use their API directly" |
++| Debt Recorded | Event | DebtRecovery | n/a for events |
++
++## Ubiquitous Language
++- **Settlement**: the process of collecting money for one priced ride.
++- **Charge Attempt**: one try to take money from the rider's payment method.
++- **Outstanding Debt**: the unpaid amount left after all attempts fail.
++
++## Business Decisions
++### Retry failed charges, then record debt
++If a charge fails, we retry a few times shortly after the ride, then record debt.
++
++<!-- Not yet a strict Given/When/Then example. See "Rules awaiting GWT" in plan.md for a suggested version. -->
++
++## Assumptions
++<!-- not provided yet -->
++
++## Verification Metrics
++<!-- not provided yet -->
++
++## Open Questions
++<!-- not provided yet -->
+diff --git a/docs/bounded-contexts/velocity/settlement/plan.md b/docs/bounded-contexts/velocity/settlement/plan.md
+new file mode 100644
+index 0000000..7f215ed
+--- /dev/null
++++ b/docs/bounded-contexts/velocity/settlement/plan.md
+@@ -0,0 +1,133 @@
++# Settlement bounded context: implementation plan
++
++- **System / package**: `velocity.settlement` (`pl.wojtyna.dddtrainingv3.velocity.settlement`)
++- **Mode**: scaffold (the package doesn't exist yet)
++- **Source canvas**: `docs/bounded-contexts/velocity/settlement/canvas.md` (saved from the inline request, 2026-11-01)
++- **Last updated**: 2026-11-01
++- **Status**: draft - awaiting review
++
++<!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
++     Invoking the skill again resumes from this file. -->
++
++## Review notes
++- 2026-11-01: draft written from the inline request, awaiting review. The inline text was saved as `canvas.md` (template structure, wording unchanged). Three things need an answer before code is generated: Q1 (the retry rule as strict GWT), Q2 (ACL towards Payments, after the pushback below), Q3 (the shape of the Payments API we conform to). See "Questions for the reviewer".
++
++## Canvas summary
++Settlement collects the money for each priced ride by charging the rider's payment method through Payments, so that every ride is eventually paid. It reacts to *Ride Priced* from Pricing, sends *Charge Rider* to Payments, and when all charge attempts fail it records *Outstanding Debt* and publishes *Debt Recorded* to DebtRecovery. Strategic classification and domain roles aren't given in the canvas.
++
++## Questions for the reviewer
++1. **Q1: the retry rule is not a strict Given/When/Then yet.** "Retry a few times shortly after the ride, then record debt" doesn't say how many attempts, how far apart, or what is recorded. I won't guess these numbers into the domain model. Please confirm or correct the suggested GWT examples under "Rules awaiting GWT" (number of attempts, delay between attempts, debt amount).
++2. **Q2: ACL towards Payments (pushback).** You asked to skip the ACL because Settlement is conformist to Payments. The reference map agrees that the relationship is `Payments [U,OHS,PL] -> [D,CF] Settlement`, so conformist is a legitimate choice here. The cost of going without an ACL is still real: every change to Payments' published language (renamed fields, a new failure code, a changed charge result) ripples straight into Settlement's domain model and tests, and Payments' words ("charge", "payment method", processor result codes) mix into Settlement's language next to *Charge Attempt* and *Outstanding Debt*. A thin ACL (a `RiderCharging` port in our words, one translating adapter in `paymentsctxacl`) costs one interface and one class. **Recommendation: keep the ACL.** If you still want no ACL, reply "no ACL" and the plan below already shows that variant (decision D1).
++3. **Q3: Payments doesn't exist in code yet.** "Use their API directly" needs `velocity.payments.api` types, and there are none. I won't invent Payments' API. Until Payments exists, the conformist adapter can only be a stub, and the port has to use temporary types. Options: (a) scaffold Payments first (or at least its `api` for *Charge Rider*), then Settlement conforms to it; (b) scaffold Settlement now with a port that takes a plain `ChargeRider` record shaped after the canvas message, and replace it with Payments' `api` type later (a breaking change inside Settlement, by design of conformism). The plan assumes (b) unless you pick (a).
++4. **Q4: classification and roles.** Domain / business model / evolution and domain roles are empty. Suggestion only, not used until you confirm: Domain *supporting* (or *core*, if collection rate is a differentiator), Business model *revenue*, Evolution *custom built*, Role *Execution Model* (performs and tracks the job of collecting money per ride).
++5. **Q5: differences from the reference context map** (see the table below), in particular the missing Accounts relationship (blocking a rider with outstanding debt) and the missing inbound "attempt collection" from DebtRecovery. Are they intentionally out of scope for this canvas?
++
++## Decisions
++| # | Decision | Choice | Reason |
++|---|---|---|---|
++| D0 | System | `velocity` | Settlement is a VeloCity context in the canvas, the vision and the CML. |
++| D0a | Name / package | `@BoundedContext(name = "Settlement")`, package `settlement` | Canvas name matches the CML `BoundedContext Settlement`. |
++| D0b | Modules | 1 module = 1 context | default |
++| D1 | ACL towards Payments | **pending Q2.** Variant shown below: no ACL (conformist, as requested). Adapter in `infra/adapters/secondary/paymentsctx/` without `@AntiCorruptionLayer`; the port may use Payments' published (`api`) types. | User asked explicitly for conformist without ACL; the reference map also marks Settlement CF towards Payments. Pushback given (Q2). **Risk:** upstream changes in Payments' published language ripple straight into Settlement's domain model; Payments' terms mix into Settlement's UL. The risk is spelled out in `paymentsctx/package-info.java`. If you choose the ACL, the package becomes `paymentsctxacl` with `@AntiCorruptionLayer` and the port takes only Settlement types. |
++| D2 | Boundary exceptions | none | Conformist through Payments' `api` already follows the "talk only through `api`" rule. No one asked to use another context's internals. `SettlementArchitectureTest` stays two plain rules. |
++| D3 | Aggregates | **none yet** | The canvas has no strict GWT rule (the only rule is vague, see Q1). Per the skill, ports and adapters are scaffolded without an aggregate. The aggregate proposal below is generated only after Q1 is answered. |
++| D4 | Inbound *Ride Priced* | our own record + use case; no listener yet | Pricing doesn't exist in code, so there's no upstream type to listen to. Listener `infra/adapters/primary/pricingctxacl/PricingEventsListener` is a follow-up. |
++| D5 | ArchUnit | add `com.tngtech.archunit:archunit-junit5:1.5.1` (test scope) to `pom.xml` | Not on the classpath yet; older versions can't read JDK 27 class files. |
++
++## Mapping: canvas → code
++Paths relative to `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/`.
++
++### Inbound
++| Collaborator | Type | Message | Code |
++|---|---|---|---|
++| Pricing | Event | Ride Priced | `api/usecases/RidePriced` (our record: `rideId`, `riderId`, `amount`, `currency`) and `api/usecases/SettleRideUseCase` (`@PrimaryPort`). Until Q1 is answered there is no aggregate, so the use case only starts a Settlement in the sense the rules allow: see "Use case behaviour before Q1" below. Listener on Pricing's `api.events.RidePriced`: follow-up (Pricing not in code). |
++
++**Use case behaviour before Q1.** Without the retry rule, the only thing the canvas states unambiguously is "once a ride is priced we charge the rider". Two options, please pick one:
++- (i) `SettleRideUseCase` sends one *Charge Rider* through the port and does nothing on failure (no retry, no debt) until the rule is confirmed; or
++- (ii) `SettleRideUseCase` is generated with the four use-case steps as comments only (like `RentBikeUseCase` in Rentals) and becomes real together with the aggregate.
++Default in this draft: **(ii)**, because (i) would already encode a "one attempt, no debt" behaviour that contradicts the canvas.
++
++### Outbound
++| Message | Type | Collaborator | Port | Adapter (package) |
++|---|---|---|---|---|
++| Charge Rider | Command | Payments | `domain/settlement/RiderCharging` (`@SecondaryPort`), method `ChargeResult charge(ChargeRider command)`; under conformism `ChargeRider`/`ChargeResult` are meant to be Payments' `api` types (temporary local records until Payments exists, Q3) | `infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter` (`@SecondaryAdapter`), **stub** throwing `UnsupportedOperationException("implement this")`, comment quoting the canvas message "Charge Rider → Payments". `package-info.java` javadoc records D1 and its risk. |
++| Debt Recorded | Event | DebtRecovery | n/a | `api/events/DebtRecorded` (record, primitives/strings only: `rideId`, `riderId`, `amount`, `currency`) implementing `IntegrationEvent`. Emitted from the domain event `OutstandingDebtRecorded` by `infra/adapters/secondary/IntegrationEventsPublisher` **once the aggregate exists (Q1)**. Until then the record exists but nothing publishes it. |
++
++### Ubiquitous language
++| Term | Code type | Kind |
++|---|---|---|
++| Settlement | `domain/settlement/Settlement` (proposed, after Q1) | aggregate root (one per priced ride) |
++| Charge Attempt | `domain/settlement/ChargeAttempt` (proposed, after Q1) | entity inside Settlement; immutable after it's made, so a record |
++| Outstanding Debt | `domain/settlement/OutstandingDebt` (proposed, after Q1) | value object record (amount + currency) |
++| (ride, rider, money identifiers used by messages) | `RideId`, `RiderId`, `Money` records in `domain/settlement` (only if the aggregate is generated) | value objects |
++
++Until Q1 is answered, the three terms live in the `package-info.java` javadoc only (no type nobody uses).
++
++### Business rules → aggregates
++None yet: no strict GWT rule in the canvas.
++
++**Proposed aggregate reasoning (for review, applied after Q1):** all suggested rules below have the same Given (the charge attempts made so far for one priced ride) and the same When (a charge attempt result). So the consistency boundary is one Settlement per ride: it holds its Charge Attempts, decides whether another attempt is due, and records Outstanding Debt when the limit is reached. Nothing else needs to be loaded.
++
++| Rule (GWT) | Invariant | Aggregate | Test |
++|---|---|---|---|
++| R1 (after Q1) | a Settlement is settled when a charge attempt succeeds | `Settlement` | `SettlementTest#successfulChargeSettlesRide` |
++| R2 (after Q1) | a failed attempt below the limit schedules another attempt | `Settlement` | `SettlementTest#failedChargeIsRetried` |
++| R3 (after Q1) | the last allowed failed attempt records Outstanding Debt equal to the ride price | `Settlement` | `SettlementTest#debtRecordedAfterAllAttemptsFail` |
++| R4 (after Q1) | no further attempts after settled or debt recorded | `Settlement` | `SettlementTest#noAttemptAfterSettlementIsFinished` |
++
++### Rules awaiting GWT
++- **"If a charge fails we retry a few times shortly after the ride, then record debt."** Status: awaiting confirmation. "A few times" and "shortly" are not testable, and I won't pick numbers silently. Suggested strict versions (the numbers are placeholders for you to confirm or change):
++  - **R1 Successful charge settles the ride.** Given a Settlement for ride R-1 priced at 12.50 PLN with no charge attempts, when the first Charge Attempt succeeds, then ride R-1 is settled and no Outstanding Debt is recorded.
++  - **R2 Failed charge is retried.** Given a Settlement for ride R-1 priced at 12.50 PLN whose first Charge Attempt failed at 10:00, when the failure is recorded, then the next Charge Attempt is scheduled for 10:15 (attempt 2 of **3**, **15 minutes** apart).
++  - **R3 Debt after all attempts fail.** Given a Settlement for ride R-1 priced at 12.50 PLN with 2 failed Charge Attempts (limit **3**), when the 3rd Charge Attempt fails, then Outstanding Debt of 12.50 PLN is recorded for the rider and *Debt Recorded* is published.
++  - **R4 Finished Settlement takes no more attempts.** Given a Settlement for ride R-1 that is settled (or has Outstanding Debt recorded), when another Charge Attempt is requested, then it is rejected.
++  - Also open: does "shortly after the ride" mean a fixed delay between attempts, a total time window (for example "within 1 hour of Ride Priced"), or both? Is a partial charge possible (Outstanding Debt smaller than the price)? The UL says "unpaid amount left", which hints it might be.
++
++## Differences from the reference context map
++| Canvas says | Reference map says | Covered by "Accepted Alternatives"? |
++|---|---|---|
++| Inbound *Ride Priced* event from Pricing (Pricing pushes the price) | Rentals publishes *Rental Session Ended* to Settlement, and Settlement *calls* Pricing ("price for session", `Pricing [U,OHS] -> [D,CF] Settlement`) | Yes: "Pricing reacting to *Rental Session Ended* instead of being called by Settlement". Consequence: Settlement no longer depends on Rentals directly; the CML relationship `Rentals -> Settlement : RentalSessionEnded` and `Pricing -> Settlement : PriceCalculation` would change to an event-based Pricing → Settlement relationship. |
++| Outbound event *Debt Recorded* to DebtRecovery | *Rental Fee Unpaid* to DebtRecovery (`Settlement [U,OHS,PL] -> [D,CF] DebtRecovery`) | No, it's a naming difference ("Debt Recorded" vs. "Rental Fee Unpaid"). Building the canvas name. |
++| No relationship to Accounts | *Rental Fee Unpaid* → Accounts (block) and *Outstanding Debt Cleared* → Accounts (unblock), `Settlement [U,PL] -> [D,CF] Accounts : DebtBlocking`; key decision "Settlement drives both block and unblock for debt" | No. Missing in the canvas (Q5). |
++| No inbound from DebtRecovery | DebtRecovery asks Settlement to "attempt collection" (OHS) | No. Missing in the canvas (Q5). |
++| No "rider's balance" | Settlement owns the rider's balance | No. Not in the canvas UL. |
++| Conformist to Payments, *Charge Rider* | `Payments [U,OHS,PL] -> [D,CF] Settlement : Charging` | Matches the map (CF). |
++| UL: Settlement, Charge Attempt, Outstanding Debt | Key language: charge, settled, outstanding debt | Compatible; "Charge Attempt" refines "charge". |
++
++The reference map is not changed.
++
++## Files
++Planned (variant: no ACL to Payments, use case as commented steps until Q1):
++
++```
++pom.xml                                                         + archunit-junit5 1.5.1 (test)
++docs/bounded-contexts/velocity/settlement/canvas.md             (saved from inline input, done)
++docs/bounded-contexts/velocity/settlement/plan.md               (this file)
++src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/
++  package-info.java                                             @BoundedContext(name = "Settlement") + @Module, canvas javadoc; rule marked "not modelled yet"
++  api/usecases/RidePriced.java                                  record
++  api/usecases/SettleRideUseCase.java                           @PrimaryPort
++  api/events/DebtRecorded.java                                  record implements IntegrationEvent
++  domain/settlement/RiderCharging.java                          @SecondaryPort
++  domain/settlement/ChargeRider.java                            record (temporary stand-in for Payments' api type, Q3)
++  domain/settlement/ChargeResult.java                           record (temporary stand-in for Payments' api type, Q3)
++  infra/adapters/secondary/paymentsctx/package-info.java        conformist decision D1 + risk (no @AntiCorruptionLayer)
++  infra/adapters/secondary/paymentsctx/PaymentsRiderChargingAdapter.java   stub
++  infra/config/SettlementContextConfig.java                     @Configuration, beans prefixed "settlement"
++src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/
++  SettlementArchitectureTest.java                               incoming/outgoing api-only rules, no exceptions
++```
++
++Added after Q1 is answered: `domain/settlement/{Settlement, ChargeAttempt, OutstandingDebt, SettlementEvent, SettlementRepository, ...}`, `infra/adapters/secondary/{InMemorySettlementRepository, IntegrationEventsPublisher}`, `src/test/.../domain/settlement/SettlementTest.java`.
++
++## Stubs and follow-ups
++- `PaymentsRiderChargingAdapter` is a stub: Payments isn't in code yet (Q3).
++- Listener for Pricing's *Ride Priced*: follow-up, Pricing isn't in code yet.
++- DebtRecovery consumer of *Debt Recorded*: DebtRecovery isn't in code yet.
++- CML (`src/main/cml/VeloCity-*.cml`) and `velocity/velocity-context-map.md` don't match the canvas (see differences). Not changed; can be updated on request.
++- Canvas sections still empty: classification, domain roles, assumptions, verification metrics, open questions (Q4).
++
++## Changelog
++### 2026-11-01: draft
++- Added: canvas saved from inline input; plan drafted. No code generated yet (awaiting review).
++- Triggered by: initial request to add the Settlement context.

@@ -21,6 +21,7 @@
 |---|---|---|
 | Modules | 1 module = 1 context | default |
 | ACL towards <ctx> | yes / no (conformist, user insisted) | <reason; risk if no> |
+| Boundary exceptions | none (default) / D<n>: <exact package allowed> (user insisted after challenge, <date>) | <risk>; excluded in `<Context>ArchitectureTest`, comment at the usage site |
 | ... | | |
 
 ## Mapping: canvas → code
@@ -48,7 +49,7 @@
 |---|---|---|
 
 ## Files
-<Tree of the created or modified files.>
+<Tree of the created or modified files, including `src/test/.../<Context>ArchitectureTest.java`, and `pom.xml` if ArchUnit had to be added.>
 
 ## Stubs and follow-ups
 - <ACL adapter X is a stub: collaborator not in code yet>

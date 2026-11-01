@@ -199,6 +199,69 @@ All with-skill builds were re-verified independently (`./mvnw -B test`). Observa
 
 There were no further change requests, so the review loop ended after iteration 2. The "watch item" (resumed sessions making small calls outside the approved plan and reporting them) drew no objection, so it stays as it is.
 
+### Iteration 3 (2026-11-01): architecture tests for context boundaries
+
+**User request (verbatim).** Asked to "add one more thing", the user picked *Architecture tests* from four suggestions, declined a follow-up multiple-choice question about rule sets, and specified instead:
+
+> Let's make it simple: module/context A can call or depend only on module/context B by using module B's api types. There's one exception, though: if every explicitly says it and wants to break the rules (e.g. by mentioning we want to use a shared kernel or be a conformist), challenge his decision but don't enforce it. In such a case - add the corresponding comments to the code mentioning this decision explicitly. If user doesn't say that - don't make any exceptions and keep archunit rules simple.
+
+**Design:**
+- **One test per context the skill touches:** `<Context>ArchitectureTest`, with exactly **two ArchUnit rules**.
+  - *Incoming:* other contexts use only this context's `api`.
+  - *Outgoing:* this context uses only other contexts' `api`.
+  - "Another context" is decided from the package name. The top-level `common` and a system's `common` and `contextmap` are shared code, not contexts.
+- **Exceptions:** only on an explicit user request, which is challenged once. If the user insists, the skill adds:
+  - a D-numbered plan decision stating the risk
+  - one `.and(DescribedPredicate.not(resideInAPackage("<exact package>")))` clause with a `// DECISION Dn` comment
+  - a `DECISION Dn` comment where the foreign type is used
+
+  Otherwise there are no exceptions, ignore lists or `@ArchIgnore`.
+- **Conformists:** a conformist that uses only the upstream's `api` already follows the rule, so it needs no exception.
+- **Dependency:** only `com.tngtech.archunit:archunit-junit5` (test scope), added to the pom by the skill when it's missing. `jmolecules-archunit` was not used, to keep it simple.
+
+**Verified before writing the template** (scratch worktree, then removed):
+- ArchUnit **1.4.1 can't read the class files of the locally installed JDK 27** ("Unsupported class file major version 71"). **1.5.1** can, so the skill pins 1.5.1.
+- Mutation checks with the template applied to Rentals:
+  - Rentals → `deposit.domain` fails the outgoing rule.
+  - `deposit` → `rentals.domain` fails the incoming rule.
+  - Rentals → `deposit.api` passes.
+  - An exception for `deposit.domain.account` silences only that package; `deposit.domain.payment` still fails.
+
+**Changes:**
+- `SKILL.md`: Step 3 gained item 6 (boundary rule, challenge, recorded exceptions), Step 6 gained a bullet requiring the test, and Step 7 runs it.
+- `code-templates.md`: the verified test template and the exception example.
+- `canvas-mapping.md`: §6a, which also says ACLs translate *B's api types*, never B's domain types.
+- The plan template: a "Boundary exceptions" decision row.
+- The evals: a new eval 5, `accounts-shared-kernel-exception`, where the user explicitly wants Rentals' `BorrowerId` as a shared kernel; follow-up prompts are now stored in `evals.json`; and the grader has the new checks.
+
+**Results.** The evals rerun were pricing and settlement (both two-phase) and the new accounts eval (two-phase), plus a fresh baseline for accounts. Every build was re-verified independently with `./mvnw -B test`.
+
+| Eval | With skill (A + B) | Baseline |
+|---|---|---|
+| pricing | 22/22 | 9/11 (reused) |
+| settlement | 20/20 | 3/9 (reused) |
+| accounts-shared-kernel-exception | 20/20 | 5/13 |
+
+- **The architecture tests:** every with-skill run generated `<Context>ArchitectureTest` with the two plain rules, and added ArchUnit 1.5.1.
+  - **Mutation check** on the generated `PricingArchitectureTest`: a probe class that referenced `rentals.domain…BikeId` made it fail, and reverting made it pass.
+  - **No exceptions where none were asked for:** Pricing and Settlement have none. Settlement's plan explicitly reasoned that conforming through Payments' `api` needs no exception.
+- **Accounts, where the user explicitly asked for a shared kernel:**
+  - **Challenged once, with concrete costs:** coupling to Rentals' internals, and a dependency cycle (Rentals consumes Accounts' event), which contradicts the reference map's "No cycles". It offered alternatives (move `BorrowerId` to `velocity.common`, publish it in Rentals' `api`, or give Accounts its own id).
+  - **Then complied** with D1, scoped to the single class `BorrowerId`.
+  - **D1 is visible where it matters:** one commented exception in the test, and `DECISION D1` comments in `domain/account/package-info.java` and on `Account`.
+  - **Proved its own exception:** the run checked that a different Rentals type (`BikeId`) is still rejected.
+- **Accounts baseline:** it honoured the shared kernel, but didn't challenge it and wrote no architecture test, so nothing would stop the exception from spreading.
+
+**Skill change after the run.** The template only showed a package-wide exception. The run chose a class-level one, because the decision named one class. The skill now requires exceptions to be **exactly as narrow as the decision**, and the template shows the class form, `HasName.Predicates.name(...)`. `JavaClass.Predicates.name` doesn't exist in ArchUnit 1.5.1.
+
+**Grader lessons, again:**
+- The Settlement check "retry rule no longer not modelled" was too broad. It flagged the retry *timing*, which is correctly still not modelled because the user never specified it. The check now looks only at the rule the user supplied.
+- The Accounts baseline was at first graded without the architecture checks, which flattered it. It now gets them too.
+
+**Process note:** test worktrees are created from `070ea2a`, not from the skill branch, so they don't contain the committed worksheet. The runs read the skill and the worksheet from absolute paths in the main checkout, so the results aren't affected.
+
+**User review feedback:** all 6 runs were reviewed and none got a comment (`evals/iteration-3/feedback.json`), which means accepted as is. The architecture-test addition is done.
+
 ## 6. Status
 
 - **2026-11-01:** skill accepted after 2 iterations. The eval results were copied into the repo (`evals/`).

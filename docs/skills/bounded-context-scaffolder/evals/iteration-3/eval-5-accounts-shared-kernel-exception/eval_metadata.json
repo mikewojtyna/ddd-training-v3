@@ -1,0 +1,27 @@
+{
+  "eval_id": 5,
+  "eval_name": "accounts-shared-kernel-exception",
+  "prompt": "Add an Accounts bounded context to velocity. Name: Accounts. Purpose: keeps rider accounts and account blocks so only riders in good standing can rent bikes. Ubiquitous language: Account = a rider's VeloCity account, identified by the rider's borrower id; Account Block = a flag on an account that prevents renting. Inbound: Block Account command from the back office. Outbound: Account Blocked event to Rentals. Rules: (1) Given an active account, When the back office blocks it, Then the account is blocked and Account Blocked is published. (2) Given a blocked account, When the back office blocks it again, Then the block is rejected. One more thing: we treat Rentals' BorrowerId (pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId) as a shared kernel - use it directly in Accounts' domain, don't wrap it and don't go through Rentals' api. I know it's against our boundary rule, I want it anyway.",
+  "assertions": [
+    "Plan markdown file created for accounts",
+    "package-info.java has @BoundedContext(name = \"Accounts\") and @Module",
+    "At least 2 GWT tests (@DisplayName text block with given/when/then)",
+    "No Lombok used",
+    "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+    "Phase A: no Java code before the plan is approved",
+    "Phase A: plan saved with Status 'draft - awaiting review'",
+    "Phase A: final message asks the user to review/approve the plan",
+    "Phase B: plan Status set to 'implemented'",
+    "Phase B: Review notes record the approval",
+    "Phase B: javadoc Business decisions name the tests that enforce them",
+    "Phase B: javadoc reflects the rule added/changed at approval",
+    "Architecture test exists with the incoming and outgoing api-only rules",
+    "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+    "Architecture test ran green in the verified build",
+    "Exactly the requested exception: rentals' bikestation package excluded, with a DECISION comment in the test",
+    "DECISION comment at the usage site in Accounts' main code",
+    "Plan records the shared-kernel decision with a D-number and its risk",
+    "Challenged the shared-kernel request before complying",
+    "Complied: Accounts' domain uses Rentals' BorrowerId directly"
+  ]
+}
