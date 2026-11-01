@@ -38,7 +38,7 @@ The stack is Maven wrapper, Spring Boot 4.1, and Java 25 (`java.version`). The o
 
 ## Code architecture
 
-Top packages represent application, e.g. `velocity` or `crowdsorcery`, plus a top-level `common` package shared by all applications. Within the application packages each subpackage is an implementation of a bounded context, e.g. `deposit` except `common` and `contextmap` packages. An application's `common` package is for code shared between that application's bounded contexts; code shared across applications goes to the top-level `common`. Package layout per bounded context, following CrowdSorcery's `deposit` as the canonical example:
+There is a single Spring Boot application (`DddTrainingV3Application`) hosting several systems. Each top-level package is a system, e.g. `velocity` or `crowdsorcery`, plus a top-level `common` package shared by all systems. Within a system package, each subpackage implements a bounded context, e.g. `deposit`, except the `common` and `contextmap` packages. A system's `common` package is for code shared between that system's bounded contexts; code shared across systems goes to the top-level `common`. Package layout per bounded context, following CrowdSorcery's `deposit` as the canonical example:
 
 ```
 <context>/
@@ -56,8 +56,8 @@ Shared conventions:
 - **jMolecules annotations** (`jmolecules-ddd`, `jmolecules-hexagonal-architecture`) mark DDD and hexagonal roles: `@AggregateRoot`, `@Entity`, `@ValueObject`, `@PrimaryPort`, `@SecondaryPort`, and so on. Keep using them on new classes.
 - **Domain events:**
   - Aggregate methods return `DomainEvents` (top-level `common/domain`) instead of publishing events themselves.
-  - Application code hands those events to `DomainEventPublisher`, a secondary port. Its Spring implementation, `SpringEventPublisher` (`common/infra/spring`), forwards them to `ApplicationEventPublisher`.
-  - Both applications reuse these top-level `common` types; don't duplicate them per application.
+  - Use cases hand those events to `DomainEventPublisher`, a secondary port. Its Spring implementation, `SpringEventPublisher` (`common/infra/spring`), forwards them to `ApplicationEventPublisher`.
+  - Both systems reuse these top-level `common` types; don't duplicate them per system.
 - **Context integration:**
   - Cross-context calls go through anti-corruption-layer packages annotated with the custom `@AntiCorruptionLayer` package annotation, for example `deposit/infra/adapters/secondary/paymentctxacl` and `investment/transfer/depositctxacl`.
   - The relationships are documented in the CML context maps.
