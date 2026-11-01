@@ -1,0 +1,90 @@
+{
+  "expectations": [
+    {
+      "text": "Intent files created in docs/intents/<kebab-name>.md",
+      "passed": true,
+      "evidence": "rider-rents-bike-from-station.md, rider-reserves-bike.md, rider-returns-bike-to-any-station.md, rider-returns-bike-to-origin-station.md"
+    },
+    {
+      "text": "Every intent names one business-role actor (not system/user)",
+      "passed": true,
+      "evidence": "{'rider-rents-bike-from-station.md': 'Rider', 'rider-reserves-bike.md': 'Rider', 'rider-returns-bike-to-any-station.md': 'Rider', 'rider-returns-bike-to-origin-station.md': 'Rider'}"
+    },
+    {
+      "text": "Every intent states the business value ('so that')",
+      "passed": true,
+      "evidence": "{'rider-rents-bike-from-station.md': True, 'rider-reserves-bike.md': True, 'rider-returns-bike-to-any-station.md': True, 'rider-returns-bike-to-origin-station.md': True}"
+    },
+    {
+      "text": "No solution vocabulary outside a spec/technical-notes section",
+      "passed": true,
+      "evidence": "{}"
+    },
+    {
+      "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent has a unique sequence number (project history order)",
+      "passed": true,
+      "evidence": "['1', '4', '3', '2']"
+    },
+    {
+      "text": "Each intent is placed on a story map (activity recorded)",
+      "passed": true,
+      "evidence": "4/4"
+    },
+    {
+      "text": "No spec.md, plan.md or code produced",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Intent set passes intents.py check (0 errors)",
+      "passed": false,
+      "evidence": "ERROR rider-reserves-bike.md: status 'proposed' not in ['accepted', 'delivered', 'draft', 'dropped', 'specified', 'superseded']\n4 intents, 1 error(s), 0 warning(s)"
+    },
+    {
+      "text": "Accepted return intent's text is preserved (not rewritten)",
+      "passed": false,
+      "evidence": "body changed"
+    },
+    {
+      "text": "Old return intent marked superseded with a pointer to the new one",
+      "passed": true,
+      "evidence": "status=superseded superseded_by=rider-returns-bike-to-any-station"
+    },
+    {
+      "text": "New return-to-any-station intent references the intent it replaces",
+      "passed": true,
+      "evidence": "['rider-returns-bike-to-any-station.md']"
+    },
+    {
+      "text": "Reservation intent keeps '15 minutes' and 'one active reservation per rider'",
+      "passed": true,
+      "evidence": "['rider-reserves-bike.md']"
+    },
+    {
+      "text": "New intents continue the sequence after 2 (3, 4, ...)",
+      "passed": true,
+      "evidence": "[3, 4]"
+    },
+    {
+      "text": "Reservation intent links to the rent intent",
+      "passed": true,
+      "evidence": ""
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 2,
+    "total": 16,
+    "pass_rate": 0.875
+  }
+}

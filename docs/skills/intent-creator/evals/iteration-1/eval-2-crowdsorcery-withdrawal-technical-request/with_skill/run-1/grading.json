@@ -1,0 +1,80 @@
+{
+  "expectations": [
+    {
+      "text": "Intent files created in docs/intents/<kebab-name>.md",
+      "passed": true,
+      "evidence": "investor-withdraws-money.md"
+    },
+    {
+      "text": "Every intent names one business-role actor (not system/user)",
+      "passed": true,
+      "evidence": "{'investor-withdraws-money.md': 'Investor'}"
+    },
+    {
+      "text": "Every intent states the business value ('so that')",
+      "passed": true,
+      "evidence": "{'investor-withdraws-money.md': True}"
+    },
+    {
+      "text": "No solution vocabulary outside a spec/technical-notes section",
+      "passed": true,
+      "evidence": "{}"
+    },
+    {
+      "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent has a unique sequence number (project history order)",
+      "passed": true,
+      "evidence": "['1']"
+    },
+    {
+      "text": "Each intent is placed on a story map (activity recorded)",
+      "passed": true,
+      "evidence": "1/1"
+    },
+    {
+      "text": "No spec.md, plan.md or code produced",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Intent set passes intents.py check (0 errors)",
+      "passed": true,
+      "evidence": "1 intents, 0 error(s), 0 warning(s)"
+    },
+    {
+      "text": "One or two intents, actor Investor, about withdrawing money",
+      "passed": true,
+      "evidence": "['investor-withdraws-money.md']"
+    },
+    {
+      "text": "Technical hints (endpoint/table/Kafka) preserved somewhere for the spec",
+      "passed": true,
+      "evidence": "found"
+    },
+    {
+      "text": "Rules 'verified bank account' and 'available balance' captured",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "text": "Title/file name is business-worded (no endpoint/table/event names)",
+      "passed": true,
+      "evidence": "['An investor wants to withdraw money from their account']"
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  }
+}

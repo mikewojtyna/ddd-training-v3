@@ -1,0 +1,315 @@
+# git status --short
+ M docs/intents/rider-rents-bike-from-station.md
+ M docs/intents/rider-returns-bike-to-origin-station.md
+ M docs/intents/story-map.md
+?? docs/intents/rider-reserves-bike.md
+?? docs/intents/rider-returns-bike-to-any-station.md
+# git diff
+diff --git a/docs/intents/rider-rents-bike-from-station.md b/docs/intents/rider-rents-bike-from-station.md
+index cddd6f0..7d2ee3e 100644
+--- a/docs/intents/rider-rents-bike-from-station.md
++++ b/docs/intents/rider-rents-bike-from-station.md
+@@ -39,11 +39,12 @@ Backfilled: this behaviour already exists. Renting is the core of VeloCity's bus
+ ## Scope
+ 
+ - **In:** renting one available bike at a station.
+-- **Out:** returning the bike (`rider-returns-bike-to-origin-station`).
++- **Out:** reserving a bike ahead of time (`rider-reserves-bike`); returning the bike (`rider-returns-bike-to-any-station`).
+ 
+ ## Related intents
+ 
+-- enables: `rider-returns-bike-to-origin-station`
++- enables: `rider-returns-bike-to-any-station` (previously `rider-returns-bike-to-origin-station`, superseded)
++- follows (optionally): `rider-reserves-bike`
+ 
+ ## Open questions
+ 
+diff --git a/docs/intents/rider-returns-bike-to-origin-station.md b/docs/intents/rider-returns-bike-to-origin-station.md
+index 2857249..430e0e7 100644
+--- a/docs/intents/rider-returns-bike-to-origin-station.md
++++ b/docs/intents/rider-returns-bike-to-origin-station.md
+@@ -6,15 +6,17 @@ system: velocity
+ actor: Rider
+ activity: Return the bike
+ task: Return at a station
+-status: accepted
++status: superseded
+ date: 2026-10-20
+ supersedes:
+-superseded_by:
++superseded_by: rider-returns-bike-to-any-station
+ source: workshop discussion 2026-10-20
+ ---
+ 
+ # A rider wants to return a bike to the station it was rented from
+ 
++> **Superseded** on 2026-11-01 by `rider-returns-bike-to-any-station`. After the pilot, operations dropped the same-station rule: rebalancing trucks are cheaper than angry riders. Kept for history.
++
+ ## Intent
+ 
+ As a **Rider**, I want to **return my bike to the station I rented it from** so that **my rental ends and I stop paying**.
+diff --git a/docs/intents/story-map.md b/docs/intents/story-map.md
+index b02383d..1cb9276 100644
+--- a/docs/intents/story-map.md
++++ b/docs/intents/story-map.md
+@@ -7,6 +7,7 @@ The backbone of each system: actors and the ordered activities of their journey.
+ Actors: Rider, Technician, Support Agent
+ 
+ ### 1. Get a bike
++- Reserve a bike
+ - Unlock a bike
+ 
+ ### 2. Return the bike
+# untracked
+## docs/intents/rider-rents-bike-from-station.md
+---
+name: rider-rents-bike-from-station
+sequence: 1
+title: A rider wants to rent a bike from a bike station
+system: velocity
+actor: Rider
+activity: Get a bike
+task: Unlock a bike
+status: delivered
+date: 2026-10-12
+supersedes:
+superseded_by:
+source: velocity/velocity-vision.md "Renting a Bike"
+---
+
+# A rider wants to rent a bike from a bike station
+
+## Intent
+
+As a **Rider**, I want to **rent an available bike from a bike station** so that **I can ride it across the city**.
+
+## Why
+
+Backfilled: this behaviour already exists. Renting is the core of VeloCity's business; every ride and every fee starts here.
+
+## Business outcome
+
+- Bike Rented: the bike left the station and a rental started for the rider.
+
+## Success signal
+
+- (suggested) Number of rentals started per day.
+
+## Business rules mentioned
+
+- A bike can never be in two active rental sessions at the same time.
+- A rental can't be longer than 11 hours.
+
+## Scope
+
+- **In:** renting one available bike at a station.
+- **Out:** reserving a bike ahead of time (`rider-reserves-bike`); returning the bike (`rider-returns-bike-to-any-station`).
+
+## Related intents
+
+- enables: `rider-returns-bike-to-any-station` (previously `rider-returns-bike-to-origin-station`, superseded)
+- follows (optionally): `rider-reserves-bike`
+
+## Open questions
+
+- None.
+
+## Notes for the spec
+
+- None.
+## docs/intents/rider-returns-bike-to-origin-station.md
+---
+name: rider-returns-bike-to-origin-station
+sequence: 2
+title: A rider wants to return a bike to the station it was rented from
+system: velocity
+actor: Rider
+activity: Return the bike
+task: Return at a station
+status: superseded
+date: 2026-10-20
+supersedes:
+superseded_by: rider-returns-bike-to-any-station
+source: workshop discussion 2026-10-20
+---
+
+# A rider wants to return a bike to the station it was rented from
+
+> **Superseded** on 2026-11-01 by `rider-returns-bike-to-any-station`. After the pilot, operations dropped the same-station rule: rebalancing trucks are cheaper than angry riders. Kept for history.
+
+## Intent
+
+As a **Rider**, I want to **return my bike to the station I rented it from** so that **my rental ends and I stop paying**.
+
+## Why
+
+Riders need a way to end a rental. For the pilot, operations wanted bikes to come back to their origin station so each station keeps its fleet without rebalancing trucks.
+
+## Business outcome
+
+- Bike Returned: the bike is back at its origin station and the rental ended.
+
+## Success signal
+
+- (suggested) Share of rentals that end with a return within the allowed time.
+
+## Business rules mentioned
+
+- "A bike must be returned to the same station it was rented from" (operations, pilot).
+
+## Scope
+
+- **In:** returning the bike at its origin station.
+- **Out:** drop-zone returns (not planned yet).
+
+## Related intents
+
+- follows: `rider-rents-bike-from-station`
+
+## Open questions
+
+- None.
+
+## Notes for the spec
+
+- None.
+## docs/intents/story-map.md
+# Story map
+
+The backbone of each system: actors and the ordered activities of their journey. The order of activities is the value stream.
+
+## velocity
+
+Actors: Rider, Technician, Support Agent
+
+### 1. Get a bike
+- Reserve a bike
+- Unlock a bike
+
+### 2. Return the bike
+- Return at a station
+## docs/intents/rider-reserves-bike.md
+---
+name: rider-reserves-bike
+sequence: 4
+title: A rider wants to reserve a bike before getting to the station
+system: velocity
+actor: Rider
+activity: Get a bike
+task: Reserve a bike
+status: proposed
+date: 2026-11-01
+supersedes:
+superseded_by:
+source: product request after the pilot (relayed 2026-11-01)
+---
+
+# A rider wants to reserve a bike before getting to the station
+
+## Intent
+
+As a **Rider**, I want to **hold a bike for 15 minutes** so that **it is still there when I reach the station and can rent it**.
+
+## Why
+
+Product request after the pilot. Riders walking to a station have no guarantee a bike will still be available when they arrive. A short hold removes that uncertainty.
+
+## Business outcome
+
+- Bike Reserved: one bike is held for the rider and cannot be reserved or rented by anyone else.
+- Reservation Expired: the rider did not rent the bike within 15 minutes, and the bike is available to everyone again.
+- Reservation Fulfilled: the rider rented the reserved bike (`rider-rents-bike-from-station`), and the reservation ended.
+
+## Success signal
+
+- (suggested) Share of reservations that turn into a rental (vs. expire or get cancelled).
+- (suggested) Number of reservations per day.
+
+## Business rules mentioned
+
+- A reservation holds a bike for 15 minutes (product).
+- A rider can have at most one active reservation at a time (product).
+- Assumed: a reserved bike cannot be reserved or rented by another rider while the hold lasts.
+- Assumed: when 15 minutes pass without a rental, the reservation expires and the bike is available again.
+
+## Scope
+
+- **In:** a rider reserving one available bike at a station; the reservation expiring after 15 minutes; the reservation ending when the rider rents that bike.
+- **Out:** technicians reserving broken bikes for maintenance; reservation fees or no-show penalties; extending a reservation.
+
+## Related intents
+
+- enables: `rider-rents-bike-from-station` (renting a reserved bike)
+
+## Open questions
+
+- Can a rider cancel a reservation before it expires?
+- Can a rider with an active rental reserve another bike, or does "one active reservation" also mean "not while riding"?
+- Is a reservation free? Is there a penalty for repeated no-shows?
+- Does the reservation pick a specific bike, or "any bike at station X"?
+- Is reserving optional (riders can still walk up and rent an unreserved bike), or does every rental go through a reservation?
+- Who may reserve: only activated accounts, and not blocked ones?
+
+## Notes for the spec
+
+- `velocity/velocity-vision.md` already describes a reservation in "Renting a Bike", but as a seconds-long technical hold during unlock, also used by technicians. This 15-minute rider hold is a different, longer-lived business concept; decide whether they are the same concept with a different duration or two separate ones before modelling.
+## docs/intents/rider-returns-bike-to-any-station.md
+---
+name: rider-returns-bike-to-any-station
+sequence: 3
+title: A rider wants to return a bike to any VeloCity station
+system: velocity
+actor: Rider
+activity: Return the bike
+task: Return at a station
+status: accepted
+date: 2026-11-01
+supersedes: rider-returns-bike-to-origin-station
+superseded_by:
+source: operations decision after the pilot (relayed 2026-11-01)
+---
+
+# A rider wants to return a bike to any VeloCity station
+
+## Intent
+
+As a **Rider**, I want to **return my bike to any VeloCity station** so that **I can end my ride where my trip ends, my rental ends and I stop paying**.
+
+## Why
+
+During the pilot, riders had to bring the bike back to the station they rented it from (`rider-returns-bike-to-origin-station`). That made one-way trips impossible and frustrated riders. Operations decided that rebalancing bikes between stations with trucks is cheaper than losing riders, so the same-station rule is dropped.
+
+## Business outcome
+
+- Bike Returned: the bike is docked at a VeloCity station (any station) and the rental ended.
+
+## Success signal
+
+- (suggested) Share of rentals that end at a station other than the origin (one-way trips).
+- (suggested) Share of rentals that end with a return within the allowed time.
+- (suggested) Rebalancing cost per rental, to confirm operations' bet that trucks are cheaper than lost riders.
+
+## Business rules mentioned
+
+- A bike can be returned to any VeloCity station, not only the one it was rented from (operations, after the pilot). Replaces "a bike must be returned to the same station it was rented from".
+- Unchanged: a rental can't be longer than 11 hours.
+
+## Scope
+
+- **In:** returning the bike at any VeloCity station, including its origin station.
+- **Out:** drop-zone and unauthorized-zone returns (not planned yet); rebalancing the fleet between stations (an operations concern, not part of the rider's return).
+
+## Related intents
+
+- supersedes: `rider-returns-bike-to-origin-station`
+- follows: `rider-rents-bike-from-station`
+
+## Open questions
+
+- What happens when the target station has no free dock? Is the return refused, does the rider get sent to the nearest station with space, or is extra time granted?
+- Does returning to a different station change the price (e.g. a one-way fee), or is it free like an origin return?
+- Who triggers rebalancing, and does the Rentals context need to publish anything for it beyond Bike Returned?
+
+## Notes for the spec
+
+- The pilot behaviour checked the return station against the rental's origin station; that check must go wherever it is enforced.

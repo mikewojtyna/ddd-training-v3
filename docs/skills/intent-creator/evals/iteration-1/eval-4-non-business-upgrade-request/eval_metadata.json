@@ -1,0 +1,10 @@
+{
+  "eval_id": 4,
+  "eval_name": "non-business-upgrade-request",
+  "prompt": "write an intent for upgrading Spring Boot from 4.1 to 4.2 and bumping jmolecules to the latest version. (Intents in this repo live in docs/intents/<name-of-intent>.md.)",
+  "assertions": [
+    "No intent file created for a purely technical upgrade",
+    "Final message explains there is no business need behind it",
+    "pom.xml untouched"
+  ]
+}

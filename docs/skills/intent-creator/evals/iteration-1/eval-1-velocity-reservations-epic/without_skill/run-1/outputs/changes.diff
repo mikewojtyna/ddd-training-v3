@@ -1,0 +1,327 @@
+# status --short
+?? docs/intents/expire-bike-reservation.md
+?? docs/intents/release-reservation-on-failed-unlock.md
+?? docs/intents/reserve-bike-for-ride.md
+?? docs/intents/reserve-broken-bike-for-maintenance.md
+
+# diff
+(empty: no tracked files changed)
+
+=== docs/intents/expire-bike-reservation.md (untracked) ===
+# Expire a bike reservation
+
+- **Status:** Draft
+- **System:** VeloCity
+- **Bounded context:** Rentals
+- **Actor:** The system (time passes); this affects riders and technicians
+- **Part of:** Bike reservations. The related intents are [reserve-bike-for-ride](reserve-bike-for-ride.md), [reserve-broken-bike-for-maintenance](reserve-broken-bike-for-maintenance.md) and [release-reservation-on-failed-unlock](release-reservation-on-failed-unlock.md).
+
+## Why
+
+A reservation exists only to cover the short gap before an unlock. If the holder never unlocks, the bike must not stay held forever. For a rider's bike, that means the bike goes back to the pool. For a broken bike, it means another technician can pick it up.
+
+## Desired outcome
+
+A reservation that is not consumed by an unlock before its expiry time expires on its own. The bike then goes back to whatever state it was in before the reservation.
+
+## Scenarios
+
+### Rider's reservation expires
+
+- **Given** an available bike reserved by a rider
+- **When** the reservation's expiry time passes without an unlock
+- **Then** **Bike Reservation Expired** is published and the bike is available to anyone again
+
+### Technician's reservation expires
+
+- **Given** a broken bike reserved by a technician
+- **When** the reservation's expiry time passes without an unlock
+- **Then** **Bike Reservation Expired** is published, the bike **stays broken and is not offered to riders**, and it waits until a technician reserves it again
+
+### Unlock after expiry
+
+- **Given** a reservation that has expired
+- **When** the former holder tries to unlock the bike
+- **Then** the unlock is refused (unless they reserve the bike again)
+
+### Unlock just in time
+
+- **Given** a reservation that has not expired yet
+- **When** the holder unlocks the bike successfully
+- **Then** the reservation is consumed and never expires
+
+## Business rules
+
+- Every reservation has an expiry time, set when it is made.
+- A reservation that expires never leads to a rental session or to maintenance.
+- Expiry gives the bike back to its state before the reservation: available for a rider's reservation, withdrawn for a technician's one.
+- A reservation ends exactly once: consumed, expired or released. Expiry can't happen after a successful unlock.
+
+## Assumptions (decisions made without the domain expert)
+
+- **Expiry is free.** The vision mentions no fee or penalty for letting a reservation expire.
+- **The holder is not notified by a separate business step.** The app may show it, but the domain has no "reservation expired notification".
+
+## Out of scope
+
+- The actual durations, see the open questions.
+- Abuse prevention for repeated expiries.
+
+## Open questions
+
+1. What is the expiry time for a rider's reservation, and for a technician's? (See the length conflict in [reserve-broken-bike-for-maintenance](reserve-broken-bike-for-maintenance.md).)
+2. Should repeated expiries by the same rider have any consequence?
+3. Does Fleet Maintenance need to react to a technician's expired reservation, for example by flagging the bike for another technician?
+
+## Related
+
+- `velocity/velocity-vision.md`: *Renting a Bike* ("The reservation expires…"), *Broken Bikes & Maintenance* ("The reservation expires…").
+
+=== docs/intents/release-reservation-on-failed-unlock.md (untracked) ===
+# Release a reservation when the unlock fails
+
+- **Status:** Draft
+- **System:** VeloCity
+- **Bounded context:** Rentals
+- **Actor:** Rider or technician (the reservation holder); the bike's lock reports the failure
+- **Part of:** Bike reservations. The related intents are [reserve-bike-for-ride](reserve-bike-for-ride.md), [reserve-broken-bike-for-maintenance](reserve-broken-bike-for-maintenance.md) and [expire-bike-reservation](expire-bike-reservation.md).
+
+## Why
+
+An unlock can fail because of a mechanical issue, a connectivity problem or any other reason. The holder must not be stuck with a bike they can't use. A rider should be free to try another bike right away, and a technician should be able to try again later.
+
+## Desired outcome
+
+When the holder's unlock of a reserved bike fails, the reservation is released immediately. No rental session and no maintenance starts.
+
+## Scenarios
+
+### Rider's unlock fails
+
+- **Given** an available bike reserved by a rider
+- **When** the rider's unlock fails
+- **Then** **Bike Reservation Released** is published with the reason "unlock failed", no rental session starts, and the rider is free to reserve another bike
+
+### Technician's unlock fails
+
+- **Given** a broken bike reserved by a technician
+- **When** the technician's unlock fails
+- **Then** **Bike Reservation Released** is published, no maintenance starts, the bike **stays broken**, and a technician tries again later
+
+## Business rules
+
+- A failed unlock always releases the reservation. It never leaves it hanging until expiry.
+- A failed unlock never starts a rental session or maintenance, and it is never billed.
+- After a release the rider may reserve another bike at once. The one-reservation-per-rider rule doesn't block them.
+- A broken bike stays withdrawn after a failed technician unlock.
+
+## Assumptions (decisions made without the domain expert)
+
+- **What happens to an available bike after a rider's failed unlock is undecided.** The vision only says the reservation is released. A failed unlock may well mean the bike is faulty. This intent leaves the bike's availability as it was and lists the question below. Compare *Returns*, where a failed **lock** makes the bike broken.
+
+## Out of scope
+
+- Diagnosing why the unlock failed.
+- Reporting the bike as broken (that belongs to the fault-report flow and Fleet Maintenance).
+
+## Open questions
+
+1. When a rider's unlock fails, does the bike go back to the pool, or is it withdrawn as possibly faulty? The vision says a failed *lock* at return makes the bike broken, but says nothing about a failed *unlock*. Releasing a faulty bike straight back to riders would let the next rider hit the same failure.
+2. Is a failed unlock a fault signal that Rentals should send to Fleet Maintenance ("the bike itself signals a problem")?
+3. How many times may a technician retry, and does Fleet Maintenance escalate after repeated failures?
+
+## Related
+
+- `velocity/velocity-vision.md`: *Renting a Bike* ("The unlocking fails…"), *Broken Bikes & Maintenance* ("The unlock fails…"), *Returns* (lock failure makes the bike broken).
+- `velocity/velocity-context-map.md`: *Rentals withdraws a bike itself when it detects a fault*.
+
+=== docs/intents/reserve-bike-for-ride.md (untracked) ===
+# Reserve a bike for a ride
+
+- **Status:** Draft
+- **System:** VeloCity
+- **Bounded context:** Rentals
+- **Actor:** Rider
+- **Part of:** Bike reservations. The related intents are [reserve-broken-bike-for-maintenance](reserve-broken-bike-for-maintenance.md), [expire-bike-reservation](expire-bike-reservation.md) and [release-reservation-on-failed-unlock](release-reservation-on-failed-unlock.md).
+
+## Why
+
+A rider picks a bike and needs a few seconds to unlock it. In that gap nobody else may grab the same bike. A reservation is a brief, exclusive hold on one bike for one rider, from the moment of selection until the unlock. It is how VeloCity guarantees that **a bike is never in two active rental sessions at the same time**.
+
+A reservation is not a phase of its own. It is a convenience step before the *Rental Session Started* pivot, with no fee and no billing (see `velocity/bounded-context-discovery-session.md`).
+
+## Desired outcome
+
+An eligible rider standing near an available bike can reserve it. Until the reservation is used, expires or is released, the bike can't be reserved or unlocked by anyone else.
+
+## Scenarios
+
+### Rider reserves an available bike
+
+- **Given** an activated, unblocked rider inside the service area, standing near an available bike
+- **When** the rider reserves the bike
+- **Then** the bike is reserved for that rider and **Bike Reserved** is published with the bike, the rider and the reservation's expiry time
+
+### Bike already reserved by someone else
+
+- **Given** a bike reserved by rider A
+- **When** rider B tries to reserve it
+- **Then** the reservation is refused because the bike is not available, and A's reservation is untouched
+
+### Withdrawn (broken) bike
+
+- **Given** a bike that has been withdrawn from circulation
+- **When** a rider tries to reserve it
+- **Then** the reservation is refused. A broken bike is never offered to riders.
+
+### Bike in an active rental session
+
+- **Given** a bike that is currently rented
+- **When** a rider tries to reserve it
+- **Then** the reservation is refused
+
+### Account not activated or blocked
+
+- **Given** a rider whose account is incomplete, or blocked because of an invalid card or outstanding debt
+- **When** the rider tries to reserve a bike
+- **Then** the reservation is refused and the rider is told why
+
+### Rider not near the bike or outside the service area
+
+- **Given** a rider whose location is outside the service area or not near the selected bike
+- **When** the rider tries to reserve it
+- **Then** the reservation is refused
+
+### Rider already holds a reservation
+
+- **Given** a rider with an active reservation on bike X
+- **When** the rider tries to reserve bike Y
+- **Then** the reservation of Y is refused (assumption, see below)
+
+### Only the holder can unlock
+
+- **Given** a bike reserved by rider A
+- **When** rider B tries to unlock it
+- **Then** the unlock is refused
+- **And when** rider A unlocks it successfully, the reservation is consumed and the rental session starts
+
+## Business rules
+
+- Only an activated account that is not blocked can reserve a bike.
+- The rider's location is validated before the bike is reserved: inside the service area and near the bike.
+- Only an **available** bike can be reserved. A reserved, rented or withdrawn bike can't be.
+- A reservation is exclusive. At most one active reservation exists per bike.
+- A reservation is short-lived and ends in exactly one way: it is **consumed** by a successful unlock, it **expires**, or it is **released** after a failed unlock.
+- Reserving a bike is free and never billed.
+
+## Assumptions (decisions made without the domain expert)
+
+- **One active reservation per rider.** The vision doesn't say so, but a rider holding several bikes contradicts the purpose of the reservation.
+- **A rider in an active rental session can't reserve another bike.** We serve individual riders only, with no group rides.
+- **The reservation lives in Rentals**, as the reference context map puts "reserve & unlock for any authorised client" there. Rentals speaks of *available* / *withdrawn*, not *broken*.
+- **The client-reported location is trusted**, as for returns in the reference map.
+
+## Out of scope
+
+- Unlocking mechanics and the start of the rental session, beyond consuming the reservation.
+- Pricing of the ride.
+- Technician reservations, see [reserve-broken-bike-for-maintenance](reserve-broken-bike-for-maintenance.md).
+
+## Open questions
+
+1. How long does a rider reservation last? The vision only says "short-lived" and "the seconds it takes to unlock".
+2. Can a rider cancel a reservation on purpose, or does it only expire or get released?
+3. Is there any limit or cooldown on repeated reservations, for example a rider who keeps reserving and letting reservations expire?
+4. What exactly does "near a bike" mean? A distance, or being at the same station?
+5. Can bikes left in a drop zone (outside any station) be reserved the same way as docked bikes? Today's `BikeStation` aggregate only knows bikes in a station.
+
+## Related
+
+- `velocity/velocity-vision.md`: *Renting a Bike*, *Key Business Rules to Know*, vocabulary entry *Reservation*.
+- `velocity/velocity-context-map.md`: Rentals, *Reserve / unlock is a generic Rentals capability*.
+- Code: `pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStation` (currently `rent(bike).by(borrower).forDuration(duration)`, with no reservation step).
+
+=== docs/intents/reserve-broken-bike-for-maintenance.md (untracked) ===
+# Reserve a broken bike for maintenance
+
+- **Status:** Draft
+- **System:** VeloCity
+- **Bounded contexts:** Rentals (owns the reservation), Fleet Maintenance (the client that asks for it)
+- **Actor:** Technician
+- **Part of:** Bike reservations. The related intents are [reserve-bike-for-ride](reserve-bike-for-ride.md), [expire-bike-reservation](expire-bike-reservation.md) and [release-reservation-on-failed-unlock](release-reservation-on-failed-unlock.md).
+
+## Why
+
+When a bike is reported broken, a technician goes to pick it up. While they are on the way, nobody else should grab that bike. Technicians go through the same reserve-and-unlock steps as riders, but for a different purpose: their unlock starts **maintenance**, never a rental session.
+
+## Desired outcome
+
+A technician can reserve a broken (withdrawn) bike. The reservation stops anyone else, including other technicians, from taking it until the technician unlocks it, the reservation expires, or the reservation is released.
+
+## Scenarios
+
+### Technician reserves a broken bike
+
+- **Given** a bike that has been reported broken and withdrawn from circulation
+- **When** a technician reserves it
+- **Then** the bike is reserved for that technician and **Bike Reserved** is published with the bike, the technician and the reservation's expiry time
+
+### Another technician already holds the bike
+
+- **Given** a broken bike reserved by technician A
+- **When** technician B tries to reserve it
+- **Then** the reservation is refused
+
+### Riders still can't touch it
+
+- **Given** a broken bike reserved by a technician
+- **When** a rider tries to reserve it
+- **Then** the reservation is refused. A broken bike is never offered to riders.
+
+### Technician unlocks the reserved bike
+
+- **Given** a broken bike reserved by technician A
+- **When** technician A unlocks it successfully
+- **Then** the reservation is consumed, **no rental session starts**, and Fleet Maintenance reacts with **Maintenance Started**
+
+### Unlock by someone other than the holder
+
+- **Given** a broken bike reserved by technician A
+- **When** anyone else tries to unlock it
+- **Then** the unlock is refused
+
+## Business rules
+
+- Only riders and technicians reserve and unlock bikes.
+- A technician reserves a bike in order to repair it. A technician's unlock starts maintenance, never a rental session, and is never billed.
+- At most one active reservation exists per bike, whoever holds it.
+- The bike stays out of circulation for the whole reservation and after it, until it is fixed.
+- A technician's reservation ends the same three ways as a rider's: consumed by unlock, expired, or released after a failed unlock.
+
+## Assumptions (decisions made without the domain expert)
+
+- **Technicians reserve only broken (withdrawn) bikes.** The vision describes technician reservations only in the maintenance flow.
+- **No account-activation or location check for technicians.** Technicians are VeloCity employees, not riders going through onboarding, and they reserve the bike *before* travelling to it, so "standing near the bike" can't apply.
+- **Rentals stays generic.** Following the reference map, Rentals reserves a *withdrawn* bike for an authorised client. It doesn't know the word *broken* or *maintenance*. Fleet Maintenance calls Rentals to reserve and listens to the unlock to start maintenance.
+- **A technician may hold several reservations at once**, for example to collect a few bikes in one trip. This is the opposite of the rider rule, and it needs confirming.
+
+## Out of scope
+
+- How a bike becomes broken (fault reports, failed locks, fleet-issue incidents).
+- Maintenance itself, fixing the bike and putting it back into circulation.
+- Assigning broken bikes to technicians or planning their routes.
+
+## Open questions
+
+1. **Reservation length conflict.** For riders the vision says a reservation covers "the seconds it takes to unlock". For technicians it covers the time "while the technician is on the way", which is probably minutes or longer. Is it one reservation concept with a different duration per holder, or two different holds?
+2. Can a technician reserve an **available** (not broken) bike, for example for an inspection or rebalancing?
+3. How many broken bikes can one technician reserve at the same time?
+4. Can a technician release a reservation on purpose, for example when they are reassigned?
+5. Does Fleet Maintenance decide which technician gets which bike, or does any technician just reserve one?
+
+## Related
+
+- `velocity/velocity-vision.md`: *Technicians*, *Broken Bikes & Maintenance*, *Key Business Rules to Know*.
+- `velocity/velocity-context-map.md`: `Rentals -> Fleet Maintenance` (OHS/PL, "reserve / unlock"), *Reserve / unlock is a generic Rentals capability*.
+- `src/main/cml/VeloCity-Context-Map.cml`: `Rentals [U,OHS,PL]->[D,CF] FleetMaintenance : BikeAvailability`.
+

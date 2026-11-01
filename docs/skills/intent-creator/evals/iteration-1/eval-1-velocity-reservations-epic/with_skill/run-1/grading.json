@@ -1,0 +1,75 @@
+{
+  "expectations": [
+    {
+      "text": "Intent files created in docs/intents/<kebab-name>.md",
+      "passed": true,
+      "evidence": "rider-reserves-bike.md, rider-takes-bike-freed-by-expired-reservation.md, technician-reserves-broken-bike.md, technician-retakes-broken-bike-after-reservation-expires.md"
+    },
+    {
+      "text": "Every intent names one business-role actor (not system/user)",
+      "passed": true,
+      "evidence": "{'rider-reserves-bike.md': 'Rider', 'rider-takes-bike-freed-by-expired-reservation.md': 'Rider', 'technician-reserves-broken-bike.md': 'Technician', 'technician-retakes-broken-bike-after-reservation-expires.md': 'Technician'}"
+    },
+    {
+      "text": "Every intent states the business value ('so that')",
+      "passed": true,
+      "evidence": "{'rider-reserves-bike.md': True, 'rider-takes-bike-freed-by-expired-reservation.md': True, 'technician-reserves-broken-bike.md': True, 'technician-retakes-broken-bike-after-reservation-expires.md': True}"
+    },
+    {
+      "text": "No solution vocabulary outside a spec/technical-notes section",
+      "passed": true,
+      "evidence": "{}"
+    },
+    {
+      "text": "No Given/When/Then acceptance criteria in intents (left to the spec)",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent title is a single goal (no 'and'/'manage'/'handle'/'support')",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Each intent has a unique sequence number (project history order)",
+      "passed": true,
+      "evidence": "['1', '2', '3', '4']"
+    },
+    {
+      "text": "Each intent is placed on a story map (activity recorded)",
+      "passed": true,
+      "evidence": "4/4"
+    },
+    {
+      "text": "No spec.md, plan.md or code produced",
+      "passed": true,
+      "evidence": "[]"
+    },
+    {
+      "text": "Intent set passes intents.py check (0 errors)",
+      "passed": true,
+      "evidence": "4 intents, 0 error(s), 0 warning(s)"
+    },
+    {
+      "text": "At least 3 separate intent files (epic split)",
+      "passed": true,
+      "evidence": "4"
+    },
+    {
+      "text": "Technician reservation is its own intent, separate from the rider's",
+      "passed": true,
+      "evidence": "['technician-reserves-broken-bike.md', 'technician-retakes-broken-bike-after-reservation-expires.md']"
+    },
+    {
+      "text": "Reservation duration is not invented (no concrete minutes/seconds outside open questions)",
+      "passed": true,
+      "evidence": "[]"
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  }
+}
