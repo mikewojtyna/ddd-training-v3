@@ -1,0 +1,49 @@
+{
+  "skill_name": "tdd",
+  "evals": [
+    {
+      "id": 1,
+      "name": "return-bike-happy-path",
+      "prompt": "let's TDD the bike return in velocity rentals. Given a bike station with 1 bike that George has rented for 2 hours, When George returns that bike, Then a BikeReturned event is published.",
+      "expected_output": "One new GWT test in BikeStationTest with a real assertion; red observed (UnsupportedOperationException / assertion); BikeStation.returnBike changed minimally (e.g. return DomainEvents.of(new BikeReturned())); full suite green; report lists the shortcut and suggests a next scenario; asks for next scenario.",
+      "files": [],
+      "assertions": [
+        "Exactly one new @Test method added",
+        "New test has @DisplayName with given/when/then wording",
+        "New test's assertion really asserts (assertThat around the boolean / event check, not a bare call)",
+        "Red run of the new test observed and logged before production change",
+        "Production change confined to BikeStation.returnBike, no new fields or classes",
+        "No existing test modified or removed",
+        "Full suite run after the change and green",
+        "Final response names shortcuts and asks the user for the next scenario"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "no-scenario-asks-first",
+      "prompt": "I want to work test-first on the BikeStation: stations should have a capacity limit for docked bikes. Go.",
+      "expected_output": "Asks for exactly one concrete Given/When/Then scenario (may propose one with a concrete capacity to confirm); writes no test or production code.",
+      "files": [],
+      "assertions": [
+        "No test or production code changed (empty diff)",
+        "Final response asks for one concrete Given/When/Then scenario",
+        "Final response does not choose a capacity number as fact (proposes it for confirmation, if at all)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "rent-specific-bike-smallest-change",
+      "prompt": "TDD please, baby steps. Scenario: Given a bike station with bike01 and bike02 where bike01 is already rented by Anna, When George rents bike01 for 1 hour, Then the rental is rejected with BikeNotAvailableException.",
+      "expected_output": "One new test; red observed because rent currently picks any available bike (bike02); minimal fix makes rent look at the requested bike; all existing BikeStationTest tests still green; no other tests edited.",
+      "files": [],
+      "assertions": [
+        "Exactly one new @Test method added",
+        "No existing test modified or removed",
+        "Red run of the new test observed and logged before production change",
+        "Production change confined to BikeStation.rent (no new fields or classes)",
+        "Full suite run after the change and green",
+        "Final response asks the user for the next scenario"
+      ]
+    }
+  ]
+}
