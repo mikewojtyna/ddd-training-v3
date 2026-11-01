@@ -1,0 +1,63 @@
+{
+  "skill_name": "ddd-tactical-building-blocks",
+  "evals": [
+    {
+      "id": 1,
+      "name": "rider-state-based-two-invariants",
+      "prompt": "In VeloCity rentals I need a Rider aggregate. Riders have a name, email and phone number that we show in the app. Invariants: (1) a rider never has more than 2 active rentals at the same time. Given a rider with 2 active rentals, When the rider starts another rental, Then the rental is rejected. Given a rider with 1 active rental, When the rider starts another rental, Then the rental is started. (2) a rider with outstanding debt cannot start a rental. Given a rider owing 5 PLN, When the rider starts a rental, Then the rental is rejected. State-based please.",
+      "expected_output": "Rider aggregate in velocity/rentals/domain/rider with only active-rental count/ids and debt state (no name/email/phone), Version, chained command if >1 arg, returns DomainEvents, exceptions per rule, RiderTest with 3 GWT tests passing, repository suggested/created, TDD log per invariant.",
+      "files": [],
+      "assertions": [
+        "Rider class annotated @AggregateRoot exists under velocity/rentals/domain",
+        "Rider has no name/email/phone fields",
+        "Rider has a Version field and version() accessor; common/domain/Version exists",
+        "Command method returns DomainEvents; Rider does not reference DomainEventPublisher",
+        "RiderTest has >= 3 tests with @DisplayName given/when/then text blocks",
+        "Tests assert results (assertThat present in every test)",
+        "Rider does not hold references to other aggregate classes",
+        "Response reports a red then green per invariant",
+        "./mvnw test -Dtest=RiderTest passes",
+        "Repository port suggested or created"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "too-many-invariants-gate",
+      "prompt": "Create a Bike aggregate for velocity rentals, state-based. Invariants with scenarios: 1) a bike in maintenance can't be rented: Given bike in maintenance, When rented, Then rejected. 2) battery below 10% can't be rented: Given battery 9%, When rented, Then rejected. 3) a bike can't be rented twice: Given rented bike, When rented again, Then rejected. 4) a bike can be returned only to a station with free docks: Given station with 0 free docks, When bike returned, Then rejected.",
+      "expected_output": "Stops before writing code; explains the 3-invariant limit; asks the user to pick up to 3 (possibly suggesting a grouping, noting #4 may belong to station). No Java files created.",
+      "files": [],
+      "assertions": [
+        "No Java files created or modified",
+        "Response mentions the limit of 3 invariants per run",
+        "Response asks the user to choose/focus rather than silently picking"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "missing-gwt-gate",
+      "prompt": "Add a Wallet aggregate to the velocity rentals context, event-sourced. Rules: wallet balance can never go below -20 PLN; a top-up must be at least 10 PLN. Just build it, you know how wallets work.",
+      "expected_output": "Refuses to build the aggregate because no Given/When/Then scenarios were given; lists both invariants needing scenarios; may propose scenarios for confirmation. No Java files created.",
+      "files": [],
+      "assertions": [
+        "No Java files created or modified",
+        "Response refuses/stops because Given/When/Then scenarios are missing",
+        "Response names both invariants as needing scenarios"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "dock-event-sourced-with-repo",
+      "prompt": "Make me an event-sourced Dock aggregate in velocity rentals with an in-memory repository. Invariant: a dock holds at most one bike. Given a dock holding bike B1, When bike B2 is docked, Then docking is rejected. Given an empty dock, When bike B1 is docked, Then bike B1 is docked.",
+      "expected_output": "Event-sourced Dock with sealed DockEvent, apply/rebuild, Version from history size, DockTest with 2 GWT tests, DockRepository port with save(dock, events), in-memory adapter with optimistic lock + test; build green.",
+      "files": [],
+      "assertions": [
+        "Dock is @AggregateRoot with a private apply(...) and static rebuild/history factory",
+        "Sealed DockEvent interface implementing DomainEvent",
+        "DockRepository is @Repository @SecondaryPort with save taking DomainEvents",
+        "In-memory adapter throws OptimisticLockingException on version mismatch, with a test",
+        "DockTest has >= 2 GWT tests and passes",
+        "./mvnw test passes for the new tests"
+      ]
+    }
+  ]
+}
