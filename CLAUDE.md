@@ -61,7 +61,5 @@ Shared conventions:
 - **Context integration:**
   - Cross-context calls go through anti-corruption-layer packages annotated with the custom `@AntiCorruptionLayer` package annotation, for example `deposit/infra/adapters/secondary/paymentctxacl` and `investment/transfer/depositctxacl`.
   - The relationships are documented in the CML context maps.
-- **VeloCity rentals:**
-  - `BikeStation` is the aggregate. Its commands use a curried fluent API built from the `FluentLanguage` interfaces: `station.rent(bike).by(borrower).forDuration(duration)` returns `DomainEvents`.
-  - Events are a sealed `BikeRentalEvent` hierarchy, handled with exhaustive `switch`.
-  - Several methods are left as `UnsupportedOperationException` stubs on purpose. They are workshop exercises.
+
+Each system has its own `CLAUDE.md` with system-specific context: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md` and `src/main/java/pl/wojtyna/dddtrainingv3/crowdsorcery/CLAUDE.md`.
