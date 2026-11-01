@@ -1,0 +1,22 @@
+[
+ {"query": "ok so I've got the canvas for Fleet Maintenance in docs/bounded-contexts/velocity/fleetmaintenance/canvas.md, can you turn it into the module?", "should_trigger": true},
+ {"query": "add the Accounts context to velocity. purpose: keeps rider accounts, payment methods on file and account blocks so only riders in good standing can rent. terms: Rider = person with a VeloCity account; Account Block = flag that prevents renting; Payment Method = card on file. inbound: Rental Fee Unpaid event from Settlement", "should_trigger": true},
+ {"query": "I updated the Pricing canvas - added a GWT rule for the max-rental-time penalty (given a ride of 11h05m, when priced, then a 50.00 PLN penalty is added). please bring velocity/pricing in line with it", "should_trigger": true},
+ {"query": "reviewed docs/bounded-contexts/velocity/settlement/plan.md, tweaked the retry section myself, it's approved now - go ahead", "should_trigger": true},
+ {"query": "we need a new Notifications bounded context in crowdsorcery. Name: Notifications. Purpose: tell investors when their deposits are confirmed or a project they backed hits its goal. Domain terms: Notification, Channel (email/push), Subscription. Inbound: DepositMade event from Deposit", "should_trigger": true},
+ {"query": "scaffold customer support context pls", "should_trigger": true},
+ {"query": "can you generate the hexagonal package structure (api/usecases, domain, infra/adapters, package-info with @BoundedContext) for a new CustomerSupport context? notes: support agents handle rider complaints and can issue refunds; terms Ticket, Refund, Complaint", "should_trigger": true},
+ {"query": "the Rentals canvas got two new rules about reservations: given a bike reserved at 10:00 when it's 10:11 then the reservation expires; given an expired reservation when the rider unlocks then unlock is rejected. update the rentals code and the changelog", "should_trigger": true},
+ {"query": "I want to start the Payments context for VeloCity but I only have loose notes, nothing structured. where do I begin?", "should_trigger": true},
+ {"query": "filled in the debtrecovery canvas you created last time (docs/bounded-contexts/velocity/debtrecovery/canvas.md), let's continue", "should_trigger": true},
+ {"query": "explain the difference between api/events/DepositMade and domain/account/DepositMade in crowdsorcery deposit - why are there two classes with the same name?", "should_trigger": false},
+ {"query": "add a Conformist relationship Payments -> Settlement to src/main/cml/VeloCity-Context-Map.cml and regenerate the PNG with VelocityContextMap", "should_trigger": false},
+ {"query": "write one more given/when/then test in BikeStationTest: returning a bike to a station that is already full should be rejected", "should_trigger": false},
+ {"query": "rename BikeStationRepo to BikeStations everywhere in the rentals package, including the config", "should_trigger": false},
+ {"query": "is Settlement core or supporting domain for VeloCity? argue both sides, I want to use it as a workshop discussion prompt", "should_trigger": false},
+ {"query": "RentBikeUseCase still only has comments - implement load, rent, save, publish like MakeDepositUseCase does", "should_trigger": false},
+ {"query": "run the pivotal events and swimlanes heuristics over velocity/velocity-vision.md and propose a list of candidate bounded contexts with reasons", "should_trigger": false},
+ {"query": "spring boot fails on startup after I added my new context: 'The bean accountRepository could not be registered, a bean with that name has already been defined'. how do I fix it?", "should_trigger": false},
+ {"query": "write an ArchUnit test that fails if any class in velocity/*/domain imports a package from another bounded context", "should_trigger": false},
+ {"query": "summarise the bounded context canvas sections (purpose, strategic classification, domain roles...) as a one-page handout for my workshop participants", "should_trigger": false}
+]

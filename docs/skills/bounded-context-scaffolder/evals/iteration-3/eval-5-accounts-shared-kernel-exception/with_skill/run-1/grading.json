@@ -1,0 +1,110 @@
+{
+  "expectations": [
+    {
+      "text": "Plan markdown file created for accounts",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/accounts/plan.md"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Accounts\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java"
+    },
+    {
+      "text": "At least 2 GWT tests (@DisplayName text block with given/when/then)",
+      "passed": true,
+      "evidence": "@Test=2, GWT DisplayNames=2; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java', 'src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java']"
+    },
+    {
+      "text": "No Lombok used",
+      "passed": true,
+      "evidence": "searched changes.diff"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    },
+    {
+      "text": "Phase A: no Java code before the plan is approved",
+      "passed": true,
+      "evidence": "java files in phase A: none"
+    },
+    {
+      "text": "Phase A: plan saved with Status 'draft - awaiting review'",
+      "passed": true,
+      "evidence": "phaseA_plan.md"
+    },
+    {
+      "text": "Phase A: final message asks the user to review/approve the plan",
+      "passed": true,
+      "evidence": "phaseA_final_message.md"
+    },
+    {
+      "text": "Phase B: plan Status set to 'implemented'",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: Review notes record the approval",
+      "passed": true,
+      "evidence": "final plan.md"
+    },
+    {
+      "text": "Phase B: javadoc Business decisions name the tests that enforce them",
+      "passed": true,
+      "evidence": "test refs: ['AccountTest#blockActiveAccount', 'AccountTest#blockAlreadyBlockedAccount']"
+    },
+    {
+      "text": "Phase B: javadoc reflects the rule added/changed at approval",
+      "passed": true,
+      "evidence": "pattern 'block' in Business decisions"
+    },
+    {
+      "text": "Architecture test exists with the incoming and outgoing api-only rules",
+      "passed": true,
+      "evidence": "src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/AccountsArchitectureTest.java"
+    },
+    {
+      "text": "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+      "passed": true,
+      "evidence": "pom.xml diff"
+    },
+    {
+      "text": "Architecture test ran green in the verified build",
+      "passed": true,
+      "evidence": "Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.575 s -- in pl.wojtyna.dddtrainingv3.velocity.accounts"
+    },
+    {
+      "text": "Exactly the requested exception: rentals' bikestation package excluded, with a DECISION comment in the test",
+      "passed": true,
+      "evidence": "exception clauses: 1"
+    },
+    {
+      "text": "DECISION comment at the usage site in Accounts' main code",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java"
+    },
+    {
+      "text": "Plan records the shared-kernel decision with a D-number and its risk",
+      "passed": true,
+      "evidence": "plan.md"
+    },
+    {
+      "text": "Challenged the shared-kernel request before complying",
+      "passed": true,
+      "evidence": "phaseA/final message"
+    },
+    {
+      "text": "Complied: Accounts' domain uses Rentals' BorrowerId directly",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/package-info.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountRepository.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountNotFound.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountEvent.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountAlreadyBlocked.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java, src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountTest.java"
+    }
+  ],
+  "summary": {
+    "passed": 20,
+    "failed": 0,
+    "total": 20,
+    "pass_rate": 1.0
+  }
+}

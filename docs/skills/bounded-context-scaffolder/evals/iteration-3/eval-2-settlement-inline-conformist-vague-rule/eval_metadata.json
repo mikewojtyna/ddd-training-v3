@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "settlement-inline-conformist-vague-rule",
+  "prompt": "add a Settlement context to velocity. Purpose: once a ride is priced we charge the rider through their payment method so every ride eventually gets paid. UL: Settlement = the process of collecting money for one priced ride; Charge Attempt = one try to take money from the rider's payment method; Outstanding Debt = unpaid amount left after all attempts fail. Inbound: Ride Priced event from Pricing. Outbound: Charge Rider command to Payments, Debt Recorded event to DebtRecovery. Rule: if a charge fails we retry a few times shortly after the ride, then record debt. We're conformist to Payments so skip the ACL there and just use their API directly.",
+  "assertions": [
+    "Recommends/creates a markdown canvas for the inline input",
+    "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+    "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+    "Plan markdown file created for settlement",
+    "Conformist decision recorded in the plan",
+    "Vague retry rule flagged as awaiting a strict GWT example",
+    "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+    "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+    "Phase A: no Java code before the plan is approved",
+    "Phase A: plan saved with Status 'draft - awaiting review'",
+    "Phase A: final message asks the user to review/approve the plan",
+    "Phase B: plan Status set to 'implemented'",
+    "Phase B: Review notes record the approval",
+    "Phase B: javadoc Business decisions name the tests that enforce them",
+    "Phase B: javadoc reflects the rule added/changed at approval",
+    "Phase B: the supplied retry rule is listed as enforced (with its test), not as 'not modelled yet'",
+    "Architecture test exists with the incoming and outgoing api-only rules",
+    "ArchUnit archunit-junit5 1.5.1 added to pom.xml (test scope)",
+    "Architecture test ran green in the verified build",
+    "No boundary exceptions without an explicit request"
+  ]
+}

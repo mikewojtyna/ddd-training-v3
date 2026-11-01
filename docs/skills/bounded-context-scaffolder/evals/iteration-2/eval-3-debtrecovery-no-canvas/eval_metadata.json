@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "debtrecovery-no-canvas",
+  "prompt": "can you scaffold the DebtRecovery context in velocity? it blocks rider accounts that have outstanding debt and unblocks them once the debt is paid",
+  "assertions": [
+    "No Java code generated without a canvas",
+    "Pre-filled canvas template created for DebtRecovery",
+    "Template contains Given/When/Then business-decision section",
+    "Final message asks the user to fill in the canvas"
+  ]
+}

@@ -1,0 +1,15 @@
+package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
+
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
+import org.jmolecules.ddd.annotation.Repository;
+
+import java.util.Optional;
+
+@Repository
+@SecondaryPort
+public interface BikeStationRepo {
+
+    Optional<BikeStation> load(BikeStationId id);
+
+    void save(BikeStation bikeStation);
+}

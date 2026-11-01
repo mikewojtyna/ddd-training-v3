@@ -1,0 +1,91 @@
+{
+  "skill_name": "bounded-context-scaffolder",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Scaffold the Pricing bounded context for VeloCity from the canvas in /home/goobar/IdeaProjects/ddd-training-v3/.claude/skills/bounded-context-scaffolder/evals/files/pricing-canvas.md",
+      "expected_output": "Plan md + new velocity/pricing module: package-info with full canvas javadoc, use cases, query, integration event, Rentals ACL, PriceList-like aggregate from the 4 GWT rules with passing tests, records for VOs; build green.",
+      "files": [
+        "evals/files/pricing-canvas.md"
+      ],
+      "name": "pricing-scaffold-from-markdown",
+      "assertions": [
+        "Plan markdown file created for pricing",
+        "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+        "package-info javadoc has all 8 canvas sections",
+        "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+        "Inbound query mapped to @PrimaryPort handler in api/queries",
+        "Outbound event is an IntegrationEvent record in api/events",
+        "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+        "Data types are records, no getX() getters in generated main code",
+        "No Lombok used",
+        "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+        "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
+      ],
+      "followup_prompt": "I reviewed the Pricing plan in docs/bounded-contexts/velocity/pricing/plan.md. Approved, with these answers: yes, copy the canvas to the default docs location; your suggested defaults for the edge cases are fine. One addition - add this rule: Return charges \u2014 Given a price list with a 10 minute free period and first-hour fee 5.00 PLN, When a ride of 45 minutes with a 3.00 PLN drop-zone return charge is priced, Then the total fee is 8.00 PLN. Go ahead."
+    },
+    {
+      "id": 2,
+      "prompt": "add a Settlement context to velocity. Purpose: once a ride is priced we charge the rider through their payment method so every ride eventually gets paid. UL: Settlement = the process of collecting money for one priced ride; Charge Attempt = one try to take money from the rider's payment method; Outstanding Debt = unpaid amount left after all attempts fail. Inbound: Ride Priced event from Pricing. Outbound: Charge Rider command to Payments, Debt Recorded event to DebtRecovery. Rule: if a charge fails we retry a few times shortly after the ride, then record debt. We're conformist to Payments so skip the ACL there and just use their API directly.",
+      "expected_output": "Recommends saving canvas as markdown; pushes back on no-ACL but complies and records the decision+risk; vague retry rule goes to 'Rules awaiting GWT' with a suggested concrete GWT and is not modeled as an aggregate invariant; module still compiles.",
+      "files": [],
+      "name": "settlement-inline-conformist-vague-rule",
+      "assertions": [
+        "Recommends/creates a markdown canvas for the inline input",
+        "Pushes back on skipping the ACL (mentions ACL + risk/recommendation)",
+        "Complies: Payments integration is NOT wrapped in an @AntiCorruptionLayer package",
+        "Plan markdown file created for settlement",
+        "Conformist decision recorded in the plan",
+        "Vague retry rule flagged as awaiting a strict GWT example",
+        "Retry count not hard-coded from a guessed threshold",
+        "package-info.java has @BoundedContext(name = \"Settlement\") and @Module",
+        "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
+      ],
+      "followup_prompt": "I reviewed the Settlement plan. Here's the strict retry rule. Rule 1: Given a priced ride of 12.50 PLN with 2 failed charge attempts, When the 3rd charge attempt fails, Then an Outstanding Debt of 12.50 PLN is recorded and Debt Recorded is published. Rule 2: Given a priced ride of 12.50 PLN with 1 failed charge attempt, When the 2nd charge attempt succeeds, Then the ride is settled and no Outstanding Debt is recorded. Otherwise the plan is approved, go ahead."
+    },
+    {
+      "id": 3,
+      "prompt": "can you scaffold the DebtRecovery context in velocity? it blocks rider accounts that have outstanding debt and unblocks them once the debt is paid",
+      "expected_output": "Does NOT generate the module; explains a canvas is needed; creates a pre-filled canvas template at docs/bounded-contexts/velocity/debtrecovery/canvas.md and asks the user to fill it in.",
+      "files": [],
+      "name": "debtrecovery-no-canvas",
+      "assertions": [
+        "No Java code generated without a canvas",
+        "Pre-filled canvas template created for DebtRecovery",
+        "Template contains Given/When/Then business-decision section",
+        "Final message asks the user to fill in the canvas"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The Rentals canvas changed - update the existing rentals bounded context to match /home/goobar/IdeaProjects/ddd-training-v3/.claude/skills/bounded-context-scaffolder/evals/files/rentals-update-canvas.md",
+      "expected_output": "Update mode: reads existing rentals code, keeps fluent API style, implements returnBike per new GWT rules with tests, adds availability query and BikeReturned integration event, doesn't delete existing code, writes plan with dated changelog; existing BikeStationTest still passes.",
+      "files": [
+        "evals/files/rentals-update-canvas.md"
+      ],
+      "name": "rentals-update-with-changelog",
+      "assertions": [
+        "Plan markdown file created for rentals",
+        "Plan has a dated Changelog entry",
+        "returnBike implemented (no UnsupportedOperationException)",
+        "At least 2 GWT tests (@DisplayName text block with given/when/then) covering 'return'",
+        "Existing BikeStationTest methods preserved",
+        "No files deleted",
+        "Bike Returned published as IntegrationEvent record in api/events",
+        "Available Bikes query handler in api/queries",
+        "package-info.java has @BoundedContext(name = \"Rentals\") and @Module",
+        "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
+      ],
+      "followup_prompt": "Rentals plan reviewed - approved. Go with your suggested defaults on the open questions, and yes, fill in the returnBike and RentBikeUseCase stubs. Go ahead."
+    },
+    {
+      "id": 5,
+      "name": "accounts-shared-kernel-exception",
+      "prompt": "Add an Accounts bounded context to velocity. Name: Accounts. Purpose: keeps rider accounts and account blocks so only riders in good standing can rent bikes. Ubiquitous language: Account = a rider's VeloCity account, identified by the rider's borrower id; Account Block = a flag on an account that prevents renting. Inbound: Block Account command from the back office. Outbound: Account Blocked event to Rentals. Rules: (1) Given an active account, When the back office blocks it, Then the account is blocked and Account Blocked is published. (2) Given a blocked account, When the back office blocks it again, Then the block is rejected. One more thing: we treat Rentals' BorrowerId (pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId) as a shared kernel - use it directly in Accounts' domain, don't wrap it and don't go through Rentals' api. I know it's against our boundary rule, I want it anyway.",
+      "followup_prompt": "Reviewed the Accounts plan - approved, and yes, keep the shared kernel with Rentals' BorrowerId. Go ahead.",
+      "expected_output": "Phase A: plan with the shared-kernel decision challenged once and recorded (D-number, risk), no code. Phase B: Accounts module + AccountsArchitectureTest with exactly one commented exception for velocity.rentals.domain.bikestation, DECISION comment at the usage site, ArchUnit 1.5.1 added to pom, build green.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

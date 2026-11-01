@@ -1,0 +1,65 @@
+{
+  "expectations": [
+    {
+      "text": "Plan markdown file created for pricing",
+      "passed": true,
+      "evidence": "docs/bounded-contexts/velocity/pricing/plan.md"
+    },
+    {
+      "text": "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/package-info.java"
+    },
+    {
+      "text": "package-info javadoc has all 8 canvas sections",
+      "passed": true,
+      "evidence": "missing: none"
+    },
+    {
+      "text": "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PriceRideUseCase.java, src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishPriceListUseCase.java"
+    },
+    {
+      "text": "Inbound query mapped to @PrimaryPort handler in api/queries",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/EstimateFeeQueryHandler.java"
+    },
+    {
+      "text": "Outbound event is an IntegrationEvent record in api/events",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/events/RidePriced.java"
+    },
+    {
+      "text": "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
+      "passed": true,
+      "evidence": "src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/rentalsctxacl/package-info.java"
+    },
+    {
+      "text": "Data types are records, no getX() getters in generated main code",
+      "passed": true,
+      "evidence": "records=16; files with getters: none"
+    },
+    {
+      "text": "No Lombok used",
+      "passed": true,
+      "evidence": "searched changes.diff"
+    },
+    {
+      "text": "At least 4 GWT tests (@DisplayName text block with given/when/then)",
+      "passed": true,
+      "evidence": "@Test=4, GWT DisplayNames=4; files: ['src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/pricelist/PriceListTest.java']"
+    },
+    {
+      "text": "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)",
+      "passed": true,
+      "evidence": "build.txt: success"
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "pass_rate": 1.0
+  }
+}

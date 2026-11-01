@@ -1,0 +1,622 @@
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+index 154edd3..a17d613 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+@@ -18,7 +18,9 @@ The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Pa
+ - `BikeStation` (`domain/bikestation`) is the aggregate root. It holds the bikes as a private inner `@Entity` called `BikeInStation`. `BikeStationRepo` is its `@SecondaryPort`.
+ - Commands use a curried fluent API built from the `FluentLanguage` interfaces: `station.rent(bike).by(borrower).forDuration(duration)` returns `DomainEvents`. Follow this style for new commands.
+ - Events are the sealed `BikeRentalEvent` hierarchy (`BikeRented`, `BikeReturned`). Handlers such as `BikeRentedEventHandler` use an exhaustive `switch`, so adding an event forces every handler to deal with it.
+-- Business rules are enforced with dedicated exceptions: `BikeAlreadyInStation`, `BikeNotAvailableException`, and `MaximumRentalDurationExceededException` (thrown when a rental is longer than 11 hours).
+-- Some parts are intentional workshop stubs: `BikeStation.returnBike` throws `UnsupportedOperationException`, and `RentBikeUseCase` only contains the load, execute, save, publish steps as comments.
++- Business rules are enforced with dedicated exceptions: `BikeAlreadyInStation`, `BikeNotAvailableException`, `MaximumRentalDurationExceededException` (thrown when a rental is longer than `RentalDuration.MAXIMUM`, 11 hours), `BikeNotRentedException` (returning a bike that is not rented) and `BikeStationNotFoundException`.
++- `rent(bike)` rents that specific bike; `returnBike(bike)` makes it available again and emits `BikeReturned`. `BikeStation.availableBikes()` backs the `api/queries/AvailableBikesAtStationQuery`.
++- `ReturnBikeUseCase` loads, executes, saves and publishes. The domain `BikeReturned` is translated into the published `api/events/BikeReturned` integration event (for Pricing) by `infra/adapters/secondary/events/RentalsIntegrationEventsPublisher`. Wiring lives in `infra/config/RentalsContextConfig`, with `InMemoryBikeStationRepo` as the repository.
++- `RentBikeUseCase` is still an intentional workshop stub: it only contains the load, execute, save, publish steps as comments.
+ - `rentals/package-info.java` declares the context with `@BoundedContext(name = "Rentals")` and `@Module`. The name matches the CML. Give each new VeloCity context the same kind of `package-info.java`, named after its CML `BoundedContext`.
+ - Tests (`src/test/.../velocity/rentals/domain/bikestation/BikeStationTest`) are written as given/when/then examples, with the scenario in `@DisplayName`, and live in the same package as the domain.
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java
+new file mode 100644
+index 0000000..e148acb
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/events/BikeReturned.java
+@@ -0,0 +1,11 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.api.events;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++/**
++ * Published by Rentals when a rented bike is returned to a bike station. Consumed by Pricing.
++ */
++@ValueObject
++public record BikeReturned(String stationId, String bikeId, String borrowerId) implements IntegrationEvent {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQuery.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQuery.java
+new file mode 100644
+index 0000000..184711a
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/queries/AvailableBikesAtStationQuery.java
+@@ -0,0 +1,40 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStation;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationId;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationNotFoundException;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationRepo;
++
++import java.util.List;
++
++/**
++ * Rider app asks which bikes are available at a bike station.
++ */
++@PrimaryPort
++public class AvailableBikesAtStationQuery {
++
++    private final BikeStationRepo bikeStationRepo;
++
++    public AvailableBikesAtStationQuery(BikeStationRepo bikeStationRepo) {
++        this.bikeStationRepo = bikeStationRepo;
++    }
++
++    public AvailableBikesAtStation availableBikesAt(BikeStationId stationId) {
++        var station = bikeStationRepo.load(stationId)
++                                     .orElseThrow(() -> new BikeStationNotFoundException(
++                                         "Bike station %s not found".formatted(stationId.value())));
++        return AvailableBikesAtStation.from(station);
++    }
++
++    public record AvailableBikesAtStation(String stationId, List<String> bikeIds) {
++
++        static AvailableBikesAtStation from(BikeStation station) {
++            return new AvailableBikesAtStation(station.id().value(),
++                                               station.availableBikes()
++                                                      .stream()
++                                                      .map(bike -> bike.id().value())
++                                                      .toList());
++        }
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCase.java
+new file mode 100644
+index 0000000..a0e9cd3
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCase.java
+@@ -0,0 +1,33 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.Bike;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeId;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationId;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationNotFoundException;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationRepo;
++
++/**
++ * Rider app returns a rented bike to a bike station.
++ */
++@PrimaryPort
++public class ReturnBikeUseCase {
++
++    private final BikeStationRepo bikeStationRepo;
++    private final DomainEventPublisher eventPublisher;
++
++    public ReturnBikeUseCase(BikeStationRepo bikeStationRepo, DomainEventPublisher eventPublisher) {
++        this.bikeStationRepo = bikeStationRepo;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void returnBike(BikeStationId stationId, BikeId bikeId) {
++        var station = bikeStationRepo.load(stationId)
++                                     .orElseThrow(() -> new BikeStationNotFoundException(
++                                         "Bike station %s not found".formatted(stationId.value())));
++        var events = station.returnBike(new Bike(bikeId));
++        bikeStationRepo.save(station);
++        eventPublisher.publish(events);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeNotRentedException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeNotRentedException.java
+new file mode 100644
+index 0000000..4ebe399
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeNotRentedException.java
+@@ -0,0 +1,12 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
++
++public class BikeNotRentedException extends RuntimeException {
++
++    public BikeNotRentedException(String message) {
++        super(message);
++    }
++
++    public BikeNotRentedException(String message, Throwable cause) {
++        super(message, cause);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeRentalEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeRentalEvent.java
+index b78a750..043875a 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeRentalEvent.java
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeRentalEvent.java
+@@ -4,9 +4,10 @@ import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
+ 
+ public sealed interface BikeRentalEvent extends DomainEvent {
+ 
+-    record BikeRented(Borrower by, RentalDuration forDuration) implements BikeRentalEvent {
++    record BikeRented(BikeStationId station, Bike bike, Borrower by, RentalDuration forDuration)
++        implements BikeRentalEvent {
+     }
+ 
+-    record BikeReturned() implements BikeRentalEvent {
++    record BikeReturned(BikeStationId station, Bike bike, Borrower by) implements BikeRentalEvent {
+     }
+ }
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStation.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStation.java
+index 7ceb7c1..3d4ae24 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStation.java
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStation.java
+@@ -7,7 +7,9 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLangua
+ import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
+ 
+ import java.util.HashSet;
++import java.util.List;
+ import java.util.Objects;
++import java.util.Optional;
+ import java.util.Set;
+ 
+ @AggregateRoot
+@@ -20,50 +22,80 @@ public class BikeStation {
+         this.id = id;
+     }
+ 
++    public BikeStationId id() {
++        return id;
++    }
++
+     public void placeNew(Bike bike) {
+-        if (bikes.stream().map(BikeInStation::id).anyMatch(bikeId -> bikeId.equals(bike.id()))) {
++        if (find(bike.id()).isPresent()) {
+             throw new BikeAlreadyInStation("Bike already in station");
+         }
+-        bikes.add(new BikeInStation(bike.id(), true));
++        bikes.add(new BikeInStation(bike.id()));
+     }
+ 
+     public By<Borrower, ForDuration<RentalDuration, DomainEvents>> rent(
+         Bike bike) {
+         return borrower -> rentalDuration -> {
+-            if (rentalDuration.duration().toHours() > 11) {
++            if (rentalDuration.exceedsMaximum()) {
+                 throw new MaximumRentalDurationExceededException("Bike rent too long");
+             }
+-            return bikes.stream()
+-                        .filter(BikeInStation::isAvailable).findAny()
+-                        .map(bikeInStation -> {
+-                            bikeInStation.setAvailable(false);
+-                            return DomainEvents.of(new BikeRentalEvent.BikeRented(borrower, rentalDuration));
+-                        })
+-                        .orElseThrow(() -> new BikeNotAvailableException("Bike not available"));
++            return find(bike.id())
++                .filter(BikeInStation::isAvailable)
++                .map(bikeInStation -> {
++                    bikeInStation.rentBy(borrower);
++                    return DomainEvents.of(new BikeRentalEvent.BikeRented(id, bike, borrower, rentalDuration));
++                })
++                .orElseThrow(() -> new BikeNotAvailableException("Bike not available"));
+         };
+     }
+ 
+     public DomainEvents returnBike(Bike bike) {
+-        throw new UnsupportedOperationException("Implement this method");
++        return find(bike.id())
++            .filter(BikeInStation::isRented)
++            .map(bikeInStation -> {
++                var borrower = bikeInStation.giveBack();
++                return DomainEvents.of(new BikeRentalEvent.BikeReturned(id, bike, borrower));
++            })
++            .orElseThrow(() -> new BikeNotRentedException("Bike is not rented"));
++    }
++
++    public List<Bike> availableBikes() {
++        return bikes.stream()
++                    .filter(BikeInStation::isAvailable)
++                    .map(bikeInStation -> new Bike(bikeInStation.id()))
++                    .toList();
++    }
++
++    private Optional<BikeInStation> find(BikeId bikeId) {
++        return bikes.stream().filter(bikeInStation -> bikeInStation.id().equals(bikeId)).findAny();
+     }
+ 
+     @Entity
+     private static class BikeInStation {
+ 
+         private final BikeId id;
+-        private boolean available;
++        private Borrower rentedBy;
+ 
+-        private BikeInStation(BikeId id, boolean available) {
++        private BikeInStation(BikeId id) {
+             this.id = id;
+-            this.available = available;
+         }
+ 
+         boolean isAvailable() {
+-            return available;
++            return rentedBy == null;
++        }
++
++        boolean isRented() {
++            return rentedBy != null;
++        }
++
++        private void rentBy(Borrower borrower) {
++            this.rentedBy = borrower;
+         }
+ 
+-        private void setAvailable(boolean available) {
+-            this.available = available;
++        private Borrower giveBack() {
++            var borrower = rentedBy;
++            rentedBy = null;
++            return borrower;
+         }
+ 
+         BikeId id() {
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationNotFoundException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationNotFoundException.java
+new file mode 100644
+index 0000000..f933da5
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationNotFoundException.java
+@@ -0,0 +1,12 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
++
++public class BikeStationNotFoundException extends RuntimeException {
++
++    public BikeStationNotFoundException(String message) {
++        super(message);
++    }
++
++    public BikeStationNotFoundException(String message, Throwable cause) {
++        super(message, cause);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/RentalDuration.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/RentalDuration.java
+index 29f24f2..59a7607 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/RentalDuration.java
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/RentalDuration.java
+@@ -1,7 +1,18 @@
+ package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
+ 
++import org.jmolecules.ddd.annotation.ValueObject;
++
+ import java.time.Duration;
+ 
++/**
++ * Requested length of a rental. A rental may last at most {@link #MAXIMUM}.
++ */
++@ValueObject
+ public record RentalDuration(Duration duration) {
+ 
++    public static final Duration MAXIMUM = Duration.ofHours(11);
++
++    public boolean exceedsMaximum() {
++        return duration.compareTo(MAXIMUM) > 0;
++    }
+ }
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/events/RentalsIntegrationEventsPublisher.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/events/RentalsIntegrationEventsPublisher.java
+new file mode 100644
+index 0000000..9473f2d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/events/RentalsIntegrationEventsPublisher.java
+@@ -0,0 +1,27 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.events;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.BikeReturned;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeRentalEvent;
++
++/**
++ * Translates internal Rentals domain events into the published language of Rentals ({@code api.events}).
++ */
++@SecondaryAdapter
++public class RentalsIntegrationEventsPublisher {
++
++    private final ApplicationEventPublisher applicationEventPublisher;
++
++    public RentalsIntegrationEventsPublisher(ApplicationEventPublisher applicationEventPublisher) {
++        this.applicationEventPublisher = applicationEventPublisher;
++    }
++
++    @EventListener
++    public void on(BikeRentalEvent.BikeReturned bikeReturned) {
++        applicationEventPublisher.publishEvent(new BikeReturned(bikeReturned.station().value(),
++                                                                bikeReturned.bike().id().value(),
++                                                                bikeReturned.by().id().value()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/repository/InMemoryBikeStationRepo.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/repository/InMemoryBikeStationRepo.java
+new file mode 100644
+index 0000000..549669f
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/repository/InMemoryBikeStationRepo.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.repository;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStation;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationId;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationRepo;
++
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemoryBikeStationRepo implements BikeStationRepo {
++
++    private final Map<BikeStationId, BikeStation> stations = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<BikeStation> load(BikeStationId id) {
++        return Optional.ofNullable(stations.get(id));
++    }
++
++    @Override
++    public void save(BikeStation bikeStation) {
++        stations.put(bikeStation.id(), bikeStation);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/config/RentalsContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/config/RentalsContextConfig.java
+new file mode 100644
+index 0000000..4c415b0
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/config/RentalsContextConfig.java
+@@ -0,0 +1,36 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.infra.config;
++
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.AvailableBikesAtStationQuery;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReturnBikeUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeStationRepo;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.events.RentalsIntegrationEventsPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.repository.InMemoryBikeStationRepo;
++
++@Configuration
++public class RentalsContextConfig {
++
++    @Bean
++    public BikeStationRepo bikeStationRepo() {
++        return new InMemoryBikeStationRepo();
++    }
++
++    @Bean
++    public ReturnBikeUseCase returnBikeUseCase(BikeStationRepo bikeStationRepo, DomainEventPublisher eventPublisher) {
++        return new ReturnBikeUseCase(bikeStationRepo, eventPublisher);
++    }
++
++    @Bean
++    public AvailableBikesAtStationQuery availableBikesAtStationQuery(BikeStationRepo bikeStationRepo) {
++        return new AvailableBikesAtStationQuery(bikeStationRepo);
++    }
++
++    @Bean
++    public RentalsIntegrationEventsPublisher rentalsIntegrationEventsPublisher(
++        ApplicationEventPublisher applicationEventPublisher) {
++        return new RentalsIntegrationEventsPublisher(applicationEventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java
+index 3cc02a4..7314215 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/package-info.java
+@@ -1,6 +1,7 @@
+ /**
+- * Rentals bounded context. Owns bike availability, reserving and unlocking bikes, rental sessions, station returns
+- * and the maximum rental time. Currently, it's implemented as a single module.
++ * Rentals bounded context. Owns bike availability at stations, renting and returning bikes, and the maximum rental
++ * time, so riders can always find and return a bike and bikes are never held forever. Core domain, revenue
++ * business model, custom built; domain role: execution model. Currently, it's implemented as a single module.
+  */
+ @BoundedContext(name = "Rentals")
+ @Module
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCaseTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCaseTest.java
+new file mode 100644
+index 0000000..38da20a
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeUseCaseTest.java
+@@ -0,0 +1,68 @@
++package pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases;
++
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.AvailableBikesAtStationQuery;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.*;
++import pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.repository.InMemoryBikeStationRepo;
++
++import java.time.Duration;
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++@DisplayName("Return bike use case examples")
++class ReturnBikeUseCaseTest {
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given bike station where bike "bike01" was rented by George,
++         when the rider app returns bike "bike01" to the station,
++         then Bike Returned is published and the bike is listed as available again
++        """
++    )
++    // @formatter:on
++    @Test
++    void test0() {
++        // given
++        var repo = new InMemoryBikeStationRepo();
++        var publisher = new RecordingPublisher();
++        var stationId = new BikeStationId("Warsaw01");
++        var station = new BikeStation(stationId);
++        var bike = new Bike(new BikeId("bike01"));
++        station.placeNew(bike);
++        station.rent(bike)
++               .by(new Borrower(new BorrowerId("george")))
++               .forDuration(new RentalDuration(Duration.ofHours(6)));
++        repo.save(station);
++        var useCase = new ReturnBikeUseCase(repo, publisher);
++        var query = new AvailableBikesAtStationQuery(repo);
++
++        // when
++        useCase.returnBike(stationId, bike.id());
++
++        // then
++        assertThat(publisher.published).hasOnlyElementsOfType(BikeRentalEvent.BikeReturned.class).hasSize(1);
++        assertThat(query.availableBikesAt(stationId).bikeIds()).containsExactly("bike01");
++    }
++
++    private static class RecordingPublisher implements DomainEventPublisher {
++
++        private final List<DomainEvent> published = new ArrayList<>();
++
++        @Override
++        public void publish(DomainEvents events) {
++            events.stream().forEach(published::add);
++        }
++
++        @Override
++        public void publish(DomainEvent event) {
++            published.add(event);
++        }
++    }
++}
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java
+index 796e367..5394dd9 100644
+--- a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bikestation/BikeStationTest.java
+@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
+ 
+ import java.time.Duration;
++import java.util.List;
+ 
+ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+ import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+@@ -119,4 +120,107 @@ class BikeStationTest {
+         // then
+         assertThat(exception).isInstanceOf(MaximumRentalDurationExceededException.class);
+     }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given bike station where bike "bike01" was rented by George,
++         when bike "bike01" is returned to the station,
++         then bike is returned and is available again
++        """
++    )
++    // @formatter:on
++    @Test
++    void test4() {
++        // given
++        var bikeStation = new BikeStation(new BikeStationId("Warsaw01"));
++        var bike = new Bike(new BikeId("bike01"));
++        bikeStation.placeNew(bike);
++        var borrower = new Borrower(new BorrowerId("george"));
++        bikeStation.rent(bike).by(borrower).forDuration(new RentalDuration(Duration.ofHours(6)));
++
++        // when
++        var events = bikeStation.returnBike(bike);
++
++        // then
++        assertThat(events.hasAtLeastOneEventMatching(
++            event -> event.equals(new BikeRentalEvent.BikeReturned(new BikeStationId("Warsaw01"), bike, borrower))))
++            .isTrue();
++        assertThat(bikeStation.availableBikes()).isEqualTo(List.of(bike));
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given bike station where bike "bike01" is available,
++         when bike "bike01" is returned to the station,
++         then return is rejected
++        """
++    )
++    // @formatter:on
++    @Test
++    void test5() {
++        // given
++        var bikeStation = new BikeStation(new BikeStationId("Warsaw01"));
++        var bike = new Bike(new BikeId("bike01"));
++        bikeStation.placeNew(bike);
++
++        // when
++        var exception = catchThrowable(() -> bikeStation.returnBike(bike));
++
++        // then
++        assertThat(exception).isInstanceOf(BikeNotRentedException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given bike station with 1 bike,
++         when George rents a bike for 11 hours and 1 minute,
++         then bike is not rent
++        """
++    )
++    // @formatter:on
++    @Test
++    void test6() {
++        // given
++        var bikeStation = new BikeStation(new BikeStationId("Warsaw01"));
++        var bike = new Bike(new BikeId("bike01"));
++        bikeStation.placeNew(bike);
++        var borrower = new Borrower(new BorrowerId("george"));
++
++        // when
++        var exception = catchThrowable(() -> bikeStation.rent(bike).by(borrower)
++                                                        .forDuration(new RentalDuration(
++                                                            Duration.ofHours(11).plusMinutes(1))));
++
++        // then
++        assertThat(exception).isInstanceOf(MaximumRentalDurationExceededException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given bike station with bikes "bike01" and "bike02",
++         when George rents bike "bike02",
++         then only bike "bike01" is available at the station
++        """
++    )
++    // @formatter:on
++    @Test
++    void test7() {
++        // given
++        var bikeStation = new BikeStation(new BikeStationId("Warsaw01"));
++        var bike01 = new Bike(new BikeId("bike01"));
++        var bike02 = new Bike(new BikeId("bike02"));
++        bikeStation.placeNew(bike01);
++        bikeStation.placeNew(bike02);
++        var borrower = new Borrower(new BorrowerId("george"));
++
++        // when
++        bikeStation.rent(bike02).by(borrower).forDuration(new RentalDuration(Duration.ofHours(6)));
++
++        // then
++        assertThat(bikeStation.availableBikes()).isEqualTo(List.of(bike01));
++    }
+ }
+\ No newline at end of file

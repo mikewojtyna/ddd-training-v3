@@ -1,0 +1,13 @@
+{
+  "reviews": [
+    {"run_id": "eval-1-pricing-scaffold-from-markdown-with_skill-run-1", "feedback": "Before creating the code, ask the user to verify the plan and provide his feedback. The plan must be saved. If skill sees the plan is available, it should continue from there.", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-1-pricing-scaffold-from-markdown-without_skill-run-1", "feedback": "I prefered the markdown in javadoc", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-2-settlement-inline-conformist-vague-rule-with_skill-run-1", "feedback": "When rules change in code (based on tests), the skill must also update the javadoc markdown on the package-info accordingly", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-2-settlement-inline-conformist-vague-rule-without_skill-run-1", "feedback": "not enough feedback or pushing back for user", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-3-debtrecovery-no-canvas-with_skill-run-1", "feedback": "Great it suggests creating a canvas first and partly fills it", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-3-debtrecovery-no-canvas-without_skill-run-1", "feedback": "No nudge towards creating the canvas", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-4-rentals-update-with-changelog-with_skill-run-1", "feedback": "good one", "timestamp": "2026-11-01T20:52:28.740Z"},
+    {"run_id": "eval-4-rentals-update-with-changelog-without_skill-run-1", "feedback": "poor", "timestamp": "2026-11-01T20:52:28.740Z"}
+  ],
+  "status": "complete"
+}

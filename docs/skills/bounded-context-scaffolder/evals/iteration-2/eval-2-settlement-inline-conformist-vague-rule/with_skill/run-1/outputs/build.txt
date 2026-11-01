@@ -1,0 +1,108 @@
+===== ./mvnw compile =====
+exit 0
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< pl.wojtyna:ddd-training-v3 >---------------------
+[INFO] Building ddd-training-v3 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ ddd-training-v3 ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ ddd-training-v3 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 119 source files with javac [debug parameters release 25] to target/classes
+[WARNING] /home/goobar/IdeaProjects/ddd-training-v3/.claude/worktrees/agent-a60fc765b32f238b2/src/main/java/pl/wojtyna/dddtrainingv3/crowdsorcery/profile/Profile.java:[15,6] org.hibernate.annotations.GenericGenerator in org.hibernate.annotations has been deprecated and marked for removal
+[WARNING] /home/goobar/IdeaProjects/ddd-training-v3/.claude/worktrees/agent-a60fc765b32f238b2/src/main/java/pl/wojtyna/dddtrainingv3/crowdsorcery/profile/Profile.java:[17,9] strategy() in org.hibernate.annotations.GenericGenerator has been deprecated and marked for removal
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.230 s
+[INFO] Finished at: 2026-11-01T22:02:43+01:00
+[INFO] ------------------------------------------------------------------------
+===== ./mvnw test -Dtest=SettlementTest =====
+exit 0
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< pl.wojtyna:ddd-training-v3 >---------------------
+[INFO] Building ddd-training-v3 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ ddd-training-v3 ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ ddd-training-v3 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ ddd-training-v3 ---
+[INFO] skip non existing resourceDirectory /home/goobar/IdeaProjects/ddd-training-v3/.claude/worktrees/agent-a60fc765b32f238b2/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ ddd-training-v3 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 3 source files with javac [debug parameters release 25] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ ddd-training-v3 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running Settlement examples
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s -- in Settlement examples
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.677 s
+[INFO] Finished at: 2026-11-01T22:02:45+01:00
+[INFO] ------------------------------------------------------------------------
+===== ./mvnw test =====
+exit 0
+2026-11-01T22:02:48.855+01:00  INFO 130473 --- [ddd-training-v3] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-01T22:02:48.900+01:00  INFO 130473 --- [ddd-training-v3] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:59db8ba4-47ea-42b3-a46a-eff27bc92b12]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: 59DB8BA4-47EA-42B3-A46A-EFF27BC92B12/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-01T22:02:49.370+01:00  INFO 130473 --- [ddd-training-v3] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-01T22:02:49.387+01:00  INFO 130473 --- [ddd-training-v3] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-01T22:02:49.486+01:00  WARN 130473 --- [ddd-training-v3] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-01T22:02:49.521+01:00  INFO 130473 --- [ddd-training-v3] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-01T22:02:49.886+01:00  INFO 130473 --- [ddd-training-v3] [           main] p.w.d.DddTrainingV3ApplicationTests      : Started DddTrainingV3ApplicationTests in 2.156 seconds (process running for 2.806)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/home/goobar/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.689 s -- in pl.wojtyna.dddtrainingv3.DddTrainingV3ApplicationTests
+[INFO] Running Bike station examples
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in Bike station examples
+[INFO] Running Settlement examples
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in Settlement examples
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.866 s
+[INFO] Finished at: 2026-11-01T22:02:50+01:00
+[INFO] ------------------------------------------------------------------------

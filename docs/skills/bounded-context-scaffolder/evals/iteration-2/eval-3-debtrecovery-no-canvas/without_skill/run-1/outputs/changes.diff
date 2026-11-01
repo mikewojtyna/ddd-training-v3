@@ -1,0 +1,1089 @@
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+index 154edd3..0a3b521 100644
+--- a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md
+@@ -11,7 +11,13 @@ VeloCity is a city bike rental service and the current exercise of the training.
+ 
+ ## Bounded contexts
+ 
+-The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` exists in code so far.** Add the others as new subpackages that follow the root layout.
++The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` and `debtrecovery` exist in code so far.** Add the others as new subpackages that follow the root layout.
++
++## DebtRecovery
++
++- `RecoveryProcess` (`domain/recoveryprocess`) is the aggregate root: one open (active or paused) process per rider, ending as succeeded or exhausted. It owns only the pursuit; Settlement owns the debt amount, and Accounts owns blocking and unblocking.
++- Settlement's `Rental Fee Unpaid` starts recovery and `Outstanding Debt Cleared` ends it. Both enter through the `settlementctxacl` ACL, which holds placeholder records for Settlement's published language until Settlement exists. `SettlementDebtCollector` (asking Settlement to collect) is a stub.
++- Reminders, payment plans and the rules that decide the schedule and exhaustion are not modeled yet.
+ 
+ ## Rentals
+ 
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/events/.gitkeep b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/events/.gitkeep
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/queries/.gitkeep b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/queries/.gitkeep
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/AttemptCollectionUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/AttemptCollectionUseCase.java
+new file mode 100644
+index 0000000..c9fa74c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/AttemptCollectionUseCase.java
+@@ -0,0 +1,35 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.DebtCollector;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++
++/**
++ * One step of the recovery schedule: ask Settlement to collect the debt. What triggers this (schedule, reminders,
++ * payment plan instalments) is not modeled yet.
++ */
++@PrimaryPort
++public class AttemptCollectionUseCase {
++
++    private final RecoveryProcessRepo repo;
++    private final DebtCollector debtCollector;
++    private final DomainEventPublisher eventPublisher;
++
++    public AttemptCollectionUseCase(RecoveryProcessRepo repo, DebtCollector debtCollector,
++                                    DomainEventPublisher eventPublisher) {
++        this.repo = repo;
++        this.debtCollector = debtCollector;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void attempt(RecoveryProcessId id) {
++        repo.load(id).ifPresent(process -> {
++            var events = process.attemptCollection();
++            debtCollector.requestCollection(process.rider());
++            repo.save(process);
++            eventPublisher.publish(events);
++        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/CloseRecoveryOnDebtClearedUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/CloseRecoveryOnDebtClearedUseCase.java
+new file mode 100644
+index 0000000..3863ddc
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/CloseRecoveryOnDebtClearedUseCase.java
+@@ -0,0 +1,30 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RiderId;
++
++/**
++ * Triggered by Settlement's "Outstanding Debt Cleared". Unblocking the account is not done here: Accounts reacts to
++ * the same Settlement event.
++ */
++@PrimaryPort
++public class CloseRecoveryOnDebtClearedUseCase {
++
++    private final RecoveryProcessRepo repo;
++    private final DomainEventPublisher eventPublisher;
++
++    public CloseRecoveryOnDebtClearedUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        this.repo = repo;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void debtClearedFor(RiderId rider) {
++        repo.findOpenFor(rider).ifPresent(process -> {
++            var events = process.debtCleared();
++            repo.save(process);
++            eventPublisher.publish(events);
++        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/PauseRecoveryUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/PauseRecoveryUseCase.java
+new file mode 100644
+index 0000000..f1f28cb
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/PauseRecoveryUseCase.java
+@@ -0,0 +1,27 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.PauseReason;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++
++@PrimaryPort
++public class PauseRecoveryUseCase {
++
++    private final RecoveryProcessRepo repo;
++    private final DomainEventPublisher eventPublisher;
++
++    public PauseRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        this.repo = repo;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void pause(RecoveryProcessId id, PauseReason reason) {
++        repo.load(id).ifPresent(process -> {
++            var events = process.pause().because(reason);
++            repo.save(process);
++            eventPublisher.publish(events);
++        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/ResumeRecoveryUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/ResumeRecoveryUseCase.java
+new file mode 100644
+index 0000000..8c638ca
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/ResumeRecoveryUseCase.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++
++@PrimaryPort
++public class ResumeRecoveryUseCase {
++
++    private final RecoveryProcessRepo repo;
++    private final DomainEventPublisher eventPublisher;
++
++    public ResumeRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        this.repo = repo;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void resume(RecoveryProcessId id) {
++        repo.load(id).ifPresent(process -> {
++            var events = process.resume();
++            repo.save(process);
++            eventPublisher.publish(events);
++        });
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/StartRecoveryUseCase.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/StartRecoveryUseCase.java
+new file mode 100644
+index 0000000..fe7b31d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/api/usecases/StartRecoveryUseCase.java
+@@ -0,0 +1,33 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases;
++
++import org.jmolecules.architecture.hexagonal.PrimaryPort;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcess;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RiderId;
++
++/**
++ * Triggered by Settlement's "Rental Fee Unpaid". Idempotent per rider: if the rider already has an open recovery
++ * process, the new unpaid fee is pursued by that process (Settlement owns the amount, not Debt Recovery).
++ */
++@PrimaryPort
++public class StartRecoveryUseCase {
++
++    private final RecoveryProcessRepo repo;
++    private final DomainEventPublisher eventPublisher;
++
++    public StartRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        this.repo = repo;
++        this.eventPublisher = eventPublisher;
++    }
++
++    public void startFor(RiderId rider) {
++        if (repo.findOpenFor(rider).isPresent()) {
++            return;
++        }
++        var started = RecoveryProcess.start(RecoveryProcessId.generate(), rider);
++        repo.save(started.process());
++        eventPublisher.publish(started.events());
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/DebtCollector.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/DebtCollector.java
+new file mode 100644
+index 0000000..9bc966d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/DebtCollector.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++
++/**
++ * Settlement is the only context that moves money, so Debt Recovery asks it to collect. The outcome comes back
++ * asynchronously as Settlement's "Outstanding Debt Cleared".
++ */
++@SecondaryPort
++public interface DebtCollector {
++
++    void requestCollection(RiderId rider);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/FluentLanguage.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/FluentLanguage.java
+new file mode 100644
+index 0000000..b6ae01c
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/FluentLanguage.java
+@@ -0,0 +1,10 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++public interface FluentLanguage {
++
++    @FunctionalInterface
++    interface Because<S, R> {
++
++        R because(S s);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/PauseReason.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/PauseReason.java
+new file mode 100644
+index 0000000..2573e76
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/PauseReason.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++/**
++ * Legitimate reasons to pause recovery without giving up on it (from the vision's business rules).
++ */
++@ValueObject
++public enum PauseReason {
++    DISPUTE_UNDER_REVIEW,
++    PAYMENT_PLAN_NEGOTIATION,
++    REGULATORY_HOLD
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcess.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcess.java
+new file mode 100644
+index 0000000..50d1650
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcess.java
+@@ -0,0 +1,139 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.ddd.annotation.AggregateRoot;
++import org.jmolecules.ddd.annotation.Identity;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.FluentLanguage.Because;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.CollectionAttempted;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.RecoveryExhausted;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.RecoveryPaused;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.RecoveryResumed;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.RecoveryStarted;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessEvent.RecoverySucceeded;
++
++import java.util.Objects;
++import java.util.Optional;
++
++/**
++ * The active pursuit of one rider's outstanding debt. The debt itself (amount, rider balance) is owned by Settlement;
++ * this aggregate owns only the lifecycle of the pursuit: active, paused, succeeded or exhausted. It does not block or
++ * unblock the rider's account, that is Accounts' decision.
++ */
++@AggregateRoot
++public class RecoveryProcess {
++
++    @Identity
++    private final RecoveryProcessId id;
++    private final RiderId rider;
++    private RecoveryStatus status;
++    private PauseReason pauseReason;
++
++    private RecoveryProcess(RecoveryProcessId id, RiderId rider) {
++        this.id = Objects.requireNonNull(id);
++        this.rider = Objects.requireNonNull(rider);
++        this.status = RecoveryStatus.ACTIVE;
++    }
++
++    /**
++     * Starts recovery for a rider who owes money. The caller saves the returned process and publishes its events.
++     */
++    public static Started start(RecoveryProcessId id, RiderId rider) {
++        var process = new RecoveryProcess(id, rider);
++        return new Started(process, DomainEvents.of(new RecoveryStarted(id, rider)));
++    }
++
++    public record Started(RecoveryProcess process, DomainEvents events) {
++    }
++
++    /**
++     * Asks for the debt to be collected. Only an active process pursues the debt; a paused one waits.
++     */
++    public DomainEvents attemptCollection() {
++        ensureNotClosed();
++        if (status == RecoveryStatus.PAUSED) {
++            throw new RecoveryProcessPausedException("Recovery is paused, collection is not attempted");
++        }
++        return DomainEvents.of(new CollectionAttempted(id, rider));
++    }
++
++    public Because<PauseReason, DomainEvents> pause() {
++        return reason -> {
++            Objects.requireNonNull(reason);
++            ensureNotClosed();
++            if (status == RecoveryStatus.PAUSED) {
++                throw new RecoveryProcessPausedException("Recovery is already paused");
++            }
++            status = RecoveryStatus.PAUSED;
++            pauseReason = reason;
++            return DomainEvents.of(new RecoveryPaused(id, reason));
++        };
++    }
++
++    public DomainEvents resume() {
++        ensureNotClosed();
++        if (status != RecoveryStatus.PAUSED) {
++            throw new RecoveryProcessNotPausedException("Only a paused recovery can be resumed");
++        }
++        status = RecoveryStatus.ACTIVE;
++        pauseReason = null;
++        return DomainEvents.of(new RecoveryResumed(id));
++    }
++
++    /**
++     * Settlement reported the rider's outstanding debt as cleared. Recovery succeeds even if it was paused: the money
++     * is back, so there is nothing left to pursue.
++     */
++    public DomainEvents debtCleared() {
++        ensureNotClosed();
++        status = RecoveryStatus.SUCCEEDED;
++        pauseReason = null;
++        return DomainEvents.of(new RecoverySucceeded(id, rider));
++    }
++
++    /**
++     * All recovery actions were tried and rejected. The rules that decide when this happens (schedule, which actions)
++     * are not modeled yet.
++     */
++    public DomainEvents exhaust() {
++        ensureNotClosed();
++        status = RecoveryStatus.EXHAUSTED;
++        pauseReason = null;
++        return DomainEvents.of(new RecoveryExhausted(id, rider));
++    }
++
++    public RecoveryProcessId id() {
++        return id;
++    }
++
++    public RiderId rider() {
++        return rider;
++    }
++
++    public RecoveryStatus status() {
++        return status;
++    }
++
++    public Optional<PauseReason> pauseReason() {
++        return Optional.ofNullable(pauseReason);
++    }
++
++    public boolean isOpen() {
++        return !status.isClosed();
++    }
++
++    private void ensureNotClosed() {
++        if (status.isClosed()) {
++            throw new RecoveryProcessClosedException("Recovery process is already " + status);
++        }
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        return o instanceof RecoveryProcess other && Objects.equals(id, other.id);
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hashCode(id);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessClosedException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessClosedException.java
+new file mode 100644
+index 0000000..a95f028
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessClosedException.java
+@@ -0,0 +1,15 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++/**
++ * Thrown when a command reaches a recovery process that has already succeeded or been exhausted.
++ */
++public class RecoveryProcessClosedException extends RuntimeException {
++
++    public RecoveryProcessClosedException(String message) {
++        super(message);
++    }
++
++    public RecoveryProcessClosedException(String message, Throwable cause) {
++        super(message, cause);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessEvent.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessEvent.java
+new file mode 100644
+index 0000000..97bbc86
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessEvent.java
+@@ -0,0 +1,26 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
++
++public sealed interface RecoveryProcessEvent extends DomainEvent {
++
++    RecoveryProcessId processId();
++
++    record RecoveryStarted(RecoveryProcessId processId, RiderId rider) implements RecoveryProcessEvent {
++    }
++
++    record CollectionAttempted(RecoveryProcessId processId, RiderId rider) implements RecoveryProcessEvent {
++    }
++
++    record RecoveryPaused(RecoveryProcessId processId, PauseReason reason) implements RecoveryProcessEvent {
++    }
++
++    record RecoveryResumed(RecoveryProcessId processId) implements RecoveryProcessEvent {
++    }
++
++    record RecoverySucceeded(RecoveryProcessId processId, RiderId rider) implements RecoveryProcessEvent {
++    }
++
++    record RecoveryExhausted(RecoveryProcessId processId, RiderId rider) implements RecoveryProcessEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessId.java
+new file mode 100644
+index 0000000..eee74e1
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessId.java
+@@ -0,0 +1,13 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++import java.util.UUID;
++
++@ValueObject
++public record RecoveryProcessId(String value) {
++
++    public static RecoveryProcessId generate() {
++        return new RecoveryProcessId(UUID.randomUUID().toString());
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessNotPausedException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessNotPausedException.java
+new file mode 100644
+index 0000000..7e4ecfa
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessNotPausedException.java
+@@ -0,0 +1,15 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++/**
++ * Thrown when a recovery process that is not paused is asked to resume.
++ */
++public class RecoveryProcessNotPausedException extends RuntimeException {
++
++    public RecoveryProcessNotPausedException(String message) {
++        super(message);
++    }
++
++    public RecoveryProcessNotPausedException(String message, Throwable cause) {
++        super(message, cause);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessPausedException.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessPausedException.java
+new file mode 100644
+index 0000000..8c99049
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessPausedException.java
+@@ -0,0 +1,15 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++/**
++ * Thrown when a paused recovery process is asked to pursue the debt, or is paused again.
++ */
++public class RecoveryProcessPausedException extends RuntimeException {
++
++    public RecoveryProcessPausedException(String message) {
++        super(message);
++    }
++
++    public RecoveryProcessPausedException(String message, Throwable cause) {
++        super(message, cause);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessRepo.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessRepo.java
+new file mode 100644
+index 0000000..cbc64f9
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessRepo.java
+@@ -0,0 +1,18 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.architecture.hexagonal.SecondaryPort;
++
++import java.util.Optional;
++
++@SecondaryPort
++public interface RecoveryProcessRepo {
++
++    Optional<RecoveryProcess> load(RecoveryProcessId id);
++
++    /**
++     * A rider has at most one open (active or paused) recovery process.
++     */
++    Optional<RecoveryProcess> findOpenFor(RiderId rider);
++
++    void save(RecoveryProcess process);
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryStatus.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryStatus.java
+new file mode 100644
+index 0000000..e0029e8
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryStatus.java
+@@ -0,0 +1,12 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++public enum RecoveryStatus {
++    ACTIVE,
++    PAUSED,
++    SUCCEEDED,
++    EXHAUSTED;
++
++    boolean isClosed() {
++        return this == SUCCEEDED || this == EXHAUSTED;
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RiderId.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RiderId.java
+new file mode 100644
+index 0000000..43acf5d
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RiderId.java
+@@ -0,0 +1,7 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.jmolecules.ddd.annotation.ValueObject;
++
++@ValueObject
++public record RiderId(String value) {
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/primary/RecoveryProcessRestApi.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/primary/RecoveryProcessRestApi.java
+new file mode 100644
+index 0000000..30e3f3a
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/primary/RecoveryProcessRestApi.java
+@@ -0,0 +1,43 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.primary;
++
++import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
++import org.springframework.web.bind.annotation.PathVariable;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.PauseRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.ResumeRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.PauseReason;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++
++/**
++ * Back-office endpoints for pausing and resuming recovery (disputes, payment plan negotiation, regulatory holds).
++ */
++@PrimaryAdapter
++@RestController
++@RequestMapping("/velocity/recovery-processes/{processId}")
++public class RecoveryProcessRestApi {
++
++    private final PauseRecoveryUseCase pauseRecoveryUseCase;
++    private final ResumeRecoveryUseCase resumeRecoveryUseCase;
++
++    public RecoveryProcessRestApi(PauseRecoveryUseCase pauseRecoveryUseCase,
++                                  ResumeRecoveryUseCase resumeRecoveryUseCase) {
++        this.pauseRecoveryUseCase = pauseRecoveryUseCase;
++        this.resumeRecoveryUseCase = resumeRecoveryUseCase;
++    }
++
++    @PostMapping("/pause")
++    public void pause(@PathVariable("processId") String processId, @RequestBody PauseRequest request) {
++        pauseRecoveryUseCase.pause(new RecoveryProcessId(processId), PauseReason.valueOf(request.reason()));
++    }
++
++    @PostMapping("/resume")
++    public void resume(@PathVariable("processId") String processId) {
++        resumeRecoveryUseCase.resume(new RecoveryProcessId(processId));
++    }
++
++    public record PauseRequest(String reason) {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/repository/InMemoryRecoveryProcessRepo.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/repository/InMemoryRecoveryProcessRepo.java
+new file mode 100644
+index 0000000..065ae03
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/repository/InMemoryRecoveryProcessRepo.java
+@@ -0,0 +1,36 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.repository;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcess;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RiderId;
++
++import java.util.Map;
++import java.util.Optional;
++import java.util.concurrent.ConcurrentHashMap;
++
++@SecondaryAdapter
++public class InMemoryRecoveryProcessRepo implements RecoveryProcessRepo {
++
++    private final Map<RecoveryProcessId, RecoveryProcess> processes = new ConcurrentHashMap<>();
++
++    @Override
++    public Optional<RecoveryProcess> load(RecoveryProcessId id) {
++        return Optional.ofNullable(processes.get(id));
++    }
++
++    @Override
++    public Optional<RecoveryProcess> findOpenFor(RiderId rider) {
++        return processes.values()
++                        .stream()
++                        .filter(process -> process.rider().equals(rider))
++                        .filter(RecoveryProcess::isOpen)
++                        .findFirst();
++    }
++
++    @Override
++    public void save(RecoveryProcess process) {
++        processes.put(process.id(), process);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementContextAclConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementContextAclConfig.java
+new file mode 100644
+index 0000000..77fab14
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementContextAclConfig.java
+@@ -0,0 +1,22 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl;
++
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.CloseRecoveryOnDebtClearedUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.StartRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.DebtCollector;
++
++@Configuration
++public class SettlementContextAclConfig {
++
++    @Bean
++    public DebtCollector debtCollector() {
++        return new SettlementDebtCollector();
++    }
++
++    @Bean
++    public SettlementEventsTranslator settlementEventsTranslator(StartRecoveryUseCase startRecoveryUseCase,
++                                                                 CloseRecoveryOnDebtClearedUseCase closeRecoveryOnDebtClearedUseCase) {
++        return new SettlementEventsTranslator(startRecoveryUseCase, closeRecoveryOnDebtClearedUseCase);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementDebtCollector.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementDebtCollector.java
+new file mode 100644
+index 0000000..7965333
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementDebtCollector.java
+@@ -0,0 +1,17 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.DebtCollector;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RiderId;
++
++/**
++ * Calls Settlement's "attempt collection" open host service.
++ */
++@SecondaryAdapter
++public class SettlementDebtCollector implements DebtCollector {
++
++    @Override
++    public void requestCollection(RiderId rider) {
++        throw new UnsupportedOperationException("Implement once Settlement exposes its collection API");
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementEventsTranslator.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementEventsTranslator.java
+new file mode 100644
+index 0000000..9c2b3e1
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementEventsTranslator.java
+@@ -0,0 +1,35 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl;
++
++import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
++import org.springframework.context.event.EventListener;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.CloseRecoveryOnDebtClearedUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.StartRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RiderId;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl.SettlementPublishedLanguage.OutstandingDebtCleared;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl.SettlementPublishedLanguage.RentalFeeUnpaid;
++
++/**
++ * Translates Settlement's events into Debt Recovery use cases.
++ */
++@SecondaryAdapter
++public class SettlementEventsTranslator {
++
++    private final StartRecoveryUseCase startRecoveryUseCase;
++    private final CloseRecoveryOnDebtClearedUseCase closeRecoveryOnDebtClearedUseCase;
++
++    public SettlementEventsTranslator(StartRecoveryUseCase startRecoveryUseCase,
++                                      CloseRecoveryOnDebtClearedUseCase closeRecoveryOnDebtClearedUseCase) {
++        this.startRecoveryUseCase = startRecoveryUseCase;
++        this.closeRecoveryOnDebtClearedUseCase = closeRecoveryOnDebtClearedUseCase;
++    }
++
++    @EventListener
++    public void handle(RentalFeeUnpaid event) {
++        startRecoveryUseCase.startFor(new RiderId(event.riderId()));
++    }
++
++    @EventListener
++    public void handle(OutstandingDebtCleared event) {
++        closeRecoveryOnDebtClearedUseCase.debtClearedFor(new RiderId(event.riderId()));
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementPublishedLanguage.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementPublishedLanguage.java
+new file mode 100644
+index 0000000..f935f24
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/SettlementPublishedLanguage.java
+@@ -0,0 +1,16 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl;
++
++import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
++
++/**
++ * Placeholders for Settlement's published language. Replace them with Settlement's {@code api/events} types once the
++ * Settlement context exists.
++ */
++public interface SettlementPublishedLanguage {
++
++    record RentalFeeUnpaid(String riderId) implements IntegrationEvent {
++    }
++
++    record OutstandingDebtCleared(String riderId) implements IntegrationEvent {
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/package-info.java
+new file mode 100644
+index 0000000..57b2985
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/adapters/secondary/settlementctxacl/package-info.java
+@@ -0,0 +1,10 @@
++/**
++ * This package contains classes responsible for communication with the Settlement bounded context (upstream,
++ * OHS/PL; Debt Recovery is a conformist downstream, see the DebtCollection relationship in the CML). It works as an
++ * ACL. This is the only package where Settlement's published language may be used. Settlement does not exist in code
++ * yet, so its events are represented by placeholder records here.
++ */
++@AntiCorruptionLayer
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl;
++
++import pl.wojtyna.dddtrainingv3.common.arch.AntiCorruptionLayer;
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/config/DebtRecoveryContextConfig.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/config/DebtRecoveryContextConfig.java
+new file mode 100644
+index 0000000..d0e662f
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/infra/config/DebtRecoveryContextConfig.java
+@@ -0,0 +1,49 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.config;
++
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import pl.wojtyna.dddtrainingv3.common.domain.DomainEventPublisher;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.AttemptCollectionUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.CloseRecoveryOnDebtClearedUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.PauseRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.ResumeRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.api.usecases.StartRecoveryUseCase;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.DebtCollector;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess.RecoveryProcessRepo;
++import pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.repository.InMemoryRecoveryProcessRepo;
++
++@Configuration
++public class DebtRecoveryContextConfig {
++
++    @Bean
++    public RecoveryProcessRepo recoveryProcessRepo() {
++        return new InMemoryRecoveryProcessRepo();
++    }
++
++    @Bean
++    public StartRecoveryUseCase startRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        return new StartRecoveryUseCase(repo, eventPublisher);
++    }
++
++    @Bean
++    public AttemptCollectionUseCase attemptCollectionUseCase(RecoveryProcessRepo repo, DebtCollector debtCollector,
++                                                             DomainEventPublisher eventPublisher) {
++        return new AttemptCollectionUseCase(repo, debtCollector, eventPublisher);
++    }
++
++    @Bean
++    public PauseRecoveryUseCase pauseRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        return new PauseRecoveryUseCase(repo, eventPublisher);
++    }
++
++    @Bean
++    public ResumeRecoveryUseCase resumeRecoveryUseCase(RecoveryProcessRepo repo, DomainEventPublisher eventPublisher) {
++        return new ResumeRecoveryUseCase(repo, eventPublisher);
++    }
++
++    @Bean
++    public CloseRecoveryOnDebtClearedUseCase closeRecoveryOnDebtClearedUseCase(RecoveryProcessRepo repo,
++                                                                               DomainEventPublisher eventPublisher) {
++        return new CloseRecoveryOnDebtClearedUseCase(repo, eventPublisher);
++    }
++}
+diff --git a/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/package-info.java b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/package-info.java
+new file mode 100644
+index 0000000..13d9202
+--- /dev/null
++++ b/src/main/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/package-info.java
+@@ -0,0 +1,12 @@
++/**
++ * DebtRecovery bounded context. Actively pursues a rider's outstanding debt (reminders, payment plans, pausing and
++ * resuming recovery) until the debt is cleared or recovery is exhausted. It does not own the debt itself (Settlement
++ * does), and it does not block or unblock accounts (Accounts does, reacting to Settlement's events). Currently, it's
++ * implemented as a single module.
++ */
++@BoundedContext(name = "DebtRecovery")
++@Module
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery;
++
++import org.jmolecules.ddd.annotation.BoundedContext;
++import org.jmolecules.ddd.annotation.Module;
+diff --git a/src/test/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessTest.java b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessTest.java
+new file mode 100644
+index 0000000..7293c2e
+--- /dev/null
++++ b/src/test/java/pl/wojtyna/dddtrainingv3/velocity/debtrecovery/domain/recoveryprocess/RecoveryProcessTest.java
+@@ -0,0 +1,215 @@
++package pl.wojtyna.dddtrainingv3.velocity.debtrecovery.domain.recoveryprocess;
++
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.catchThrowable;
++
++@DisplayName("Recovery process examples")
++class RecoveryProcessTest {
++
++    private static final RiderId GEORGE = new RiderId("george");
++
++    private static RecoveryProcess activeProcessFor(RiderId rider) {
++        return RecoveryProcess.start(new RecoveryProcessId("recovery01"), rider).process();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given George owes money,
++         when recovery starts,
++         then the process is active and recovery started
++        """
++    )
++    // @formatter:on
++    @Test
++    void test0() {
++        // when
++        var started = RecoveryProcess.start(new RecoveryProcessId("recovery01"), GEORGE);
++
++        // then
++        assertThat(started.process().status()).isEqualTo(RecoveryStatus.ACTIVE);
++        assertThat(started.events().hasOccurredEventOfType(RecoveryProcessEvent.RecoveryStarted.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an active recovery process,
++         when collection is attempted,
++         then collection attempted
++        """
++    )
++    // @formatter:on
++    @Test
++    void test1() {
++        // given
++        var process = activeProcessFor(GEORGE);
++
++        // when
++        var events = process.attemptCollection();
++
++        // then
++        assertThat(events.hasOccurredEventOfType(RecoveryProcessEvent.CollectionAttempted.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an active recovery process,
++         when it is paused because a dispute is under review,
++         then the process is paused with that reason
++        """
++    )
++    // @formatter:on
++    @Test
++    void test2() {
++        // given
++        var process = activeProcessFor(GEORGE);
++
++        // when
++        var events = process.pause().because(PauseReason.DISPUTE_UNDER_REVIEW);
++
++        // then
++        assertThat(process.status()).isEqualTo(RecoveryStatus.PAUSED);
++        assertThat(process.pauseReason()).contains(PauseReason.DISPUTE_UNDER_REVIEW);
++        assertThat(events.hasOccurredEventOfType(RecoveryProcessEvent.RecoveryPaused.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a paused recovery process,
++         when collection is attempted,
++         then it is refused
++        """
++    )
++    // @formatter:on
++    @Test
++    void test3() {
++        // given
++        var process = activeProcessFor(GEORGE);
++        process.pause().because(PauseReason.REGULATORY_HOLD);
++
++        // when
++        var thrown = catchThrowable(process::attemptCollection);
++
++        // then
++        assertThat(thrown).isInstanceOf(RecoveryProcessPausedException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a paused recovery process,
++         when it is resumed,
++         then the process is active again
++        """
++    )
++    // @formatter:on
++    @Test
++    void test4() {
++        // given
++        var process = activeProcessFor(GEORGE);
++        process.pause().because(PauseReason.PAYMENT_PLAN_NEGOTIATION);
++
++        // when
++        var events = process.resume();
++
++        // then
++        assertThat(process.status()).isEqualTo(RecoveryStatus.ACTIVE);
++        assertThat(process.pauseReason()).isEmpty();
++        assertThat(events.hasOccurredEventOfType(RecoveryProcessEvent.RecoveryResumed.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an active recovery process,
++         when it is resumed,
++         then it is refused
++        """
++    )
++    // @formatter:on
++    @Test
++    void test5() {
++        // given
++        var process = activeProcessFor(GEORGE);
++
++        // when
++        var thrown = catchThrowable(process::resume);
++
++        // then
++        assertThat(thrown).isInstanceOf(RecoveryProcessNotPausedException.class);
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a paused recovery process,
++         when Settlement reports George's debt as cleared,
++         then recovery succeeded
++        """
++    )
++    // @formatter:on
++    @Test
++    void test6() {
++        // given
++        var process = activeProcessFor(GEORGE);
++        process.pause().because(PauseReason.DISPUTE_UNDER_REVIEW);
++
++        // when
++        var events = process.debtCleared();
++
++        // then
++        assertThat(process.status()).isEqualTo(RecoveryStatus.SUCCEEDED);
++        assertThat(process.isOpen()).isFalse();
++        assertThat(events.hasOccurredEventOfType(RecoveryProcessEvent.RecoverySucceeded.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given an active recovery process,
++         when recovery is exhausted,
++         then the process is exhausted
++        """
++    )
++    // @formatter:on
++    @Test
++    void test7() {
++        // given
++        var process = activeProcessFor(GEORGE);
++
++        // when
++        var events = process.exhaust();
++
++        // then
++        assertThat(process.status()).isEqualTo(RecoveryStatus.EXHAUSTED);
++        assertThat(events.hasOccurredEventOfType(RecoveryProcessEvent.RecoveryExhausted.class)).isTrue();
++    }
++
++    // @formatter:off
++    @DisplayName(
++        """
++         given a recovery process that succeeded,
++         when it is paused,
++         then it is refused
++        """
++    )
++    // @formatter:on
++    @Test
++    void test8() {
++        // given
++        var process = activeProcessFor(GEORGE);
++        process.debtCleared();
++
++        // when
++        var thrown = catchThrowable(() -> process.pause().because(PauseReason.DISPUTE_UNDER_REVIEW));
++
++        // then
++        assertThat(thrown).isInstanceOf(RecoveryProcessClosedException.class);
++    }
++}
