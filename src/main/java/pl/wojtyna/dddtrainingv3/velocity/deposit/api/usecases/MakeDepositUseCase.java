@@ -1,0 +1,27 @@
+package pl.wojtyna.dddtrainingv3.velocity.deposit.api.usecases;
+
+import org.jmolecules.architecture.hexagonal.PrimaryPort;
+import pl.wojtyna.dddtrainingv3.velocity.common.domain.DomainEventPublisher;
+import pl.wojtyna.dddtrainingv3.velocity.deposit.domain.account.AccountId;
+import pl.wojtyna.dddtrainingv3.velocity.deposit.domain.account.AccountRepository;
+import pl.wojtyna.dddtrainingv3.velocity.deposit.domain.account.Deposit;
+
+@PrimaryPort
+public class MakeDepositUseCase {
+
+    private final AccountRepository accountRepository;
+    private final DomainEventPublisher eventPublisher;
+
+    public MakeDepositUseCase(AccountRepository accountRepository, DomainEventPublisher eventPublisher) {
+        this.accountRepository = accountRepository;
+        this.eventPublisher = eventPublisher;
+    }
+
+    public void makeDeposit(AccountId accountId, Deposit deposit) {
+        accountRepository.load(accountId).ifPresent(account -> {
+            var events = account.make(deposit);
+            accountRepository.save(account);
+            eventPublisher.publish(events);
+        });
+    }
+}

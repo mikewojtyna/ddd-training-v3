@@ -1,13 +1,13 @@
-package pl.wojtyna.dddtrainingv3;
+package pl.wojtyna.dddtrainingv3.velocity.contextmap;
 
 import org.contextmapper.dsl.cml.CMLResource;
 import org.contextmapper.dsl.generator.ContextMapGenerator;
 import org.contextmapper.dsl.generator.contextmap.ContextMapFormat;
 import org.contextmapper.dsl.standalone.ContextMapperStandaloneSetup;
 
-public class VelocityBoundedContexts {
+public class VelocityContextMap {
 
-    private static final String INPUT_FILE = "src/main/cml/VeloCity-Bounded-Contexts.cml";
+    private static final String INPUT_FILE = "src/main/cml/VeloCity-Context-Map.cml";
     private static final String OUTPUT_DIR = "target";
 
     static void main() {
