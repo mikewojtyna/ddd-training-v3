@@ -48,7 +48,7 @@ public class AddItemToOrderUseCase {
     public void addItem(OrderId orderId, ProductId product, Quantity quantity, Price price) {
         var order = orders.load(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
         var events = order.add(product).times(quantity).at(price);
-        orders.save(order);              // event-sourced: orders.save(order, events)
+        orders.save(order);              // event-sourced: orders.save(order, events), where events = all pending events
         eventPublisher.publish(events);
     }
 }
@@ -102,7 +102,7 @@ public class RideEndedPolicy implements DomainPolicy {
 ## 5. Repositories
 
 - There is one repository per aggregate, and only aggregates get repositories (not entities, not value objects).
-- The port is an interface next to the aggregate in `domain/<aggregate>/`, annotated with `@Repository @SecondaryPort`, with `Optional<A> load(AId id)` and `void save(A aggregate)`. Event-sourced aggregates use `void save(A aggregate, DomainEvents newEvents)`.
+- The port is an interface next to the aggregate in `domain/<aggregate>/`, annotated with `@Repository @SecondaryPort`, with `Optional<A> load(AId id)` and `void save(A aggregate)`. Event-sourced aggregates use `void save(A aggregate, DomainEvents newEvents)`, where `newEvents` is the last command's result, which holds all pending events (`aggregate-templates.md` §6).
 - Use the collection-like vocabulary already in the repo (`load` / `save`). Don't add `findAllBy...` query methods: lists and searches for screens are read models (`api/queries`), not aggregate loading.
 - `save` enforces the `Version` contract (see `aggregate-templates.md` §1 and §8) and throws `OptimisticLockingException` on conflict. Write that contract in the port's javadoc so every adapter honours it.
 - Adapters go in `<ctx>/infra/adapters/secondary/` with `@SecondaryAdapter`. Start with in-memory; JPA/JDBC adapters come later and map to their own persistence classes, so the domain class never gets JPA annotations.

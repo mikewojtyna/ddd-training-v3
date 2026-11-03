@@ -48,9 +48,10 @@
       "id": 4,
       "name": "dock-event-sourced-with-repo",
       "prompt": "Make me an event-sourced Dock aggregate in velocity rentals with an in-memory repository. Invariant: a dock holds at most one bike. Given a dock holding bike B1, When bike B2 is docked, Then docking is rejected. Given an empty dock, When bike B1 is docked, Then bike B1 is docked.",
-      "expected_output": "Event-sourced Dock with sealed DockEvent, apply/rebuild, Version from history size, DockTest with 2 GWT tests, DockRepository port with save(dock, events), in-memory adapter with optimistic lock + test; build green.",
+      "expected_output": "Event-sourced Dock with sealed DockEvent, apply/rebuild, pending events (every command returns all events emitted since open/rebuild), Version from history size, DockTest with 2 GWT tests, DockRepository port with save(dock, events), in-memory adapter with optimistic lock + test; build green.",
       "files": [],
       "assertions": [
+        "Dock keeps a pending-events list and every command returns all pending events, not only its own; at least one test asserts containsExactly over the events of more than one command on the same instance",
         "Dock is @AggregateRoot with a private apply(...) and static rebuild/history factory",
         "Sealed DockEvent interface implementing DomainEvent",
         "DockRepository is @Repository @SecondaryPort with save taking DomainEvents",
