@@ -195,7 +195,9 @@ Notes:
 
 ## 6. Event-sourced aggregate
 
-Commands validate against current state, create events, `apply` them to their own state, and return them. `apply` is the only place that mutates state, and it never validates or throws, because past events are facts. Rebuilding the aggregate replays history through the same `apply`.
+Commands validate against current state, create events, `apply` them to their own state, append them to the aggregate's **pending events**, and return **all pending events**: everything emitted since the aggregate was created or rebuilt, not only this command's events. `apply` is the only place that mutates state, and it never validates or throws, because past events are facts. Rebuilding the aggregate replays history through the same `apply`, without adding it to the pending events.
+
+Why every command returns all pending events: if commands return only their own events, two commands on the same instance spread the new facts over two `DomainEvents`. A caller that keeps only the last one stores and publishes half the story, and a rebuild then disagrees with the state the aggregate had in memory, while `apply` accepts the gap silently because it never validates. When every command returns the whole pending list, the latest result is always complete. **Always use this approach for event-sourced aggregates.**
 
 ```java
 @AggregateRoot
@@ -205,6 +207,7 @@ public class Order {
 
     private final OrderId id;
     private final Version version;
+    private final List<OrderEvent> pendingEvents = new ArrayList<>(); // emitted since open/rebuild, in order
     private Money total = Money.zero(CurrencyUnit.USD);
     private boolean confirmed;
 
@@ -238,9 +241,11 @@ public class Order {
         };
     }
 
+    /** Applies the event, records it as pending and returns all pending events, not only this one. */
     private DomainEvents emit(OrderEvent event) {
         apply(event);
-        return DomainEvents.of(event);
+        pendingEvents.add(event);
+        return DomainEvents.of(pendingEvents.toArray(DomainEvent[]::new));
     }
 
     private void apply(OrderEvent event) {
@@ -269,6 +274,8 @@ Notes:
 - Events must carry everything `apply` needs to rebuild the state the invariants read, and nothing beyond that.
 - **Version = number of events in the stream at load time.** A freshly opened order is at version 0 with one pending `OrderOpened`. After it's saved, the stream holds 1 event and a reload is at version 1.
 - The use case for creation saves `newOrder.created()` with `newOrder.events()` and publishes the same events.
+- **Pending events:** `rebuild` leaves `pendingEvents` empty, because history is already stored. `open` starts with `OrderOpened` pending, so the first command after `open` returns `[OrderOpened, ItemAdded]`. Don't add a public "clear" or "mark committed" method. After a save, callers reload (see the versioning contract), which starts a fresh, empty pending list.
+- **Test it:** when a scenario runs more than one command on the same instance, assert the last result with `containsExactly(...)` over *all* the pending events in order, e.g. `assertThat(events.stream()).containsExactly(new ItemAdded(...p1...), new ItemAdded(...p2...))`. Add such an assertion to at least one test of every event-sourced aggregate.
 - In ES tests, the "given" can be a history: `Order.rebuild(id, List.of(new ItemAdded(...)))`. That's often clearer than replaying commands.
 
 ## 7. Tests
@@ -351,7 +358,7 @@ public interface OrderRepository {
 }
 ```
 
-For **event-sourced** aggregates, `save` takes the new events, because they are what gets stored:
+For **event-sourced** aggregates, `save` takes the new events, because they are what gets stored. Pass the result of the **last** command: it already holds all pending events (§6), so nothing from earlier commands on the same instance is lost:
 
 ```java
     /** Appends {@code newEvents}; fails with {@link OptimisticLockingException} unless the stream is still at {@code order.version()}. */
