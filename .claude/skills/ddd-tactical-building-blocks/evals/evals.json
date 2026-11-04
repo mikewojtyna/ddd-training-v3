@@ -5,19 +5,18 @@
       "id": 1,
       "name": "rider-state-based-two-invariants",
       "prompt": "In VeloCity rentals I need a Rider aggregate. Riders have a name, email and phone number that we show in the app. Invariants: (1) a rider never has more than 2 active rentals at the same time. Given a rider with 2 active rentals, When the rider starts another rental, Then the rental is rejected. Given a rider with 1 active rental, When the rider starts another rental, Then the rental is started. (2) a rider with outstanding debt cannot start a rental. Given a rider owing 5 PLN, When the rider starts a rental, Then the rental is rejected. State-based please.",
-      "expected_output": "Rider aggregate in velocity/rentals/domain/rider with only active-rental count/ids and debt state (no name/email/phone), Version, chained command if >1 arg, returns DomainEvents, exceptions per rule, RiderTest with 3 GWT tests passing, repository suggested/created, TDD log per invariant.",
+      "expected_output": "Passes the gate, restates invariants and the scenario order, sketches the design (no name/email/phone), writes exactly ONE test method in RiderTest plus compile-only scaffolding, observes a red for the right reason, shows the test, tries to open it in the IDE, and stops asking whether the user implements it or Claude scaffolds it. No rule logic yet, no second test.",
       "files": [],
       "assertions": [
-        "Rider class annotated @AggregateRoot exists under velocity/rentals/domain",
-        "Rider has no name/email/phone fields",
-        "Rider has a Version field and version() accessor; common/domain/Version exists",
-        "Command method returns DomainEvents; Rider does not reference DomainEventPublisher",
-        "RiderTest has >= 3 tests with @DisplayName given/when/then text blocks",
-        "Tests assert results (assertThat present in every test)",
-        "Rider does not hold references to other aggregate classes",
-        "Response reports a red then green per invariant",
-        "./mvnw test -Dtest=RiderTest passes",
-        "Repository port suggested or created"
+        "RiderTest exists with exactly one @Test method",
+        "The single test has a @DisplayName given/when/then text block and an assertThat",
+        "Rider is @AggregateRoot under velocity/rentals/domain and has no name/email/phone fields",
+        "Rider contains no rule logic yet: no check for 2 active rentals and no debt check",
+        "Response shows the test code and reports an observed red (failure message), or explicitly says it was green from the start",
+        "Response attempts to open the test in the IDE (idea MCP/launcher) or gives a clickable path:line",
+        "Response ends by asking the user to choose between writing the implementation themselves or having Claude scaffold it",
+        "Response does not start a second scenario",
+        "No Version field and no repository yet; persistence comes only after all domain scenarios are green"
       ]
     },
     {
@@ -48,16 +47,15 @@
       "id": 4,
       "name": "dock-event-sourced-with-repo",
       "prompt": "Make me an event-sourced Dock aggregate in velocity rentals with an in-memory repository. Invariant: a dock holds at most one bike. Given a dock holding bike B1, When bike B2 is docked, Then docking is rejected. Given an empty dock, When bike B1 is docked, Then bike B1 is docked.",
-      "expected_output": "Event-sourced Dock with sealed DockEvent, apply/rebuild, pending events (every command returns all events emitted since open/rebuild), Version from history size, DockTest with 2 GWT tests, DockRepository port with save(dock, events), in-memory adapter with optimistic lock + test; build green.",
+      "expected_output": "Event-sourced Dock: restates the invariant and scenario order, writes ONE test (likely the empty dock happy path) with compile-only scaffolding, reports red or green-from-start, shows the test and stops asking implement-yourself vs scaffold. Repository/in-memory adapter not built yet (it comes after the cycles).",
       "files": [],
       "assertions": [
-        "Dock keeps a pending-events list and every command returns all pending events, not only its own; at least one test asserts containsExactly over the events of more than one command on the same instance",
-        "Dock is @AggregateRoot with a private apply(...) and static rebuild/history factory",
-        "Sealed DockEvent interface implementing DomainEvent",
-        "DockRepository is @Repository @SecondaryPort with save taking DomainEvents",
-        "In-memory adapter throws OptimisticLockingException on version mismatch, with a test",
-        "DockTest has >= 2 GWT tests and passes",
-        "./mvnw test passes for the new tests"
+        "DockTest exists with exactly one @Test method",
+        "No DockRepository or in-memory adapter created yet",
+        "Response shows the test code and reports red or green-from-start honestly",
+        "Response ends by asking the user to choose between writing the implementation themselves or having Claude scaffold it",
+        "Response does not start a second scenario",
+        "No Version field and no repository yet; persistence comes only after all domain scenarios are green"
       ]
     }
   ]
