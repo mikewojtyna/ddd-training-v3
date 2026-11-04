@@ -1,6 +1,6 @@
 # Other tactical building blocks
 
-Conventions for everything around the aggregate. The canonical in-repo examples are in CrowdSorcery's `deposit` context (`domain/account`, `domain/payment`, `api/usecases`, `infra/event/LocalEventsHandler`, `infra/config/DepositContextConfig`). Prefer those shapes, and fix their known training gaps (methods that throw `UnsupportedOperationException`, `CreateAccountUseCase` returning `null`) rather than copying them.
+Conventions for the blocks besides the aggregate: domain services, policies, factories, events, repositories and the use cases around them. The canonical in-repo examples are in CrowdSorcery's `deposit` context (`domain/account`, `domain/payment`, `api/usecases`, `infra/event/LocalEventsHandler`, `infra/config/DepositContextConfig`). Prefer those shapes, and fix their known training gaps (methods that throw `UnsupportedOperationException`, `CreateAccountUseCase` returning `null`) rather than copying them.
 
 ## Contents
 1. Domain events vs integration events
@@ -10,6 +10,7 @@ Conventions for everything around the aggregate. The canonical in-repo examples 
 5. Repositories
 6. Factories
 7. Wiring
+8. Domain services
 
 ---
 
@@ -95,9 +96,36 @@ public class RideEndedPolicy implements DomainPolicy {
 
 - The class implements `common.domain.DomainPolicy`, lives in the `domain` package of the aggregate it *acts on*, has no Spring annotations, and is named `<Event>Policy` or after the business rule.
 - One policy reacts to one event type and triggers one command, or calls one secondary port (e.g. `DepositInitiatedPolicy` → `PaymentProcessor`). If it branches into several unrelated actions, split it.
-- It contains no invariant checks. Those belong to the aggregate whose command it calls. If the policy needs a new aggregate command, that command goes through the aggregate gate (invariant + GWT) like any other.
+- It contains no invariant checks. Those belong to the aggregate whose command it calls. If the policy needs a new aggregate command, that command goes through the rule gate (invariant + GWT) like any other.
 - Routing events to policies is infrastructure: a `LocalEventsHandler`-style class in `<ctx>/infra/event/` with Spring `@EventListener` methods that delegate to `policy.handle(event)`.
-- Test policies in GWT style with the in-memory repository and a recording publisher: *given* an aggregate in some state, *when* the policy handles the event, *then* the expected events were published and/or the reloaded aggregate behaves accordingly.
+- A policy carries a business rule, so it is built in the TDD checkpoint loop like any other rule (SKILL.md Step 4), one scenario per cycle.
+- Test policies in GWT style with the in-memory repository and a recording publisher, or a fake secondary port: *given* an aggregate in some state, *when* the policy handles the event, *then* the expected events were published, the port was called, and/or the reloaded aggregate behaves accordingly. Both test doubles live in `src/test`.
+
+```java
+// @formatter:off
+@DisplayName(
+    """
+     given a paid order O1,
+     when OrderPaid is handled,
+     then the delivery of O1 is started
+    """
+)
+// @formatter:on
+@Test
+void paidOrderStartsDelivery() {
+    // given
+    var deliveries = new RecordingDeliveries();            // fake of the Deliveries secondary port
+    var policy = new StartDeliveryWhenOrderPaidPolicy(deliveries);
+
+    // when
+    policy.handle(new OrderEvent.OrderPaid(new OrderId("O1")));
+
+    // then
+    assertThat(deliveries.started()).containsExactly(new OrderId("O1"));
+}
+```
+
+For the compile-only red step, `handle` gets an empty body: the fake records nothing, so the assertion fails for the right reason.
 
 ## 5. Repositories
 
@@ -134,8 +162,64 @@ public class OrderFactory {
 }
 ```
 
-If a creation rule is an invariant ("an order is opened with at least one item"), it goes through the aggregate gate like any other invariant, and the factory method's test is its GWT scenario.
+If a creation rule is an invariant ("an order is opened with at least one item"), it goes through the rule gate like any other invariant, and the factory method's test is its GWT scenario.
+
+A factory with rules is built in the TDD checkpoint loop (SKILL.md Step 4). Its test calls the factory and asserts the creation events, the created aggregate's first behaviour, or the rejection: *given* the inputs (and a fake id generator, if there is a port), *when* the factory creates the aggregate, *then* `NewOrder.events()` contains exactly `OrderOpened` with the expected id. For the compile-only red step the factory returns `null` events or `DomainEvents.empty()`.
 
 ## 7. Wiring
 
 Domain classes, policies, factories and use cases carry no Spring annotations. Register them as `@Bean`s in the context's `infra/config/<Context>Config` (see `DepositContextConfig`), together with the repository adapter and the event-routing handler. Tests construct everything by hand. Spring is not needed to test domain behaviour.
+
+## 8. Domain services
+
+A domain service holds a **business decision or calculation that owns no state** and isn't naturally the job of one aggregate. Typical signals: the rule combines values from several places ("the delivery fee depends on the order total and the zone"), or it is a pure piece of domain knowledge the expert can state on its own ("delivery is free above 50 PLN, otherwise 9.99 PLN").
+
+Pick it only when the alternatives don't fit:
+- **Aggregate method** instead, if the rule only reads that aggregate's own state, or guards it (that's an invariant).
+- **Policy** instead, if the rule is a reaction: "whenever X happens, then do Y".
+
+Shape:
+- A plain class annotated `@Service` (`org.jmolecules.ddd.annotation.Service`) in `<ctx>/domain/<area>/`, next to the types it works with, named after what it decides or calculates in the ubiquitous language (`DeliveryFeeCalculator`, `TechnicianAssignment`), not `*Manager`/`*Helper`.
+- **Stateless.** Value objects in, a value object or a decision out. No fields except constants or other stateless collaborators.
+- **No repositories, no publishing, no Spring.** The use case loads what the service needs, calls it, and passes the result into an aggregate command if a state change follows. If a service seems to need data it can't be given, it may depend on a secondary port in our language (like a pricing table), but ask the user first: that's a design decision.
+
+```java
+@Service
+public class DeliveryFeeCalculator {
+
+    private static final Money FREE_DELIVERY_THRESHOLD = Money.of(CurrencyUnit.of("PLN"), 50);
+    private static final Money STANDARD_FEE = Money.of(CurrencyUnit.of("PLN"), new BigDecimal("9.99"));
+
+    public Money feeFor(Money orderTotal) {
+        return orderTotal.isGreaterThan(FREE_DELIVERY_THRESHOLD) ? Money.zero(CurrencyUnit.of("PLN")) : STANDARD_FEE;
+    }
+}
+```
+
+Tests: one GWT test per scenario in `<Service>Test`, calling the service directly, built in the TDD checkpoint loop (SKILL.md Step 4). For the compile-only red step the method returns `null` or a zero value, so the assertion fails for the right reason.
+
+```java
+// @formatter:off
+@DisplayName(
+    """
+     given an order total of 60 PLN,
+     when the delivery fee is calculated,
+     then delivery is free
+    """
+)
+// @formatter:on
+@Test
+void deliveryIsFreeAbove50Pln() {
+    // given
+    var calculator = new DeliveryFeeCalculator();
+
+    // when
+    var fee = calculator.feeFor(Money.of(PLN, 60));
+
+    // then
+    assertThat(fee).isEqualTo(Money.zero(PLN));
+}
+```
+
+Wiring: like policies and factories, a domain service is registered as a `@Bean` in the context's `infra/config` only if a use case needs it injected; it can also simply be constructed by the use case's config.
+

@@ -77,6 +77,8 @@ public record Price(Money amount) {
 }
 ```
 
+Validate inside a value object's compact constructor, so an invalid value can't exist (e.g. a negative price throws `IllegalArgumentException`). For amounts in a currency use `org.joda.money.Money`, as CrowdSorcery does. An entity that changes inside the aggregate is a private static nested class annotated `@Entity`, with `equals`/`hashCode` on its id (see `BikeStation.BikeInStation`). An entity that never changes may be a record.
+
 Name each exception after the rule it protects, not after a technical failure. Use the same two constructors as the reference:
 
 ```java

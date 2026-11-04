@@ -7,7 +7,7 @@ Paths are relative to `src/main/java/pl/wojtyna/dddtrainingv3/<system>/<context>
 2. Name, purpose, classification, roles, language → `package-info.java`
 3. Inbound communication → `api/usecases`, `api/queries`, primary adapters
 4. Outbound communication → `api/events`, secondary ports and ACL adapters
-5. Ubiquitous language and business decisions → `domain/`
+5. Business decisions → delegated to `ddd-tactical-building-blocks`
 6. Wiring → `infra/config`
 7. Several modules in one context (only when the user insists)
 
@@ -21,7 +21,7 @@ Paths are relative to `src/main/java/pl/wojtyna/dddtrainingv3/<system>/<context>
   api/usecases/                         one @PrimaryPort class per inbound command/event, plus its command record
   api/queries/                          one @PrimaryPort handler per inbound query, plus query and result records and a read-model port
   api/events/                           published integration events (records implementing IntegrationEvent)
-  domain/<aggregate>/                   aggregates, entities, value objects, domain events, repositories, policies, outbound ports
+  domain/                               built by ddd-tactical-building-blocks; this skill adds only outbound ports in domain/<area>/
   infra/adapters/primary/               REST controllers (@PrimaryAdapter)
   infra/adapters/primary/<ctx>ctxacl/   listeners for upstream events that translate them into our commands (@AntiCorruptionLayer)
   infra/adapters/secondary/             repositories (in-memory), the integration-event publisher
@@ -53,7 +53,8 @@ Create only the packages the canvas needs. Empty packages are noise, and Java do
 /// - **<Term>**: <definition>
 ///
 /// ## Business decisions
-/// - **<Rule name>**: given <...>, when <...>, then <...>. Enforced by `<Aggregate>`, see `<Test>#<method>`.
+/// - **<Rule name>**: given <...>, when <...>, then <...>. Enforced by `<DomainType>`, see `<Test>#<method>`.
+/// - **<Rule name>** (*being built with `ddd-tactical-building-blocks`*): given <...>, when <...>, then <...>.
 /// - **<Rule name>** (*not modelled yet*): <rule as written>. Awaiting a strict Given/When/Then example, see the plan.
 ///
 /// ## Assumptions
@@ -83,14 +84,14 @@ import org.jmolecules.ddd.annotation.Module;
 | **Event** from another context | A use case in `api/usecases` that consumes **our own** record for the fact (named in our language). An `@AntiCorruptionLayer` primary adapter in `infra/adapters/primary/<ctx>ctxacl` listens (`@EventListener`) to the upstream `api.events` type and translates it. If the upstream context doesn't exist in code yet, create only the use case and our own record, and list the listener as a follow-up in the plan. |
 | **Query** | Query record + result record + `<Noun>QueryHandler` (`@PrimaryPort`) in `api/queries`. The handler depends on a read-model `@SecondaryPort` declared in `api/queries`, implemented in memory under `infra/adapters/secondary`. |
 
-Use-case flow, same as in deposit: load the aggregate, call the behaviour that returns `DomainEvents`, save the aggregate, then `DomainEventPublisher.publish(events)`.
+Use-case flow, same as in deposit: load the aggregate, call the behaviour that returns `DomainEvents`, save the aggregate, then `DomainEventPublisher.publish(events)`. Use cases and query handlers need the domain, so they are generated in Step 6b, after `ddd-tactical-building-blocks` has built it; Step 6a creates only their command, query and result records.
 
 ## 4. Outbound communication
 
 | Canvas message | Code |
 |---|---|
-| **Event** published by this context | Integration event record in `api/events` implementing `common.integration.IntegrationEvent`. It carries **primitives and strings only**, no domain types, because it's the published language. Internally, the aggregate emits a domain event. `infra/adapters/secondary/IntegrationEventsPublisher` (`@SecondaryAdapter`) listens to the domain event and publishes the integration record through Spring's `ApplicationEventPublisher`. Keep the two types separate even if they look alike now (see `deposit/api/events/DepositMade` and `deposit/domain/account/DepositMade`). |
-| **Command** sent to another context | A `@SecondaryPort` interface in `domain/<aggregate>/`, named after what *we* need (for example `PaymentProcessor`, not `PaymentGatewayClient`). An adapter implementing it in `infra/adapters/secondary/<ctx>ctxacl/`, with a `package-info.java` annotated `@AntiCorruptionLayer` and a javadoc saying it's the only place the collaborator's language may appear. |
+| **Event** published by this context | Integration event record in `api/events` implementing `common.integration.IntegrationEvent`. It carries **primitives and strings only**, no domain types, because it's the published language. Internally, the domain emits a domain event (built by `ddd-tactical-building-blocks`). `infra/adapters/secondary/IntegrationEventsPublisher`, generated in Step 6b, (`@SecondaryAdapter`) listens to the domain event and publishes the integration record through Spring's `ApplicationEventPublisher`. Keep the two types separate even if they look alike now (see `deposit/api/events/DepositMade` and `deposit/domain/account/DepositMade`). |
+| **Command** sent to another context | A `@SecondaryPort` interface in `domain/<area>/` (the area the canvas message belongs to; the tactical skill may move it next to the block that calls it), named after what *we* need (for example `PaymentProcessor`, not `PaymentGatewayClient`). An adapter implementing it in `infra/adapters/secondary/<ctx>ctxacl/`, with a `package-info.java` annotated `@AntiCorruptionLayer` and a javadoc saying it's the only place the collaborator's language may appear. |
 | **Query** to another context | Same as a command: a port in our language, a translating adapter in the ACL package. Return our own value objects. |
 
 **Conformist without an ACL** (only after the pushback in SKILL.md Step 3): the adapter goes in `infra/adapters/secondary/<ctx>ctx/` without `@AntiCorruptionLayer`, and the port may use the upstream's published types. Write the decision and its risk in the javadoc of that package's `package-info.java`.
@@ -99,20 +100,18 @@ Use-case flow, same as in deposit: load the aggregate, call the behaviour that r
 
 **External parties** (not a bounded context, for example a payment provider or the City zone map): same rule, a port plus an ACL adapter. Name the package `<party>acl`.
 
-## 5. Ubiquitous language and business decisions → `domain/`
+## 5. Business decisions → delegated to `ddd-tactical-building-blocks`
 
-- Every UL term that the rules or messages use becomes a type with **exactly that name**. Don't rename terms for technical reasons. If a term really collides with a Java keyword, ask the user.
-- Group types into `domain/<aggregate>/` packages, one per aggregate (a lowercase noun such as `tariff` or `rental`).
-- **Finding aggregates from strict GWT rules.** A rule's *Given* names the state that must be consistent, and its *When* names the command. Rules whose Givens touch the same state belong in the same aggregate, and that state is the consistency boundary. Pick the smallest boundary that lets every rule be checked inside one aggregate without loading others. Write the reasoning in the plan: rule → invariant → aggregate.
-- Outcomes:
-  - A *Then* that rejects something → a dedicated exception (`<Something>Exception`, or a domain-named one like `BikeAlreadyInStation`) thrown from the aggregate.
-  - A *Then* that records a fact → a domain event record in a sealed `<Aggregate>Event` interface that extends `common.domain.DomainEvent`. The sealed hierarchy forces handlers to use an exhaustive `switch`.
-- UL terms that rules don't use, but messages do, become value-object records. Terms that neither uses stay in the javadoc only. Don't create types nobody uses.
-- Policies ("whenever X then Y" decisions inside the context) → classes implementing `common.domain.DomainPolicy`, triggered by a local `@EventListener` handler in `infra/event`, the same way deposit's `LocalEventsHandler` does it.
+This skill doesn't design the domain. Every strict Given/When/Then rule goes into the plan's rules table as written and is handed to `ddd-tactical-building-blocks` (SKILL.md Step 6a). That skill decides which building block each rule needs (an aggregate only for a real invariant; otherwise a domain service, policy or factory), picks the domain types' names from the ubiquitous language, and builds them, by default in its TDD checkpoint loop.
+
+What stays here:
+- **Ubiquitous-language terms** go into the `package-info.java` javadoc with their definitions. Don't create domain types for them: the tactical skill names its types after these terms.
+- **Rules** go into the javadoc's "Business decisions" (see §2), marked *being built with `ddd-tactical-building-blocks`* until their tests exist, and into the plan's rules table with status *delegated*. After the hand-back, both record the building block the tactical skill chose and the test that enforces the rule.
+- **Value types in `api` records** stay primitives and strings (commands, queries, results, integration events). Mapping them to domain value objects happens in the use case, generated in Step 6b once the domain types exist.
 
 ## 6. Wiring
 
-`infra/config/<Context>ContextConfig` is a `@Configuration` with `@Bean` methods building use cases, query handlers, policies, repositories and adapters by hand. Domain and API classes have no Spring annotations. Prefix bean method names with the context name (`rentalsBikeStationRepository`), because Spring Boot refuses duplicate bean names across contexts. Inject `DomainEventPublisher`, which `common/infra/spring/CommonInfraConfig` already provides.
+`infra/config/<Context>ContextConfig` is a `@Configuration` with `@Bean` methods building use cases, query handlers, policies, repositories and adapters by hand. In Step 6a it holds only the ACL adapters; the rest is added in Step 6b, around the domain types `ddd-tactical-building-blocks` created. Domain and API classes have no Spring annotations. Prefix bean method names with the context name (`rentalsBikeStationRepository`), because Spring Boot refuses duplicate bean names across contexts. Inject `DomainEventPublisher`, which `common/infra/spring/CommonInfraConfig` already provides.
 
 ## 6a. Context boundaries
 

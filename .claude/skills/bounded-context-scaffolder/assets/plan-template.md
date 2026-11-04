@@ -4,7 +4,7 @@
 - **Mode**: scaffold | update
 - **Source canvas**: `<path>` (or "inline, <date>")
 - **Last updated**: <YYYY-MM-DD>
-- **Status**: draft - awaiting review | approved | implemented
+- **Status**: draft - awaiting review | approved | awaiting tactical blocks | implemented
 
 <!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
      Invoking the skill again resumes from this file. -->
@@ -22,6 +22,9 @@
 | Modules | 1 module = 1 context | default |
 | ACL towards <ctx> | yes / no (conformist, user insisted) | <reason; risk if no> |
 | Boundary exceptions | none (default) / D<n>: <exact package allowed> (user insisted after challenge, <date>) | <risk>; excluded in `<Context>ArchitectureTest`, comment at the usage site |
+| Domain layer | delegated to `ddd-tactical-building-blocks` (always) | this skill doesn't design tactical building blocks |
+| TDD checkpoint loop | on (recommended) / off (user opted out, <date>) | on: the user stays in control of each domain step and focused on the heart of the software |
+| Aggregate style (if known) | state-based / event-sourced / left to the tactical skill | |
 | ... | | |
 
 ## Mapping: canvas → code
@@ -34,15 +37,20 @@
 |---|---|---|---|---|
 
 ### Ubiquitous language
-| Term | Code type | Kind (aggregate / entity / VO / event / javadoc only) |
+| Term | Code type (filled in after the hand-back; until then "javadoc, named by the tactical skill") | Where it appears (api record / javadoc / domain type) |
 |---|---|---|
 
-### Business rules → aggregates
-| Rule (GWT) | Invariant | Aggregate | Test |
+### Business rules → delegated to `ddd-tactical-building-blocks`
+<!-- The building block and test are filled in by ddd-tactical-building-blocks when it hands back. -->
+| Rule (GWT) | Status (delegated / green) | Building block (chosen by the tactical skill) | Test |
 |---|---|---|---|
 
 ### Rules awaiting GWT
 - <rule as written>, suggested GWT: <...>, status: awaiting confirmation
+
+## Deferred until tactical blocks are built
+<!-- Generated in Step 6b, after every rule above is green: use cases, query handlers, REST adapters, inbound listeners, repository adapters, integration-event publishers, their wiring. -->
+- <item>: <why it needs the domain>
 
 ## Differences from the reference context map
 | Canvas says | Reference map says | Covered by "Accepted Alternatives"? |

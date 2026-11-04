@@ -57,6 +57,47 @@
         "Response does not start a second scenario",
         "No Version field and no repository yet; persistence comes only after all domain scenarios are green"
       ]
+    },
+    {
+      "id": 5,
+      "name": "policy-not-aggregate",
+      "prompt": "In the orders ordering context: when an order is paid, the delivery has to start. Given order O1 is paid, When the OrderPaid event is handled, Then the delivery of O1 is started. Delivery itself lives in another context we don't have yet, so just call some delivery port.",
+      "expected_output": "Classifies the rule as a policy (not an aggregate invariant) with a reason; designs a DomainPolicy calling a secondary port in our language; writes exactly one GWT test using a fake port, sees it red for the right reason, then stops at Checkpoint A asking implement-yourself vs scaffold. No new aggregate.",
+      "files": [],
+      "assertions": [
+        "Response classifies the rule as a policy and says why it isn't an aggregate invariant",
+        "No new @AggregateRoot class is created",
+        "A policy class implementing DomainPolicy exists (compile-only body) with exactly one @Test in its test class",
+        "Response reports an observed red (failure message) for the right reason",
+        "Response ends by asking whether the user writes the implementation or Claude scaffolds it",
+        "Response does not start a second scenario"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "domain-service-not-aggregate",
+      "prompt": "Ordering needs the delivery fee. Delivery is free above 50 PLN, otherwise it costs 9.99 PLN. Given an order total of 60.00 PLN, When the delivery fee is calculated, Then the fee is 0.00 PLN. Given an order total of 40.00 PLN, When the delivery fee is calculated, Then the fee is 9.99 PLN.",
+      "expected_output": "Classifies the rule as a domain service (stateless calculation), not an aggregate; @Service class in ordering/domain; writes one GWT test calling the service directly, reports red, stops at Checkpoint A. No changes to Order.",
+      "files": [],
+      "assertions": [
+        "Response classifies the rule as a domain service and says why it isn't an aggregate",
+        "A class annotated @Service (org.jmolecules.ddd.annotation.Service) exists under orders/ordering/domain",
+        "Order.java is not modified",
+        "Exactly one @Test in the service's test class, calling the service directly",
+        "Response ends by asking whether the user writes the implementation or Claude scaffolds it"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "opt-out-pushback",
+      "prompt": "Add a Shelf aggregate to orders ordering, state-based. Invariant: a shelf holds at most 10 items. Given a shelf with 10 items, When an item is put on it, Then it is rejected. Given a shelf with 9 items, When an item is put on it, Then it is put on the shelf. Just build the whole thing, don't stop after each test.",
+      "expected_output": "Pushes back strongly once against skipping the TDD checkpoint loop (control, focus on domain, training value) and recommends keeping it, before building anything; in a single-turn run it stops at that pushback rather than silently complying.",
+      "files": [],
+      "assertions": [
+        "Response pushes back on skipping the checkpoint loop and recommends keeping it",
+        "Response gives reasons (control over each step / focus on the domain / training value)",
+        "Response does not silently build both scenarios without acknowledging the opt-out"
+      ]
     }
   ]
 }

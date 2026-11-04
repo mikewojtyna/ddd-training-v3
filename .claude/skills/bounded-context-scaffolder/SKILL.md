@@ -1,6 +1,6 @@
 ---
 name: bounded-context-scaffolder
-description: Scaffold a new bounded context, or update an existing one, from a Bounded Context Canvas (ddd-crew v5) into a ports-and-adapters Java module with jMolecules annotations, records, ACLs, aggregates and Given/When/Then tests, plus a plan markdown file with a changelog. Use this whenever the user wants to create, add, generate, scaffold, bootstrap or update a bounded context, a context module, or a new subpackage for a system such as VeloCity or CrowdSorcery. Also use it when they share a bounded context canvas (a markdown file or pasted text) and want code from it, or say things like "add the Pricing context", "turn this canvas into code", or "the Settlement canvas changed, update the module", even if they never say "scaffold". Also use it to resume from a saved bounded-context plan: "I reviewed the Pricing plan, go ahead", "plan approved", "I edited plan.md, continue".
+description: Scaffold a new bounded context, or update an existing one, from a Bounded Context Canvas (ddd-crew v5) into a ports-and-adapters Java module with jMolecules annotations, records, use cases, ACLs, REST adapters, Spring wiring and an architecture test, plus a plan markdown file with a changelog. The domain layer (aggregates, domain services, policies, factories) is always delegated to ddd-tactical-building-blocks, by default in its TDD checkpoint loop. Use this whenever the user wants to create, add, generate, scaffold, bootstrap or update a bounded context, a context module, or a new subpackage for a system such as VeloCity, CrowdSorcery or Orders. Also use it when they share a bounded context canvas (a markdown file or pasted text) and want code from it, or say things like "add the Pricing context", "turn this canvas into code", or "the Settlement canvas changed, update the module", even if they never say "scaffold". Also use it to resume from a saved bounded-context plan: "I reviewed the Pricing plan, go ahead", "plan approved", "I edited plan.md, continue", "the domain is done, finish the context".
 ---
 
 # Bounded Context Scaffolder
@@ -14,11 +14,13 @@ The skill always produces two artifacts:
 1. **A plan markdown file** that maps every canvas element to code. In update mode it also has a changelog.
 2. **The module**: the bounded context package, its tests and Spring wiring.
 
+**This skill doesn't design the domain.** Deciding which building block a business rule needs (aggregate, domain service, policy, factory) and building it is the job of `ddd-tactical-building-blocks`, and this skill always delegates it there. It keeps no rules of its own about aggregates or other tactical blocks, so the two skills can't drift apart. What stays here is everything around the domain: the canvas, the plan, the module's packages, `api`, ACLs, use-case and query orchestration, REST, wiring and the boundary test.
+
 The canvas is the input contract. An empty context has no value: a package with nothing in it teaches nothing and decides nothing. So don't scaffold without a canvas that has real content.
 
 Read these files when you need them:
 - `references/canvas-mapping.md`: how each canvas section turns into packages, classes and javadoc. Read it before writing the plan.
-- `references/code-templates.md`: Java shapes for every element type. Read it before generating code.
+- `references/code-templates.md`: Java shapes for the non-domain element types. Read it before generating code.
 - `assets/canvas-template.md`: the input template to hand to the user.
 - `assets/plan-template.md`: the structure of the plan file.
 
@@ -28,13 +30,16 @@ Also read the project's `CLAUDE.md` and the target system's `CLAUDE.md` (for exa
 
 ## Step 0: Look for an existing plan, and resume from it
 
-The work happens in two sessions with a review in between, so the plan file is the hand-off point. Before anything else, check the default plan location (below), or a plan path the user gives you. Look at its `Status` line:
+The work happens across several sessions, with a review in between and the domain built in the middle, so the plan file is the hand-off point. Before anything else, check the default plan location (below), or a plan path the user gives you. Look at its `Status` line:
 
 - **No plan:** start at Step 1.
 - **`draft - awaiting review`:** a previous run wrote the plan and stopped for review. Don't rebuild it from scratch. Read it, then collect the user's feedback: from this conversation, from edits or comments they made in the plan file itself, and from changes to the canvas since the plan's date. Revise the plan, record what changed under "Review notes", and then:
   - if the user has already approved it, go to Step 6
   - otherwise stop at Step 4 again
 - **`approved`:** the user approved the plan but the code isn't generated yet. Check that the canvas hasn't changed since. If it has, revise the plan and ask again. Otherwise go to Step 6 and implement **the plan as approved**. Don't redesign it while generating code.
+- **`awaiting tactical blocks`:** the non-domain parts exist and the business rules were handed to `ddd-tactical-building-blocks`. Check the plan's rules table and the tests:
+  - **Every strict rule has a passing test:** go to Step 6b and generate the deferred items, using the domain types the tactical skill created.
+  - **Rules still missing:** list them, and continue with `ddd-tactical-building-blocks` for the next ones (Step 6a's hand-off). Don't build the domain here.
 - **`implemented`:** the context exists. A new request means update mode. Add a new changelog entry, set the status back to `draft - awaiting review`, and go through the review gate again.
 
 ## Step 1: Get the canvas
@@ -68,18 +73,18 @@ Check it in this order of importance.
 
 ### Business rules must be strict Given/When/Then
 
-Aggregates are designed from business rules, and a rule only becomes an aggregate invariant if it is precise enough to test. For every business decision in the canvas:
+A rule can only be handed to `ddd-tactical-building-blocks` if it is precise enough to test. For every business decision in the canvas:
 
-- **Written as a Given/When/Then example with concrete values** (for example "given a station with 0 available bikes, when a rider unlocks a bike, then the unlock is rejected"): use it to design aggregates, and it becomes a test.
-- **Vague or prose-only** ("rentals can't be too long"): don't build an aggregate from it. Suggest a strict GWT version with concrete values and ask the user to confirm it. Until they do, list the rule in the plan under "Rules awaiting GWT" and keep it in the javadoc's business decisions, but don't model it in code. Guessing a threshold such as "11 hours" silently would bury an assumption in the domain model.
+- **Written as a Given/When/Then example with concrete values** (for example "given a station with 0 available bikes, when a rider unlocks a bike, then the unlock is rejected"): it goes into the plan's rules table and is delegated as written. Don't decide here which building block it needs. That's the tactical skill's call.
+- **Vague or prose-only** ("rentals can't be too long"): suggest a strict GWT version with concrete values and ask the user to confirm it. Until they do, list the rule in the plan under "Rules awaiting GWT" and keep it in the javadoc's business decisions as *not modelled yet*, but don't delegate it. Guessing a threshold such as "11 hours" silently would bury an assumption in the domain model.
 
-If there are no strict rules at all, scaffold the ports and adapters without aggregates and say so plainly in the plan.
+If there are no strict rules at all, scaffold the ports and adapters without any domain hand-off and say so plainly in the plan.
 
 ### Check the canvas for internal consistency
 
 Work through every GWT example by hand, using the ubiquitous-language definitions. Canvases are written by people under time pressure, and an example that contradicts its own definitions is common. For example, a "billing period = each started hour" definition can't be squared with a fee that counts only four periods for a ride that has five. When you find a contradiction:
-- don't pick one side silently, and don't write a test that hard-codes either reading
-- implement what the *undisputed* rules and definitions require
+- don't pick one side silently, and don't hand a test that hard-codes either reading to the tactical skill
+- delegate what the *undisputed* rules and definitions require
 - list the conflicting example under "Rules awaiting GWT", with both readings and the arithmetic, and ask the user which one is wrong
 
 ### Compare with the reference context map (VeloCity)
@@ -105,22 +110,27 @@ Settle these before writing the plan. Each one ends up in the plan's "Decisions"
      - a comment where the foreign type is used (the using package's `package-info.java` javadoc, or the class javadoc), citing the same D-number
 
    Without such a request there are no exceptions, and the test stays two plain rules.
+7. **The domain is delegated to `ddd-tactical-building-blocks`, and the TDD checkpoint loop is the strong recommendation.** Whenever the canvas has strict GWT rules, record two things:
+   - **Delegation:** always. All strict rules go to `ddd-tactical-building-blocks`, which decides the building blocks and builds them. This isn't a choice to offer.
+   - **TDD checkpoint loop: on (recommended) or off.** Ask the user (Step 4). In the loop, the tactical skill builds one Given/When/Then scenario per cycle and stops after every test to ask whether the user writes the implementation or Claude scaffolds a minimal one for confirmation. **Strongly recommend keeping it.** It keeps the user's attention on the domain logic, which is the heart of the software and the part that differs from every other system, and it keeps them in control of every design decision as it's made. Switching it off means the whole domain arrives at once, and the user reviews it after the fact instead of shaping it. That's possible, but discouraged. Say so plainly, and record an opt-out as the user's explicit decision.
+   - For an aggregate whose style (state-based or event-sourced) the canvas or conversation already states, note it for the hand-off. Otherwise the tactical skill asks.
 
 ## Step 4: Save the plan, then stop for review
 
-Write the plan file using `assets/plan-template.md`, with `Status: draft - awaiting review`. It's a traceability document: every canvas element points to the file that implements it, and every generated file points back to the canvas element that justifies it.
+Write the plan file using `assets/plan-template.md`, with `Status: draft - awaiting review`. It's a traceability document: every canvas element points to the file that implements it, and every generated file points back to the canvas element that justifies it. Business rules point to the tactical skill until their tests exist.
 
 Then **stop, and don't generate code in this turn**. Give the user:
 - the plan's path
-- a short summary: counts of use cases, queries, events, ports, ACLs, aggregates and tests
+- a short summary: counts of use cases, queries, events, ports, ACLs, and strict rules delegated to `ddd-tactical-building-blocks`
 - the decisions you made and the pushbacks you gave
-- the questions you need answered (rules awaiting GWT, contradictions, differences from the context map)
+- **the TDD checkpoint loop question**, if there are strict rules, as its own visible item: keep it (recommended, with the reason in one sentence) or switch it off (discouraged). Use `AskUserQuestion` for it if available, with "Keep the TDD checkpoint loop (Recommended)" as the first option.
+- the other questions you need answered (rules awaiting GWT, contradictions, differences from the context map)
 
 Ask them to review the plan. They can reply in the conversation or edit the plan file directly. Tell them that invoking the skill again picks up from the saved plan.
 
-Why the hard stop: the plan is where the domain decisions become visible (aggregate boundaries, ACLs, which rules are modelled). Reviewing them there costs minutes. Reviewing them later means picking apart generated code. The stop applies even if the request sounded urgent, and even if no one can answer right away. A saved draft waits safely, and generated code built on an unreviewed plan doesn't.
+Why the hard stop: the plan is where the structural decisions become visible (ACLs, boundaries, which rules go to the domain). Reviewing them there costs minutes. Reviewing them later means picking apart generated code. The stop applies even if the request sounded urgent, and even if no one can answer right away. A saved draft waits safely, and generated code built on an unreviewed plan doesn't.
 
-Go on to Step 5 or 6 only when the user explicitly approves *this* plan, in the conversation or by setting `Status: approved` in the file. When you go on, set the status to `approved` and record the approval and any last changes under "Review notes".
+Go on to Step 5 or 6 only when the user explicitly approves *this* plan, in the conversation or by setting `Status: approved` in the file. When you go on, set the status to `approved` and record the approval, the loop choice and any last changes under "Review notes". If they approve without answering the loop question, the loop stays **on**: record that as the default.
 
 ## Step 5 (update mode only): Compare with the existing code before changing it
 
@@ -130,28 +140,59 @@ Go on to Step 5 or 6 only when the user explicitly approves *this* plan, in the 
    - **Changed**: renamed terms, changed messages, changed rules.
    - **Removed**: in the code, not in the canvas.
    - **Untouched.**
-3. Apply additions and changes, and keep the style already in the code. For example, if Rentals uses a curried fluent API, new commands in Rentals use it too.
+3. Apply additions and changes to the non-domain parts, and keep the style already in the code. **Added or changed business rules go to `ddd-tactical-building-blocks`** through the same hand-off as Step 6a, with the loop choice from the plan. Don't edit domain classes here.
 4. **Never delete existing code on your own.** Hand-written code and workshop stubs (for example `UnsupportedOperationException("implement this")`) can be deliberate. List the proposed removals in the plan and remove them only after the user confirms.
 5. Don't convert existing classes to records unless the user asks. Records are the rule for code you create.
 6. Add a dated entry to the plan's **Changelog**: what changed, which canvas change caused it, and which files it touched. If a plan file already exists, keep it and add to it. Its history is the point.
 
 ## Step 6: Generate the module
 
-Follow `references/canvas-mapping.md` and `references/code-templates.md`. The key rules, with the reasons behind them:
+Follow `references/canvas-mapping.md` and `references/code-templates.md`. If the plan has strict rules, the module is generated in two parts around the domain hand-off (6a, then 6b). Without strict rules, do both parts in one go.
 
-- **Records instead of classes with getters** for value objects, identifiers, commands, queries, query results, domain events, integration events and REST request and response bodies. Records state intent, are immutable, and spare you hand-written accessors and `equals`/`hashCode`. Lombok isn't available here, because it crashes javac on JDK 27.
-- **Aggregate roots and entities stay classes.** They protect invariants over changing state. Expose behaviour (methods that return `DomainEvents`), not getters. The only accessor is the identity, annotated with `@Identity`. An entity inside an aggregate that never changes after creation can be a record.
-- **jMolecules annotations on everything**: `@AggregateRoot`, `@Entity`, `@ValueObject`, `@Identity`, `@Repository`, `@PrimaryPort`, `@SecondaryPort`, `@PrimaryAdapter`, `@SecondaryAdapter`. Only `jmolecules-ddd` and `jmolecules-hexagonal-architecture` are on the classpath, so `@DomainEvent` (from `jmolecules-events`) isn't available. Domain events are marked by implementing `common.domain.DomainEvent` instead.
-- **Reuse the top-level `common`**: `DomainEvents`, `DomainEvent`, `DomainEventPublisher`, `DomainPolicy`, `IntegrationEvent`, `@AntiCorruptionLayer`. Never duplicate them.
+### Rules for all generated code
+
+- **Records instead of classes with getters** for commands, queries, query results, integration events and REST request and response bodies. Records state intent, are immutable, and spare you hand-written accessors and `equals`/`hashCode`. Lombok isn't available here, because it crashes javac on JDK 27.
+- **jMolecules annotations on everything this skill generates**: `@PrimaryPort`, `@SecondaryPort`, `@PrimaryAdapter`, `@SecondaryAdapter`, plus `@BoundedContext`, `@Module` and `@AntiCorruptionLayer` on packages. Domain annotations are the tactical skill's business.
+- **Reuse the top-level `common`**: `DomainEvents`, `DomainEvent`, `DomainEventPublisher`, `IntegrationEvent`, `@AntiCorruptionLayer`. Never duplicate them.
 - **No Spring in `domain/` or `api/`.** All wiring goes in `infra/config/<Context>ContextConfig`. Give bean methods context-prefixed names (for example `pricingTariffRepository`), because bean names are global and Spring Boot fails on duplicates.
-- **Tests for every strict GWT rule**, in `src/test/java/...` in the same package as the aggregate. Use the `BikeStationTest` style: the scenario in a `@DisplayName` text block, and `// given`, `// when`, `// then` sections. Implement the aggregate so these tests pass. The rules are precise, so make them real.
-- **The `package-info.java` javadoc follows the rules in the code.** Its "Business decisions" section is the readable form of the rules the module actually enforces. Each rule that is implemented appears in its Given/When/Then form and names its test (for example "see `PriceListTest#freeRide`"). Each rule that isn't implemented yet is marked *not modelled yet* and points to the plan. Whenever a change adds, changes or removes a rule or its test, update this section **in the same change**, along with the plan's rule tables. This applies in update mode and when a rule moves from "awaiting GWT" to implemented. If the javadoc says something the tests don't enforce, it misleads the next reader.
+- **The `package-info.java` javadoc follows the rules in the code.** Its "Business decisions" section is the readable form of the rules the module actually enforces. Each rule that is implemented appears in its Given/When/Then form and names its test (for example "see `PriceListTest#freeRide`"). Each rule that is delegated but not built yet is marked *being built with `ddd-tactical-building-blocks`*, and each rule awaiting GWT is marked *not modelled yet* and points to the plan. Whenever a change adds, changes or removes a rule or its test, update this section **in the same change**, along with the plan's rule table. If the javadoc says something the tests don't enforce, it misleads the next reader.
 - **An architecture test guards the boundary.** Generate `src/test/java/.../<system>/<context>/<Context>ArchitectureTest.java` from the template in `references/code-templates.md`. It has two ArchUnit rules:
   - *incoming*: other contexts use only this context's `api`
   - *outgoing*: this context uses only other contexts' `api`
 
   Shared code (top-level `common`, a system's `common` and `contextmap`) isn't a context and is always allowed. Add a commented exception clause only for a decision recorded under Step 3, item 6. If `pom.xml` doesn't have `com.tngtech.archunit:archunit-junit5` (test scope), add it at version **1.5.1**, and record that in the plan. Older versions can't read the class files of the locally installed JDK 27.
-- **Stubs are allowed only at the edges**: ACL adapters to contexts that don't exist in code yet, and REST endpoints the canvas doesn't describe. They throw `UnsupportedOperationException("implement this")` and carry a comment naming the canvas message. In-memory repositories are implemented, not stubbed.
+- **Stubs are allowed only at the edges**: ACL adapters to contexts that don't exist in code yet, and REST endpoints the canvas doesn't describe. They throw `UnsupportedOperationException("implement this")` and carry a comment naming the canvas message.
+
+### 6a. Before the domain: generate what doesn't depend on it, then hand off
+
+Generate:
+- `package-info.java` with the canvas javadoc
+- `api/usecases` command records, `api/queries` query and result records, `api/events` integration-event records
+- outbound ACLs: the secondary port in our language and its adapter in the `@AntiCorruptionLayer` package
+- the architecture test
+- `infra/config/<Context>ContextConfig` with the beans that exist so far (ACL adapters), if any
+
+List everything that needs the domain in the plan's **"Deferred until tactical blocks are built"** section: use-case and query-handler classes, REST adapters and inbound event listeners that call them, repository adapters and their wiring, integration-event publishers that map domain events. Run Step 7 on what exists, set `Status: awaiting tactical blocks`, add a changelog entry, and tell the user briefly what was generated and what comes next.
+
+**Then invoke `ddd-tactical-building-blocks`** in the same session. Pass:
+- the plan's path (it reads the plan, recognises `awaiting tactical blocks`, and works from it)
+- the strict rules with their Given/When/Then scenarios, as written in the plan
+- the context's package and any aggregate style already known
+- the **TDD checkpoint loop** choice from the plan
+- the instruction to hand back to this skill once every rule in the plan has a passing test
+
+From here the tactical skill drives: it classifies the rules, enforces its own gate (for example at most 3 rules per run), runs the cycles with the user, and adds `Version` and the repository port after the domain is green.
+
+### 6b. After the domain: generate the deferred items
+
+When the plan has `Status: awaiting tactical blocks` and every strict rule has a passing test (Step 0), generate the items from the "Deferred until tactical blocks are built" section, **using the domain types the tactical skill created** (look them up in the code and in the plan's rule table). Don't change domain classes. If a deferred item needs something the domain doesn't offer, such as a missing command, stop and name it as a new rule for `ddd-tactical-building-blocks` rather than adding it yourself.
+- use cases (load → command → save → publish) and query handlers, wired to the repository port from the domain
+- the in-memory repository adapter, if the tactical skill didn't create one
+- REST adapters and inbound event listeners (ACLs) calling the use cases
+- integration-event publishers mapping domain events to `api/events`
+- the rest of `<Context>ContextConfig`
+
+Then run Step 7, set `Status: implemented`, and add a dated changelog entry that includes the tactical skill's per-cycle log (rule, building block, who implemented it).
 
 ## Step 7: Verify
 
@@ -161,15 +202,16 @@ Follow `references/canvas-mapping.md` and `references/code-templates.md`. The ke
 ./mvnw test        # the Spring context must still start with the new config
 ```
 
-Fix any failures before reporting. If something can't pass for a reason outside the module, say so explicitly. Don't hide it.
+Fix any failures in the code this skill generated before reporting. If something can't pass for a reason outside the module, say so explicitly. Don't hide it. Don't fix domain code here: report it, and hand it to `ddd-tactical-building-blocks`.
 
-Before reporting, check that the javadoc matches the tests. Every GWT test should have its rule in the javadoc's "Business decisions", and every rule listed there as implemented should have a test. Then set the plan's status to `implemented` and add the dated changelog entry.
+Before reporting, check that the javadoc matches the tests. Every rule marked implemented in the javadoc's "Business decisions" should have a passing test, and every rule test should appear there.
 
 ## Step 8: Report and follow up
 
 Tell the user:
 - the paths of the plan and the module
-- the decisions made and the pushbacks given (ACL, multiple modules, non-GWT rules, boundary exceptions)
+- the decisions made and the pushbacks given (ACL, multiple modules, non-GWT rules, boundary exceptions, the TDD checkpoint loop choice)
+- where the work stands: at 6a, that the domain is next, with `ddd-tactical-building-blocks`; at 6b, what was generated around the finished domain
 - the open points: rules awaiting GWT (including contradictions found in the canvas), collaborators that don't exist in code yet, open questions from the canvas
 - the differences from the reference context map, if any
 - for VeloCity: whether `src/main/cml/VeloCity-*.cml` and `velocity/velocity-context-map.md` need updating to match. The VeloCity `CLAUDE.md` asks to keep them in sync. Offer to do it, but don't do it unasked, because the context map may be a workshop exercise.
