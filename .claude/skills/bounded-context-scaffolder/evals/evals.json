@@ -4,25 +4,20 @@
     {
       "id": 1,
       "prompt": "Scaffold the Pricing bounded context for VeloCity from the canvas in /home/goobar/IdeaProjects/ddd-training-v3/.claude/skills/bounded-context-scaffolder/evals/files/pricing-canvas.md",
-      "expected_output": "Plan md + new velocity/pricing module: package-info with full canvas javadoc, use cases, query, integration event, Rentals ACL, PriceList-like aggregate from the 4 GWT rules with passing tests, records for VOs; build green.",
+      "expected_output": "Stops at plan review. The plan maps the canvas to api records, use cases, query, integration event, Rentals ACL and the architecture test; it delegates all strict GWT rules to ddd-tactical-building-blocks without designing aggregates itself; the review message asks about the TDD checkpoint loop and strongly recommends keeping it. No Java written before approval.",
       "files": [
         "evals/files/pricing-canvas.md"
       ],
       "name": "pricing-scaffold-from-markdown",
       "assertions": [
         "Plan markdown file created for pricing",
-        "package-info.java has @BoundedContext(name = \"Pricing\") and @Module",
-        "package-info javadoc has all 8 canvas sections",
-        "Inbound commands/events mapped to @PrimaryPort use cases in api/usecases",
-        "Inbound query mapped to @PrimaryPort handler in api/queries",
-        "Outbound event is an IntegrationEvent record in api/events",
-        "Outbound query to Rentals goes through an @AntiCorruptionLayer secondary-adapter package",
         "Data types are records, no getX() getters in generated main code",
         "No Lombok used",
-        "At least 4 GWT tests (@DisplayName text block with given/when/then)",
-        "Maven build/tests pass (BUILD SUCCESS, no BUILD FAILURE)"
+        "No domain classes (aggregate, value object, domain event, domain service, policy) are written by the scaffolder",
+        "Plan delegates the strict GWT rules to ddd-tactical-building-blocks (Decisions row 'Domain layer' and rules table status 'delegated')",
+        "Review message asks whether to keep the TDD checkpoint loop and strongly recommends keeping it"
       ],
-      "followup_prompt": "I reviewed the Pricing plan in docs/bounded-contexts/velocity/pricing/plan.md. Approved, with these answers: yes, copy the canvas to the default docs location; your suggested defaults for the edge cases are fine. One addition - add this rule: Return charges \u2014 Given a price list with a 10 minute free period and first-hour fee 5.00 PLN, When a ride of 45 minutes with a 3.00 PLN drop-zone return charge is priced, Then the total fee is 8.00 PLN. Go ahead."
+      "followup_prompt": "I reviewed the Pricing plan in docs/bounded-contexts/velocity/pricing/plan.md. Approved, with these answers: yes, copy the canvas to the default docs location; your suggested defaults for the edge cases are fine. One addition - add this rule: Return charges — Given a price list with a 10 minute free period and first-hour fee 5.00 PLN, When a ride of 45 minutes with a 3.00 PLN drop-zone return charge is priced, Then the total fee is 8.00 PLN. Go ahead."
     },
     {
       "id": 2,
@@ -86,6 +81,23 @@
       "expected_output": "Phase A: plan with the shared-kernel decision challenged once and recorded (D-number, risk), no code. Phase B: Accounts module + AccountsArchitectureTest with exactly one commented exception for velocity.rentals.domain.bikestation, DECISION comment at the usage site, ArchUnit 1.5.1 added to pom, build green.",
       "files": [],
       "assertions": []
+    },
+    {
+      "id": 6,
+      "name": "shipping-delegates-rules-loop-question",
+      "prompt": "Scaffold the Shipping bounded context for the orders system from the canvas in /home/goobar/IdeaProjects/ddd-training-v3/.claude/skills/bounded-context-scaffolder/evals/files/shipping-canvas.md",
+      "expected_output": "Plan written with Status draft - awaiting review, then a stop. All three rules (parcel limit, paid order starts delivery, delivery fee) are listed as delegated to ddd-tactical-building-blocks; the scaffolder doesn't classify them into aggregates/policies/services or design an aggregate. The review message asks the TDD checkpoint loop question with keeping it recommended. No Java written.",
+      "files": [
+        "evals/files/shipping-canvas.md"
+      ],
+      "assertions": [
+        "Plan file exists with Status: draft - awaiting review",
+        "No Java files created or modified",
+        "Plan lists all 3 business rules as delegated to ddd-tactical-building-blocks",
+        "Plan does not itself design an aggregate for the rules (no aggregate names/invariant tables chosen by the scaffolder)",
+        "Plan has a 'TDD checkpoint loop' decision and a 'Deferred until tactical blocks are built' section",
+        "Review message asks about the TDD checkpoint loop and strongly recommends keeping it"
+      ]
     }
   ]
 }

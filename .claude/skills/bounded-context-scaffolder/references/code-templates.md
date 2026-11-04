@@ -2,115 +2,9 @@
 
 These are shapes, not text to paste. Fit the names to the ubiquitous language. In the examples below, `<base>` = `pl.wojtyna.dddtrainingv3.<system>.<context>`.
 
-## Value objects and identifiers: records
+Only the non-domain elements are here. Aggregates, value objects, domain events, rule exceptions, domain services, policies, factories, repositories and their tests are built by `ddd-tactical-building-blocks` (see its `references/`). Types such as `Tariff`, `TariffId` or `TariffRepository` in the examples below stand for what that skill created; look them up in the code before generating Step 6b.
 
-```java
-package <base>.domain.tariff;
-
-import org.jmolecules.ddd.annotation.ValueObject;
-
-import java.math.BigDecimal;
-import java.util.Objects;
-
-@ValueObject
-public record PricePerMinute(BigDecimal amount) {
-
-    public PricePerMinute {
-        Objects.requireNonNull(amount, "amount");
-        if (amount.signum() < 0) {
-            throw new IllegalArgumentException("Price per minute cannot be negative");
-        }
-    }
-}
-```
-
-Validate inside the compact constructor, so an invalid value can't exist. For money, CrowdSorcery uses `org.joda.money.Money`. Use it when the canvas talks about amounts in a currency.
-
-## Aggregate root: a class with behaviour, no getters
-
-```java
-package <base>.domain.tariff;
-
-import org.jmolecules.ddd.annotation.AggregateRoot;
-import org.jmolecules.ddd.annotation.Identity;
-import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
-
-@AggregateRoot
-public class Tariff {
-
-    private final TariffId id;
-    private TariffStatus status;
-
-    public Tariff(TariffId id) {
-        this.id = id;
-        this.status = TariffStatus.DRAFT;
-    }
-
-    public DomainEvents publish() {
-        if (status == TariffStatus.PUBLISHED) {
-            throw new TariffAlreadyPublished(id);
-        }
-        status = TariffStatus.PUBLISHED;
-        return DomainEvents.of(new TariffEvent.TariffPublished(id));
-    }
-
-    @Identity
-    public TariffId id() {
-        return id;
-    }
-}
-```
-
-An entity that changes inside the aggregate is a private static nested class annotated `@Entity`, with `equals`/`hashCode` on its id (see `BikeStation.BikeInStation`). An entity that never changes may be a record.
-
-## Domain events: a sealed hierarchy of records
-
-```java
-package <base>.domain.tariff;
-
-import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
-
-public sealed interface TariffEvent extends DomainEvent {
-
-    record TariffPublished(TariffId tariffId) implements TariffEvent {
-    }
-}
-```
-
-## Rule violation: a dedicated exception
-
-```java
-package <base>.domain.tariff;
-
-public class TariffAlreadyPublished extends RuntimeException {
-
-    public TariffAlreadyPublished(TariffId id) {
-        super("Tariff " + id.value() + " is already published");
-    }
-}
-```
-
-## Repository: a secondary port, and an in-memory adapter
-
-```java
-@Repository
-@SecondaryPort
-public interface TariffRepository {
-    Optional<Tariff> load(TariffId id);
-    void save(Tariff tariff);
-}
-```
-
-```java
-package <base>.infra.adapters.secondary;
-
-@SecondaryAdapter
-public class InMemoryTariffRepository implements TariffRepository {
-    private final Map<TariffId, Tariff> tariffs = new ConcurrentHashMap<>();
-    @Override public Optional<Tariff> load(TariffId id) { return Optional.ofNullable(tariffs.get(id)); }
-    @Override public void save(Tariff tariff) { tariffs.put(tariff.id(), tariff); }
-}
-```
+The `api` records (commands, queries, results, integration events, REST bodies) carry primitives and strings, and validate nothing domain-specific: the use case maps them to domain value objects.
 
 ## Use case: a command record and a primary port
 
@@ -148,7 +42,7 @@ public class PublishTariffUseCase {
 }
 ```
 
-If the context already uses another command style (for example Rentals' curried fluent API), follow that style in the aggregate. The use case still has the same four steps.
+The use case is generated in Step 6b, once the domain exists. Call the domain exactly as `ddd-tactical-building-blocks` shaped it (for example Rentals' curried fluent API). The use case still has the same four steps. In Step 6a, only the command record exists.
 
 ## Query: query, result and read-model port
 
@@ -264,38 +158,6 @@ public class PricingContextConfig {
 }
 ```
 
-## Test for a strict GWT rule
-
-```java
-package <base>.domain.tariff;
-
-@DisplayName("Tariff examples")
-class TariffTest {
-
-    // @formatter:off
-    @DisplayName(
-        """
-         given a published tariff,
-         when the tariff is published again,
-         then publishing is rejected
-        """
-    )
-    // @formatter:on
-    @Test
-    void publishedTariffCannotBePublishedAgain() {
-        // given
-        var tariff = new Tariff(new TariffId("T-1"));
-        tariff.publish();
-
-        // when
-        var exception = catchThrowable(tariff::publish);
-
-        // then
-        assertThat(exception).isInstanceOf(TariffAlreadyPublished.class);
-    }
-}
-```
-
 ## Architecture test: the context boundary
 
 This was verified against this repository with ArchUnit 1.5.1. Each forbidden direction fails exactly one rule, an `api` dependency passes, and an exception silences only the package it names. Put it in `src/test/java/pl/wojtyna/dddtrainingv3/<system>/<context>/<Context>ArchitectureTest.java`. Only `CONTEXT` and the names change per context.
@@ -382,4 +244,4 @@ Without such a decision, don't add `.and(...)` clauses, an ignore list or `@Arch
 
 ## Test conventions
 
-Use AssertJ (`assertThat`, `catchThrowable`). Assert on the events with `DomainEvents.hasOccurredEventOfType(...)` or `hasAtLeastOneEventMatching(...)`, and wrap the result in `assertThat(...).isTrue()`. Don't leave the boolean unused.
+Use AssertJ (`assertThat`, `catchThrowable`) for the tests this skill writes: the architecture test and, in Step 6b, use-case or adapter tests. If you assert on events with `DomainEvents.hasOccurredEventOfType(...)` or `hasAtLeastOneEventMatching(...)`, wrap the result in `assertThat(...).isTrue()`. Don't leave the boolean unused. Domain tests belong to `ddd-tactical-building-blocks`.

@@ -3,7 +3,7 @@
 <!--
 Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
 Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
-Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
+Business decisions become code and tests only if you write them as strict Given/When/Then examples with concrete values. ddd-tactical-building-blocks then decides whether each one needs an aggregate, a domain service, a policy or a factory.
 -->
 
 ## Name
