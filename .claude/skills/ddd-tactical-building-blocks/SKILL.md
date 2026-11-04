@@ -1,6 +1,6 @@
 ---
 name: ddd-tactical-building-blocks
-description: Create, update or refine DDD tactical building blocks in Java - aggregates (state-based or event-sourced), domain events, policies, repositories, factories and domain event publishing - test-first, one business invariant at a time, following this repo's BikeStation reference aggregate and jMolecules conventions. Use this whenever the user wants to design, add, model, implement, refactor, slim down or add a rule/invariant to an aggregate, aggregate root or entity, or add a domain event, policy ("whenever X then Y"), repository, factory or event publisher inside an existing bounded context of VeloCity or CrowdSorcery, even if they never say "tactical" or "aggregate" - e.g. "a station can't hold more than 20 bikes, model that", "add optimistic locking to DepositAccount", "make Reservation event-sourced", "when a ride ends, charge the rider". For creating a whole new bounded context module from a canvas, use bounded-context-scaffolder instead.
+description: Create, update or refine DDD tactical building blocks in Java - aggregates (state-based or event-sourced), domain events, policies, repositories, factories and domain event publishing - test-first with the user in the loop: one Given/When/Then test per cycle, then a stop to ask whether the user writes the implementation or Claude scaffolds a minimal one for confirmation - following this repo's BikeStation reference aggregate and jMolecules conventions. Use this whenever the user wants to design, add, model, implement, refactor, slim down or add a rule/invariant to an aggregate, aggregate root or entity, or add a domain event, policy ("whenever X then Y"), repository, factory or event publisher inside an existing bounded context of VeloCity or CrowdSorcery, even if they never say "tactical" or "aggregate" - e.g. "a station can't hold more than 20 bikes, model that", "add optimistic locking to DepositAccount", "make Reservation event-sourced", "when a ride ends, charge the rider". For creating a whole new bounded context module from a canvas, use bounded-context-scaffolder instead.
 ---
 
 # DDD tactical building blocks
@@ -22,7 +22,7 @@ Identify:
 - **Mode**: *create* (the class doesn't exist) or *refine* (it exists: add an invariant, slim it down, add versioning, convert style, and so on).
 - **Where**: system and bounded context, e.g. `velocity` / `rentals`. Domain code goes into `<context>/domain/<aggregate-name-lowercase>/`, like `rentals/domain/bikestation/`. If the context package doesn't exist yet, point the user to `bounded-context-scaffolder` and stop. This skill works inside existing contexts.
 
-If the request only touches events, policies, repositories, factories or publishing, skip to Step 5. Anything that creates or changes an aggregate goes through the aggregate gate in Step 2 first, and that includes a policy that needs a new aggregate command.
+If the request only touches events, policies, repositories, optimistic locking (`Version`), factories or publishing, skip to Step 5. Anything that creates or changes an aggregate goes through the aggregate gate in Step 2 first, and that includes a policy that needs a new aggregate command.
 
 ## Step 2: The aggregate gate
 
@@ -41,7 +41,7 @@ Check the gate against the request first, before reading reference files or expl
 
 3. **Style: state-based or event-sourced.** Ask if it isn't stated. In refine mode, keep the existing style unless the user asks to convert. Both styles accept commands and return `DomainEvents`. They differ in how state is stored and rebuilt (see `references/aggregate-templates.md`).
 
-When the gate is passed, restate the invariants with their scenarios in a short numbered list, plus the chosen style, and carry on. Don't wait for approval at this point: the user has already given you everything.
+When the gate is passed, restate the invariants with their scenarios in a short numbered list, plus the chosen style, and carry on to the design and the first test. Don't wait for approval at this point: the user has already given you everything. The checkpoints come in Step 4, after each test.
 
 ## Step 3: Design the aggregate, minimally
 
@@ -67,34 +67,69 @@ Rules that shape the design:
 - **Commands in, events out.** Every state-changing public method is a command named in the ubiquitous language. It validates the invariants, changes state and *returns* `DomainEvents` (top-level `common/domain`). The aggregate never publishes. Violations throw a domain exception named after the broken rule, e.g. `BikeNotAvailableException` or `MaximumRentalDurationExceededException`.
 - **Event-sourced commands return all pending events.** An event-sourced aggregate always keeps a private list of pending events: every event emitted since it was created or rebuilt, in order. Every command appends its events to that list and returns **the whole list**, not just its own events. So whatever the caller keeps (usually the last result) holds every new fact, however many commands ran on the instance. That stops the stored or published events from drifting away from the in-memory state. `rebuild` replays history without adding it to the pending list. Always use this approach for event-sourced aggregates, in both create and refine mode (in refine mode, convert an aggregate that returns only per-command events). See `references/aggregate-templates.md` §6.
 - **Chained (fluent) commands**, like `bikeStation.rent(bike).by(borrower).forDuration(duration)`. Commands with more than one argument read as a sentence: each step is a functional interface in the package's `FluentLanguage` interface (create it if missing, reuse step types that already exist), and the last step returns `DomainEvents`. Single-argument commands stay plain: `returnBike(bike)`.
-- **Optimistic locking through a `Version`, with no infrastructure dependencies.** Every aggregate carries a `Version` (record in top-level `common/domain`, created on first need), exposed through `version()`. It is the version the aggregate was loaded at. The repository compares it on save and rejects stale writes. Details for both styles are in the templates. No JPA `@Version` and no Spring in the domain.
+- **Optimistic locking through a `Version`, with no infrastructure dependencies.** Every aggregate ends up carrying a `Version` (record in top-level `common/domain`, created on first need), exposed through `version()`. It is the version the aggregate was loaded at. The repository compares it on save and rejects stale writes. Details for both styles are in the templates. No JPA `@Version` and no Spring in the domain. **`Version` is persistence support, not a business rule, so it is not part of the TDD cycles.** Leave it out of the design sketch, the scaffolding and the cycles, and add it together with the repository in Step 5. (In refine mode, an existing `Version` stays as it is.)
 - **jMolecules annotations**: `@AggregateRoot` on the root, `@Entity` on internal entities, `@ValueObject` on value objects, `@Identity` on the id accessor. Records for ids, value objects and events. No Lombok, ever, because it crashes javac on JDK 27.
 
 Don't copy the reference's known gaps. In `BikeStation`, `rent(bike)` ignores its `bike` argument and picks any available bike, there's no `@Identity` or `Version`, and `BikeStationTest#test0` calls `hasAtLeastOneEventMatching` without asserting the result. Follow its *style*, not those slips.
 
-## Step 4: TDD, one invariant at a time
+## Step 4: TDD with the user in the loop, one scenario per cycle
 
-Take the invariants in the order given, or in dependency order if one builds on another. Run a full cycle for each before starting the next. This keeps every piece of state traceable to the invariant that demanded it.
+The aggregate grows **one Given/When/Then scenario at a time**, and the user decides who writes each piece of production code. This is a training repo, so writing the implementation is often exactly the exercise the user wants to do. Writing it all yourself takes that away from them, and so does moving on to the next scenario before they've seen and accepted the current one. So every cycle ends at a **checkpoint where you stop and wait for the user**, with no exceptions. That includes the first cycle, a cycle whose code looks trivial, and a run where the user has already supplied all the scenarios.
 
-For each invariant:
+The red/green rules are the ones from the repo's `tdd` skill (`.claude/skills/tdd/SKILL.md`). Read its Steps 2-6 once before cycle 1 and apply them here: baseline suite check, one test per cycle, compile-only scaffolding, fail for the right reason, the "fake it first" ladder for the smallest change, whole-suite run, light refactor. Don't invoke it as a separate skill. This step is the aggregate-specific, interactive version of the same loop, and where the two differ, this step wins.
 
-1. **Red.** Write the test(s) for its scenarios in `src/test/java/...`, in the aggregate's package and in the `BikeStationTest` style: the scenario in a `@DisplayName` text block, `// given`, `// when`, `// then` sections, and a descriptive method name (not `test0`). Add only the production code needed to compile and run the scenario *without* the rule. For a new command, that is a pass-through that changes state and returns the event without checking the invariant. Don't use a body that throws `UnsupportedOperationException`: "given" steps often call the same command, so the test would fail before reaching "when", for the wrong reason. Run the test class and confirm it **fails for the right reason**: the rejection scenario fails because the expected exception wasn't thrown, or an assertion fails. A compile error or a stub exception doesn't count. Only the scenarios that violate the invariant are expected to go red. A happy-path scenario passing against the pass-through is fine; record it as "green from the start".
-2. **Green.** Write the simplest code that passes, adding only state from the invariant → state table. Run the whole test class: the new tests and every earlier one must pass.
-3. **Refactor.** Remove duplication and unused state, sharpen names toward the ubiquitous language, apply the chained-command shape, and check the rules from Step 3. Run the tests again.
+**Order of scenarios.** Go invariant by invariant in the order given (or in dependency order). Within an invariant, start with the scenario that forces the least code, usually the happy path or the degenerate case, then the violating one. Show the planned order once, right after the gate restatement, so the user knows what's coming.
 
-Run tests from the repo root:
+**Before cycle 1:** run the full suite as the baseline (`./mvnw -q test`). If it's already red, stop and report, as the `tdd` skill says.
+
+### Each cycle
+
+**1. Red: write exactly one test.**
+- Put it in `<AggregateName>Test` under `src/test/java`, in the aggregate's package, in the `BikeStationTest` style: the user's scenario wording with its concrete values in a `@DisplayName` text block, `// given`, `// when`, `// then` sections, a descriptive method name (not `test0`), and AssertJ assertions that can actually fail.
+- Add only the production code needed to **compile**: the class, records, the command signature from your Step 3 sketch, and the exception type. Give new commands the dumbest body that compiles, so the test fails on its assertion rather than in setup. For a rejection scenario whose "given" calls the same command, that means a pass-through that changes state and returns the event without checking the rule. Never use a body that throws `UnsupportedOperationException`. Write no rule logic and no state beyond what compiling needs: that is the implementation the user may want to write.
+- Run the single test and confirm it **fails for the right reason**: an assertion fails, or an expected exception isn't thrown. A compile error or a crash in "given" doesn't count, so fix the test or the scaffolding and run it again.
+- **If it passes straight away** (common for a happy path), don't touch production code. Say so at the checkpoint, and offer "keep it and move on" instead of "who implements".
+
+**2. Checkpoint A: show the test, then stop and ask.**
+- **Open the test in the IDE** at the test method's line. Try, in order: an IntelliJ/JetBrains MCP tool for opening a file, if one is connected (e.g. from the `idea` server); then the `idea` launcher, `idea --line <N> <absolute path>`, which opens it in the running IDE; otherwise give the clickable `path:line`. Don't let a failed attempt block the cycle: fall through to the next option.
+- **Show the test method** in the message: the code itself, plus the red you observed (the key line of the failure message) and a list of the compile-only scaffolding you added.
+- **Ask with the `AskUserQuestion` tool** if it's available. Otherwise ask in plain text and end your turn. Make the question self-contained: name the test (`RiderTest#rejectsThirdActiveRental`) and its file, because the user may see only the question dialog. Offer:
+  1. **"I'll write the implementation myself"**: the user codes it and tells you when it's done.
+  2. **"Scaffold it for me"**: you write the minimal implementation and show it for confirmation.
+
+  The user may also answer something else, such as changing the scenario or the test. Treat that as a change to this cycle's red step: adjust, run it again, and come back to Checkpoint A.
+- **Then end your turn.** Don't write any implementation, and don't start the next test, until the user has answered.
+
+**3a. The user writes the implementation.** When they say they're done:
+- Run the aggregate's test class, then the full suite.
+- **All green:** briefly acknowledge what they built. Point out anything that breaks the Step 3 rules, such as state no invariant reads, a dependency on another aggregate or publishing from the aggregate, as a suggestion rather than a change. Then go on to the next scenario's red step. Their green is their confirmation.
+- **Not green:** show the failing test(s) and the key line of the failure. Don't fix their code unasked. Ask again: "I'll fix it myself" or "Fix it for me" (then follow 3b).
+- If they changed a test to make it pass, point it out. Tests are the spec, so a changed test needs their explicit OK.
+
+**3b. You scaffold the implementation.**
+- Write the **smallest** change that makes the new test pass while every existing test of the aggregate stays green. Use the `tdd` skill's ladder (constant or hard-coded value, then one condition, then an existing field, then new state), taking new state only from the invariant → state table. Don't refactor in the same step.
+- Run the aggregate's test class, then the full suite. If another test breaks, revise the production change rather than the tests, as the `tdd` skill says.
+- **Checkpoint B: show the implementation, then stop and ask.** Show the production diff (or the changed methods), the test results (`N tests, 0 failures`), and any deliberate shortcuts, such as a hard-coded threshold or an ignored parameter. Open the main changed production file in the IDE the same way as at Checkpoint A. Ask with `AskUserQuestion`: **"Looks good, next scenario"** / **"Change something"**. If you see a worthwhile refactor, offer it as a third option and describe it in one line. End your turn. Don't continue until they confirm. If they ask for changes, apply them, rerun the tests and come back to Checkpoint B.
+
+**4. Refactor** only when the user picked it, or in code this cycle introduced, and keep the suite green. Bigger clean-ups go into the final summary as suggestions.
+
+Commands, from the repo root:
 ```bash
-./mvnw -q test -Dtest=<AggregateName>Test
+./mvnw -q test -Dtest='<AggregateName>Test#<method>'   # red check
+./mvnw -q test -Dtest=<AggregateName>Test               # aggregate's tests
+./mvnw -q test                                          # full suite
 ```
-Run all of them once at the end: `./mvnw -q test`. If something fails that you didn't touch, report it and don't "fix" unrelated code.
+If something fails that neither you nor the user touched, report it and don't "fix" unrelated code.
 
-Keep a one-line log per cycle (invariant, test names, red seen, green seen) for the final summary. If you couldn't observe a red, for instance because the rule already held, say so instead of claiming a red.
+Keep a one-line log per cycle for the final summary: scenario, test name, red seen, who implemented it (user or Claude), and green seen. Never claim a red you didn't observe.
+
+When the last scenario of the run is green and confirmed, run the full suite once more and continue with Step 5 only if it is green. Persistence support (`Version`, repository, adapters) comes strictly **after** the domain: all of this run's scenarios implemented and all domain tests passing. That holds even when the user's request asked for the repository up front: acknowledge it in the gate restatement and say it comes after the domain cycles. Building persistence while the domain is still moving means reworking it every cycle, and it pulls attention away from the rules. Step 5 work isn't a scenario cycle and needs no per-scenario checkpoints, but list it in the summary.
 
 ## Step 5: Supporting building blocks
 
 After the aggregate cycles, or directly when the request is only about these, apply `references/other-building-blocks.md`. In short:
 
-- **Repository**: for a **new aggregate**, create a basic repository port by default (`load(id)` / `save(aggregate)`, `@Repository @SecondaryPort`, next to the aggregate) with the `Version` contract in its javadoc, and say so in the summary so the user can drop it. Build an in-memory adapter only if the user asked for one; otherwise suggest it.
+- **Version and repository**: only once every domain scenario of the run is implemented and the full suite is green (see the end of Step 4). For a **new aggregate**, then add the `Version` (templates §1 and the style's section) and a basic repository port by default (`load(id)` / `save(aggregate)`, `@Repository @SecondaryPort`, next to the aggregate) with the `Version` contract in its javadoc, and say so in the summary so the user can drop them. Build an in-memory adapter, with its optimistic-locking test, only if the user asked for one; otherwise suggest it. Run the full suite again afterwards: adding `Version` must not break any domain test.
 - **Factory**: suggest one only when creation itself has rules or needs input from outside the aggregate. Otherwise a constructor or static factory method is enough.
 - **Domain events**: past-tense records in a sealed interface per aggregate (like `BikeRentalEvent`), implementing `common.domain.DomainEvent`, carrying identities and value objects only.
 - **Policies**: "whenever event X, then command Y". A `DomainPolicy` class with `handle(X)`.
@@ -104,7 +139,7 @@ After the aggregate cycles, or directly when the request is only about these, ap
 
 - If the context's `package-info.java` has a "Business decisions" section (written by `bounded-context-scaffolder`), add or update each implemented invariant there in its Given/When/Then form, naming its test, in the same change.
 - Finish with a short summary:
-  - the invariants with their tests and the red → green log
+  - the invariants with their tests and the per-cycle log (red seen, who implemented it, green seen)
   - the invariant → state table as built
   - files created or changed
   - suggestions not acted on: repository, factory, fields proposed for removal, invariants deferred to the next run, rules that turned out to be policies
