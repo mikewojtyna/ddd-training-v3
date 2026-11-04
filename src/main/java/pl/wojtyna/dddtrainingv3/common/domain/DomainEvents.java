@@ -38,4 +38,8 @@ public class DomainEvents {
     public boolean hasAtLeastOneEventMatching(Predicate<DomainEvent> predicate) {
         return eventList.stream().anyMatch(predicate);
     }
+
+    public DomainEvents append(DomainEvents events) {
+        return new DomainEvents(Stream.concat(eventList.stream(), events.stream()).collect(Collectors.toList()));
+    }
 }
