@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": false,
+      "evidence": "874 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": false,
+      "evidence": "First message only lists the seven swimlane titles ('It has seven swimlanes: User Registration And Account Setup, Bike Rental, ...') then goes straight to questions. No read-back of the timeline/events for the expert to correct, and no heuristic is ever named."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": false,
+      "evidence": "No staged heuristic application. Pivotal events are only mentioned retrospectively in the final message ('Pivotal events I used to cut boundaries: ...'), after the contexts were decided; swimlanes and single responsibility are never applied as steps."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": false,
+      "evidence": "Only 2 rounds: 6 questions, then 'Three follow-ups', then the final list."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": false,
+      "evidence": "No critic agent, no verdicts; outputs/scratch is empty."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": false,
+      "evidence": "Final: '**\"Account Blocked\" has two owners.** An invalid or unverified card is decided by Accounts. Debt is decided by Debt Recovery'; table assigns 'Account Blocked Due To Invalid Card' to Rider Accounts and 'Account Blocked Due To Debt' to Debt Recovery."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Table rows '4 | **Payments** | Charges and verifies cards. Knows no business rules' and '5 | **Debt Recovery** | The recovery process and its schedule of actions'."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": false,
+      "evidence": "7 contexts: Rider Accounts, Rental, Pricing, Payments, Debt Recovery, Fleet Maintenance, Incident Handling. No Settlement; charge on return is wired as 'Payments -> Rental: charge on return'."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)",
+      "passed": false,
+      "evidence": "Table gives 'What it owns' descriptions; only Rider Accounts mentions a question ('Answers \"can this rider rent?\"'). Others have none."
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": false,
+      "evidence": "Closest is round 1 Q3 'who actually charges the rider's card - is that the same team that calculates the fee?', which asks about charging, not who decides charge/retry/give-up after the ride. Settlement is never raised."
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "'6 | **Fleet Maintenance** | Inspections and repairs on the crew's own schedule.'"
+    },
+    {
+      "text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+      "passed": false,
+      "evidence": "Final message contains '## Sketch of the relationships (upstream -> downstream)' with 'Rider Accounts -> Rental: account status, OHS/PL; Rental uses an ACL' etc.; the expert was never asked whether a map is wanted."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": false,
+      "evidence": "Round 1 asks 6 numbered questions (1-6), several of them multi-part."
+    },
+    {
+      "text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)",
+      "passed": false,
+      "evidence": "No critics at all."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 13,
+    "total": 16,
+    "pass_rate": 0.19
+  },
+  "notes": "Baseline is fast (60k tokens / 120s) and reasonably competent on obvious splits (Payments vs Debt Recovery, Fleet Maintenance, Incident Handling, Reservation folded into Rental, returns as variants, Notifications not a context) but misses the non-obvious Settlement context, leaves blocking split across two owners (it even flags it as a board problem rather than resolving it), jumps to a relationship sketch with OHS/ACL unrequested, writes no report file, and runs only 2 question rounds with a 6-question opener. It also labels subdomain types (Core/Supporting/Generic) without asking. These gaps are exactly what the skill's assertions 5, 7, 9, 11 discriminate on; assertions 1-4, 12, 13 are process assertions the baseline fails by construction."
+}

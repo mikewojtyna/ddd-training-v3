@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/velocity/2026-11-05-event-storming-board/discovery.md']"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "319 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": true,
+      "evidence": "Message 1: 'Before applying any heuristic, here is how I read the board, so you can correct me cheaply.' followed by a lane-by-lane readback (Main timeline / Branches / Disconnected clusters / Ambiguities) and Q1 'Is my reading right?'. H1 section comes after the readback."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": true,
+      "evidence": "Message 1 '**H1: candidate pivotal events**'; message 2 '**H2: swimlane candidates**' (after pivots confirmed); message 3 '**Round 3: H3, single responsibility.**'. discovery.md heuristic trail has H1, H2, H3 sections in that order."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": true,
+      "evidence": "Four rounds of numbered questions: message 1 (Q1-7), message 2 (Q1-9), message 3 (Q1-7), message 4 (approval + map, Q1-2). Three clarifying rounds precede the final list."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": true,
+      "evidence": "'Critic verdicts' section lists 16 one-line verdicts, e.g. 'Payments | round 1 | DISAGREE | blocking: Payment Method Verified had two owners...' and 'Fleet Maintenance | round 2 | AGREE | blocker resolved...'. Also in scratch/critic-log.md and discovery.md '## Critic log'."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Message 3: '**Blocking has one owner: Rider Accounts.** ... Settlement publishes *Rental Unsettled*, Debt Recovery publishes *Debt Recovered*, and Rider Accounts blocks and unblocks.' Final list: Rider Accounts owns Account Blocked/Banned/Unblocked."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Final list has '5. Payments: _Did the charge go through?_' ('Payment knows nothing about any rules') and '6. Debt Recovery: _How do we recover what's owed?_' as separate contexts."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "'4. Settlement: _Has this rental been paid for, and when do we collect?_ ... it fills the far side of the *Rental Session Ended* pivot.'"
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers",
+      "passed": true,
+      "evidence": "Message 4 states each of the 8 contexts with an italic question, e.g. '1. Rider Accounts: _Can this rider use the service?_', '2. Rental: _Who has which bike, and when?_'. (Minor: Fleet Maintenance's question drifted from 'Is this bike in working order?' in msg 3 to 'Is this bike fit for service, and when is it back?' in msg 4 - two clauses.) The final_message.md itself lists only names."
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": true,
+      "evidence": "Message 1 Q4: 'does the return end the session and trigger the real charge?'; message 2: 'nothing says who decides what the rider owes, who charges, and what happens when the charge fails. I don't want to leave that side without an owner.' + Q2 'After *Rental Session Ended*: who decides what the rider owes ... and when it's charged?'. Expert first says 'Settling the rental has its own rules' only in reply 2. (Note: the facilitator's Q2 already used the word 'settled/unsettled', slightly leading.)"
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "'7. Fleet Maintenance: _Is this bike fit for service, and when is it back?_' kept as its own context; round 3 made it single owner of bike service status."
+    },
+    {
+      "text": "Asks no context-map detail questions before the expert has said yes to a map",
+      "passed": true,
+      "evidence": "No map/relationship questions anywhere; only message 4 Q2 'Do you want a context map in Context Mapper (.cml) format?', which the expert declined, and the run stopped ('There's no context map and no canvases this session')."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": "Strong, faithful process: readback -> H1 -> H2 -> H3 with critic -> approval, stopped cleanly when the expert declined map and canvases; discovery.md (3.7k words) records heuristic trail, verbatim Q&A, critic log. Message length is the main cost: facilitator messages are 728/668/740/847 words with 7-9 questions per round - heavy for a live expert; round 2's 9 questions could be trimmed (e.g. Q1 re-confirms pivots already confirmed, Q7/Q8 overlap earlier answers). Consider capping at ~5 questions and moving 'why this question' tags to the report. Question quality is high: each question carries a '(decides ...)' rationale, and the critic-driven round 3 surfaced real ownership conflicts (bike service status had 3 owners, Payment Method Verified had 2, retry ownership Settlement vs Debt Recovery). Critic cost: round 1 ran 8 critics (5 AGREE, 3 DISAGREE); round 2 re-ran all 8 although only Payments, Fleet Maintenance and Rental had DISAGREE. Re-running the 5 AGREE ones did add notes (e.g. Settlement<->Debt Recovery cycle warning, block must track open reasons) but no verdict changed; the skill could re-run only DISAGREE contexts plus those whose ownership changed (Incident Handling, Rider Accounts) - ~5 instead of 8. Minor: Q2 in message 2 used 'settled/unsettled' wording before the expert named settlement (slightly leading); Fleet Maintenance's question changed between msg 3 and msg 4; final_message.md lists names only, the questions live in msg 4/discovery.md. Timing file shows 124s / 62k tokens vs 462s / 160k for the baseline, which looks implausibly low for 16 critic runs + 4 rounds - possibly only the last turn was timed; verify the measurement. Eval critique: assertion 9 could be more discriminating by requiring the gap be raised in round 1; assertion 8 should specify where (final message vs approval message)."
+}

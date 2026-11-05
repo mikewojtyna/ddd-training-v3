@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "real file: git diff clean; run output uses a separate file"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml']"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "361 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Final message: '1. **3-context cycle: Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts.** ... The doc's heuristic (\"two contexts with arrows in both directions\") only finds 2-node cycles, so it misses this one.' Also finds the second cycle via the accepted alternative Debt Recovery -> Accounts."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": false,
+      "evidence": "No internal Conformist is flagged. Review finding 7: 'OK | R3 | All ACL/CF are on downstream ends' - only placement was checked. The only CF comment is finding 8 on City -> Pricing, suggesting 'an ACL is the more defensible default for an external system' - the opposite of the trainer's rule (CF fine towards a well-established language), and no justification was asked from the expert. The proposal keeps all 8 CFs and adds 4 more ([D,CF] on Rentals, Settlement/DebtBlocking, CustomerSupport, DebtRecovery)."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": false,
+      "evidence": "Accounts->Rentals and CustomerSupport->FleetMaintenance are flagged only as 'Bare relationships' under self-invented R4 ('each relationship names its integration pattern explicitly'), and the fix is CF: 'make it Accounts [U,OHS]->[D,CF] Rentals' (ACL only as a parenthetical alternative). Missing ACL downstream is never treated as an issue; the proposal adds [D,CF] everywhere."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Expert message 1: 'how to treat unconfirmed relationships like the CustomerSupport -> FleetMaintenance one'; review finding 3: 'CustomerSupport \u2192 FleetMaintenance (unconfirmed)... the opposite of the dashed arrow.'"
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": false,
+      "evidence": "No explicit walkthrough mapping process steps to contexts and relationships. The review only says 'I checked the business facts against the four processes ... with the domain expert'. The step-by-step fleet-issue narrative is the expert's own answer; the run's finding 3 summarises it in one paragraph rather than walking it through the map. The cycle-fix section gives a one-line edge check ('Rentals asks Accounts, Settlement reacts to Rental Session Ended, and blocks follow Settlement's debt facts'), not a process walk."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": false,
+      "evidence": "Rules are self-invented ('I checked the map against these common rules, so please confirm they match yours': R1-R4), and findings 3 and 4 have Rule '-'. Finding 8 (City CF -> ACL) is generic advice contrary to the trainer's rule."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": false,
+      "evidence": "No critic agent was used; the transcript contains no critic review or verdict."
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": true,
+      "evidence": "Expert reply 2 Q1 confirms the flow: 'They escalate it to the specialised team, which here means the technicians' side... they don't decide when a bike comes back.' Proposal replaces it with 'FleetMaintenance [U,OHS,PL]->[D,CF] CustomerSupport : FleetIssueEscalation' marked 'CONFIRMED with the domain expert'. Direction reversal is the run's modelling inference from confirmed facts, which is acceptable."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": true,
+      "evidence": "Only new relationship is 'CustomerSupport [U,PL]->[D,CF] DebtRecovery : BillingDispute', backed by expert reply 2 Q2: 'Support raises the fact that a dispute is under review, and the debt-recovery people put the pursuit on hold because of it.' The DebtBlocking flip replaces an existing edge."
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)",
+      "passed": false,
+      "evidence": "No critic at all (assertion: 'no critic at all = false')."
+    },
+    {
+      "text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)",
+      "passed": false,
+      "evidence": "Unilateral: review says 'The cheapest edge to flip is Settlement \u2194 Accounts: Proposed: Accounts [U,OHS,PL]->[D,CF] Settlement'. The expert was never shown the option or asked whether Accounts offering a block-with-reason service matches how VeloCity works. The final message presents it as the fix."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 7,
+    "total": 14,
+    "pass_rate": 0.5
+  },
+  "notes": "4/11. The baseline caught the 3-node cycle, and the debrief cycle introduced by the accepted alternative, which is a nice catch the skill run did not make explicitly. It reversed the CS->FM arrow from expert facts and added the confirmed billing-dispute edge. Without the trainer's rules it invented generic ones (explicit patterns, no SK). As a result it saw nothing wrong with 8 Conformists, added 4 more, and recommended an ACL for the City (the opposite of the trainer's rule). The cycle was fixed unilaterally, though the chosen flip matches what the expert later confirmed in the skill run. There was no critic, no process walkthrough, and no CML validation ('I haven't run it through Context Mapper'), although the mechanical grader found the file valid. Eval critique: assertion 8 doesn't discriminate much. Both runs pass because the expert volunteers the flow whenever it's asked about support. A sharper check would be that the direction of the new CS/FM edge was justified by 'whose model is the request in', or confirmed. Assertion 5 could require an explicit step -> context -> relationship mapping. No assertion covers scope proportionality of the validation itself (cosmetic rewrites, extra expert rounds), which is where the skill run spends a lot of its extra cost. The simulated expert also gave different process lists in the two runs (four processes for the baseline, none for the skill run), which slightly confounds assertion 5."
+}

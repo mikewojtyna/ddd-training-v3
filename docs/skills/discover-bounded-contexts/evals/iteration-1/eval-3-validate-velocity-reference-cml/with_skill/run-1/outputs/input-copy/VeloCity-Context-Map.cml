@@ -1,0 +1,123 @@
+/* VeloCity — Reference Context Map (see velocity/velocity-context-map.md) */
+ContextMap VeloCityContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains Accounts
+	contains Rentals
+	contains Pricing
+	contains Settlement
+	contains Payments
+	contains DebtRecovery
+	contains CustomerSupport
+	contains FleetMaintenance
+	contains PaymentProcessor
+	contains City
+
+	/* External parties */
+
+	PaymentProcessor [U]->[D,ACL] Payments : PaymentProcessing
+
+	City [U]->[D,CF] Pricing : ZoneMap
+
+	/* Payments */
+
+	// verify payment method, Payment Method Invalidated
+	Payments [U,OHS,PL]->[D,CF] Accounts : PaymentMethodVerification
+
+	// charge
+	Payments [U,OHS,PL]->[D,CF] Settlement : Charging
+
+	/* Accounts */
+
+	// is account active?
+	Accounts [U]->[D] Rentals : AccountStatus
+
+	/* Rentals */
+
+	// Rental Session Ended (start, end, location, reason)
+	Rentals [U,PL]->[D,CF] Settlement : RentalSessionEnded
+
+	// fault detected, lock failed; withdraw / make available; reserve / unlock
+	Rentals [U,OHS,PL]->[D,CF] FleetMaintenance : BikeAvailability
+
+	/* Pricing */
+
+	// price for session (tariff valid at session start)
+	Pricing [U,OHS]->[D,CF] Settlement : PriceCalculation
+
+	/* Settlement */
+
+	// Rental Fee Unpaid -> block, Outstanding Debt Cleared -> unblock
+	Settlement [U,PL]->[D,CF] Accounts : DebtBlocking
+
+	// Rental Fee Unpaid -> start recovery, attempt collection
+	Settlement [U,OHS,PL]->[D,CF] DebtRecovery : DebtCollection
+
+	/* Customer Support */
+
+	// fleet-issue incident — default assumption, NOT confirmed with the domain expert
+	CustomerSupport [U]->[D] FleetMaintenance : FleetIssueIncident_Unconfirmed
+}
+
+/* Bounded Contexts */
+
+BoundedContext Accounts {
+	type = FEATURE
+	domainVisionStatement = "Onboarding, account activation, account blocks and unblocks. Key language: user, registration, activated, blocked."
+	responsibilities = "Onboarding", "Account activation", "Account blocks and unblocks"
+}
+
+BoundedContext Rentals {
+	type = FEATURE
+	domainVisionStatement = "Bike availability (available / withdrawn), reserve & unlock for any authorised client, rental sessions, station returns & locking, max-rental-time end, withdrawing a bike on a fault it detects. Key language: reservation, unlock, rental session, available, withdrawn."
+	responsibilities = "Bike availability", "Reserve and unlock", "Rental sessions", "Station returns and locking", "Max rental time end", "Withdrawing faulty bikes"
+}
+
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Pure calculation of the total fee: tiered hourly fees, penalty, drop zone / unauthorized zone fees, tariff valid at session start. Key language: free period, hourly fee, penalty, drop zone fee, total fee."
+	responsibilities = "Total fee calculation", "Tariffs"
+}
+
+BoundedContext Settlement {
+	type = FEATURE
+	domainVisionStatement = "Charging each finished ride, retries, rider's balance and outstanding debt. The only context that moves money. Key language: charge, settled, outstanding debt."
+	responsibilities = "Charging finished rides", "Charge retries", "Rider balance", "Outstanding debt"
+}
+
+BoundedContext Payments {
+	type = FEATURE
+	domainVisionStatement = "Payment method verification and charging; shields VeloCity from the external processor. Key language: payment method, pre-authorization, verified, charge."
+	responsibilities = "Payment method verification", "Charging"
+}
+
+BoundedContext DebtRecovery {
+	type = FEATURE
+	domainVisionStatement = "Active pursuit of outstanding debt: reminders, payment plans, pause / resume. Key language: recovery process, paused, resumed, exhausted, payment plan."
+	responsibilities = "Reminders", "Payment plans", "Pausing and resuming recovery"
+}
+
+BoundedContext CustomerSupport {
+	type = FEATURE
+	domainVisionStatement = "Incidents: reported, type detected, assigned, accepted / rejected, resolved. Key language: incident, accept, reject, escalate, reopen, resolve."
+	responsibilities = "Incident handling"
+}
+
+BoundedContext FleetMaintenance {
+	type = FEATURE
+	domainVisionStatement = "Broken bikes, maintenance, deciding when a bike returns to circulation. Key language: broken, maintenance, fixed, back in circulation."
+	responsibilities = "Broken bikes", "Maintenance", "Returning bikes to circulation"
+}
+
+/* External parties */
+
+BoundedContext PaymentProcessor {
+	type = SYSTEM
+	domainVisionStatement = "External payment processor."
+}
+
+BoundedContext City {
+	type = SYSTEM
+	domainVisionStatement = "External party providing the zone map used by Pricing."
+}

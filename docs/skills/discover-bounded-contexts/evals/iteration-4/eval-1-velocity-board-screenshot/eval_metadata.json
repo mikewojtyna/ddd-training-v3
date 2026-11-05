@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "velocity-board-screenshot",
+  "prompt": "Here's our VeloCity event storming board: velocity/velocity-processes.jpg. Find the bounded contexts on it. I'm the trainer, by the way, so you can't spoil anything for me.",
+  "assertions": [
+    "Discovery report written under docs/context-discovery/velocity/",
+    "No CML and no canvases created (the expert declined both)",
+    "Final message is under 400 words",
+    "Reads the board back to the expert before applying any heuristic",
+    "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+    "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+    "An independent critic reviewed the contexts and its verdicts are logged",
+    "Account blocking ends up owned by exactly one context",
+    "Debt Recovery is a separate context from Payments",
+    "Settlement is identified as its own context",
+    "Each final context is stated with the single business question it answers",
+    "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+    "Fleet Maintenance is kept as its own context",
+    "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+    "No facilitator round asks more than 5 questions",
+    "Later critic rounds re-run only contexts that disagreed or whose ownership changed"
+  ]
+}

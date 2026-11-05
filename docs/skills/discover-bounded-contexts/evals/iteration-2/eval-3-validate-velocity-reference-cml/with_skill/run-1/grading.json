@@ -1,0 +1,76 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "real file: git diff clean; run output uses a separate file"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validated.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validated.cml']"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "247 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Message 1: 'An indirect U/D cycle: Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts. velocity-context-map.md says \"No cycles\"'; validator line 'RULE ud-cycle-indirect: Accounts -> Rentals -> Settlement -> Accounts'. Fixed by flipping DebtBlocking after expert Q2."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": true,
+      "evidence": "Message 1: '8 Conformists between internal contexts. Our rule allows CF only towards a well-established language, and none of them is justified'; Q3 asks 'Did you mean any CF deliberately? ... is the City zone map an established format?'. discovery.md lists all 8 by name."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": true,
+      "evidence": "Message 1: 'No ACL downstream on Accounts \u2192 Rentals (no patterns at all) and on CustomerSupport \u2192 FleetMaintenance.' Also in final message: '2 downstreams with no ACL'."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Message 1: 'An unconfirmed relationship: CustomerSupport \u2192 FleetMaintenance (_Unconfirmed)'; Q5 asks how fleet issues reach Fleet Maintenance."
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": true,
+      "evidence": "discovery.md 'Process walkthroughs' has step tables for all 4 expert processes, e.g. (3): 'total fee | Settlement \u2192 Pricing | PriceCalculation', 'charge + retries | Settlement \u2192 Payments | Charging', 'unpaid \u2192 outstanding debt \u2192 block | Settlement \u2192 Accounts | AccountBlocking'... Message 1 also walks P1-P7 through contexts."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": true,
+      "evidence": "discovery.md findings: cycle '(relationship rule 3)', Conformists '(integration rule 1)', no ACL '(integration rule 3)', C/S default '(relationship rule 5)'; transcript: 'Our rule allows CF only towards a well-established language'. Proposed relationships table has a 'Justification (rule)' column. Only the _Unconfirmed finding has no rule number, which is a factual not a pattern finding."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": true,
+      "evidence": "'Critic verdicts (round B) - Map final pass over all 4 processes, round 1: AGREE. DAG, all RULE lines resolved'; reported to user: 'An independent critic walked your four processes through it and agreed' and 'Final map critic: it agreed'."
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": true,
+      "evidence": "Expert reply 1 Q5: 'support hands it over to them ... I pick the first: support tells maintenance'; reply 2 Q3: 'maintenance withdraws it, not support'. Map changed to 'FleetMaintenance [U,OHS]->[D,ACL] CustomerSupport : FaultReporting', reported as 'reversed and confirmed'."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": true,
+      "evidence": "All 11 proposed relationships trace to the original or to expert answers: AccountBlocking flip (expert Q2 'whoever knows the reason calls it'), Payment Method Invalidated publish (reply 2 Q1 'Yes, that works'), FaultReporting (Q5). Billing-dispute link kept as a comment only ('Deferred (expert) ... Not modelled'). Service-area question resolved without adding City -> Rentals."
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed",
+      "passed": true,
+      "evidence": "Critic log has exactly two entries: Payments (context, flagged for the H3 'Charging' overlap) and one map final pass (AGREE). discovery.md: 'Only Payments was flagged for a context critic ... so no other context critics were run.'"
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0,
+    "total": 13,
+    "pass_rate": 1.0
+  },
+  "notes": "Strong run: ran the validator first, turned every RULE line into a numbered rule-referenced finding, asked targeted questions that each decide a relationship, and checked flips for new cycles (caught the Payments <-> Accounts side effect and asked about it). Critic use was proportionate. Cost: 430s vs 171s baseline, three expert rounds. Debatable call: City -> Pricing CF -> ACL reasoned as 'power fact, not a well-established language'; the trainer's rule could also accept CF to an imposed external format, so the skill might prompt the expert specifically on external CFs rather than deciding. The 'rule N' numbering in discovery.md refers to the skill's internal rule list; the user-facing final message names rules in prose only, which is fine. The expert's 'Expert reply' blocks appear twice (message + hand-back) - harmless transcript duplication. Eval weakness: assertions 1-4 are mostly satisfied by the validator script output alone; an assertion that checks the proposed fix (e.g. the cycle-break direction is expert-confirmed) would be more discriminating."
+}

@@ -1,0 +1,111 @@
+{
+  "expectations": [
+    {
+      "text": "CML context map written under src/main/cml/",
+      "passed": true,
+      "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+    },
+    {
+      "text": "CML passes validate_cml.sh (exit 0)",
+      "passed": true,
+      "evidence": "exit=0 ell established; otherwise it pollutes Billing.\n  Billing [OHS, PL] -> Payouts [CF] : EarningsCreditsAndDebits\nRULE conformist-check: Payouts conforms to Billing. OK only if Billing's language is well established; otherwise it pollutes Payouts.\nVALID: 12 bounded contexts, 22 relationships, 0 errors\n"
+    },
+    {
+      "text": "No Shared Kernel in the CML",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "The context downstream of the video provider uses an ACL",
+      "passed": true,
+      "evidence": "['  VideoProvider [] -> LessonDelivery [ACL] : VideoRooms']"
+    },
+    {
+      "text": "Discovery report written under docs/context-discovery/tutorhub/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "At least 5 canvases created under docs/bounded-contexts/",
+      "passed": false,
+      "evidence": "[]"
+    },
+    {
+      "text": "Canvas hand-off only: no plan.md and no Java code generated",
+      "passed": true,
+      "evidence": "plans=[] java=0"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": false,
+      "evidence": "711 words"
+    },
+    {
+      "text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)",
+      "passed": false,
+      "evidence": "['TutorVetting [OHS, PL] -> Marketplace [CF] : TutorEligibilityForSearch', 'TutorVetting [OHS, PL] -> Scheduling [CF] : TutorEligibilityForBooking', 'Complaints [PL] -> Billing [CF] : RefundRequests', 'LessonDelivery [OHS, PL] -> Scheduling [CF] : RoomBooking', 'LessonDelivery [PL] -> Pricing [CF] : HeldLessons', 'LessonDelivery [PL] -> Reviews [CF] : HeldLessonsForReview', 'LessonDelivery [PL] -> Billing [CF] : LessonOutcome', 'Reviews [PL] -> Marketplace [CF] : TutorRatingForSearch', 'Reviews "
+    },
+    {
+      "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+      "passed": true,
+      "evidence": "Final: 'TutorVetting ... It is the single place that suspends and reinstates a tutor.' 'Complaints ... only states outcomes: \"upheld against tutor X\"'. CML: 'Complaints [PL] -> TutorVetting [] : UpheldComplaints'."
+    },
+    {
+      "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+      "passed": true,
+      "evidence": "Final table: 'Pricing | Finance | ... Quotes, late fees and final charges all use this one calculation.' CML: 'Pricing [OHS, PL] -> Scheduling [CF] : PriceQuote', 'Pricing [OHS, PL] -> Billing [CF] : FinalPrice'."
+    },
+    {
+      "text": "Payouts is a separate context from Billing (weekly clock)",
+      "passed": true,
+      "evidence": "'Payouts runs on its own clock. It pays out every Monday whatever happens with lessons, so it is separate from Billing.'"
+    },
+    {
+      "text": "Billing/settlement after Lesson Ended is its own context",
+      "passed": true,
+      "evidence": "'Billing | Billing | Pre-authorisation at booking, final charge (2 retries, then unpaid), commission, refunds'. 'LessonDelivery [PL] -> Billing [CF] : LessonOutcome'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+      "passed": true,
+      "evidence": "Message 1 has numbered questions 1-8 and message 2 has numbered questions 1-6, both before the draft split in message 3."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+      "passed": false,
+      "evidence": "The transcript shows no critic or reviewer agent and no walk through business processes. The run went straight from the expert's reply 3 to the final message."
+    },
+    {
+      "text": "Asks the expert for approval of the contexts before building the map",
+      "passed": false,
+      "evidence": "Message 3 presents 'Draft bounded contexts' and asks for 'three design choices I'd like you to confirm or push back on'. The request is aimed at the design choices A-C, not an explicit approval of the context list. The expert volunteered 'the list looks right to me ... You can go ahead with it'. That is borderline, and the burden of proof is not met."
+    },
+    {
+      "text": "No U/D cycle is kept, or every kept cycle documents attempted flips of each link with expert-confirmed rejection reasons",
+      "passed": true,
+      "evidence": "The validator on the baseline CML reports no ud-cycle lines: 'VALID: 12 bounded contexts, 22 relationships, 0 errors'. Final: 'they form a DAG with no cycles'. The cycles were avoided through expert-confirmed choices A-C (rate history moved to Pricing, Scheduling calls LessonDelivery's API, Complaints doesn't read Billing)."
+    },
+    {
+      "text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)",
+      "passed": true,
+      "evidence": "'TutorVetting [OHS, PL] -> Scheduling [CF] : TutorEligibilityForBooking' and 'Reviews [PL] -> Pricing [CF] : TutorRatingForCommission'."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": false,
+      "evidence": "Message 1 asks 8 numbered questions and message 2 asks 6."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 7,
+    "total": 20,
+    "pass_rate": 0.65
+  },
+  "notes": "The baseline got the main boundaries right (single suspension owner, Pricing, Payouts, Billing) in 3 rounds and 77k tokens, and its map has no cycles. The acyclic result is partly the product of facilitator-proposed design choices the expert rubber-stamped: rate history moved into Finance's Pricing, an improvised LessonDelivery context run by the Scheduling team, and an improvised Marketplace team and StudentAccounts context. It never surfaced a rule like 'unpaid student can't book' (that fact was improvised in the skill run, not in the fact sheet). It breaks the trainer's rules on patterns. Internal relationships use Conformist almost everywhere: Scheduling CF to TutorVetting, Pricing CF to Reviews, Billing CF to Complaints, Payouts CF to Billing, and so on. That contradicts 'CF only towards a well-established language' and 'ACL downstream by default'. Some links have no ACL (StudentAccounts -> Scheduling/Billing, Complaints -> TutorVetting). Stripe is put behind an ACL even though the expert wanted to follow it as is. There is no discovery report and there are no canvases, and the final message is 711 words. No eval assertion checks the pattern quality of the relationships (C/S, ACL defaults); only the mechanical 'No Conformist between internal contexts' check catches it, so consider promoting it to a judgment assertion. Assertion 8 passes trivially here because there are no cycles, which is fine."
+}

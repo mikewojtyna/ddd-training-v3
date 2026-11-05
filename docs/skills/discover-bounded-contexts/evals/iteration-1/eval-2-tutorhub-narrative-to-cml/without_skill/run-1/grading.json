@@ -1,0 +1,86 @@
+{
+  "expectations": [
+    {
+      "text": "CML context map written under src/main/cml/",
+      "passed": true,
+      "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+    },
+    {
+      "text": "CML passes validate_cml.sh (exit 0)",
+      "passed": true,
+      "evidence": "exit=0 lished; otherwise it pollutes Scheduling.\n  Notifications [OHS] -> Reviews [CF] : SendNotification\nRULE conformist-check: Reviews conforms to Notifications. OK only if Notifications's language is well established; otherwise it pollutes Reviews.\nVALID: 14 bounded contexts, 25 relationships, 0 errors\n"
+    },
+    {
+      "text": "No Shared Kernel in the CML",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "The context downstream of the video provider uses an ACL",
+      "passed": true,
+      "evidence": "['  VideoProvider [] -> LessonDelivery [ACL] : VideoRooms']"
+    },
+    {
+      "text": "Discovery report written under docs/context-discovery/tutorhub/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "At least 5 canvases created under docs/bounded-contexts/",
+      "passed": false,
+      "evidence": "[]"
+    },
+    {
+      "text": "Canvas hand-off only: no plan.md and no Java code generated",
+      "passed": true,
+      "evidence": "plans=[] java=0"
+    },
+    {
+      "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+      "passed": true,
+      "evidence": "Final message: 'Suspension: only TutorVetting suspends tutors ... Now Complaints only publishes \"complaint upheld against tutor X\". TutorVetting decides whether a tutor may teach'. CML: 'Complaints [U,PL]->[D,CF] TutorVetting : ComplaintUpheld' and Complaints vision 'Does not suspend tutors itself.'"
+    },
+    {
+      "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+      "passed": true,
+      "evidence": "CML: 'Pricing [U,OHS]->[D,CF] Scheduling : PriceQuote // quote and late-cancellation fee basis' and 'Pricing [U,OHS]->[D,CF] Billing : PriceCalculation // final charge uses the same calculation as the quote'. Pricing vision: 'the same for quote, late fee and final charge'."
+    },
+    {
+      "text": "Payouts is a separate context from Billing (weekly clock)",
+      "passed": true,
+      "evidence": "Payouts context: 'Paying out accumulated tutor earnings every Monday via Stripe Connect, independent of lessons'. CML: 'Billing [U,PL]->[D,CF] Payouts : TutorEarnings'."
+    },
+    {
+      "text": "Billing/settlement after Lesson Ended is its own context",
+      "passed": true,
+      "evidence": "Billing vision: 'charging within 1 hour of Lesson Ended / no-show / late cancellation, two retries then unpaid, commission deduction, crediting tutor earnings'. CML: 'LessonDelivery [U,PL]->[D,CF] Billing : LessonOutcome'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+      "passed": true,
+      "evidence": "Message 1 asks numbered questions 1-6; message 2 asks numbered follow-ups 1-5; the context list is first presented in message 3."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+      "passed": false,
+      "evidence": "No critic or reviewer agent appears anywhere in the transcript or final message. The only check mentioned is 'No upstream/downstream loops (checked with tsort)'. No per-process walkthrough of the map."
+    },
+    {
+      "text": "Asks the expert for approval of the contexts before building the map",
+      "passed": true,
+      "evidence": "Message 3 presents the context list and asks 'Is that right? Anything misplaced?'; expert: 'the list of contexts is right'. Message 4 adds TutorSearch and asks 'Does that still match how you work?'; expert: 'With these two changes I'm happy with the list.' The map is only produced in message 5. Note: the map itself was never shown for approval, and the expert was never asked which processes to check or whether a CML map is wanted."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 3,
+    "total": 15,
+    "pass_rate": 0.8
+  },
+  "notes": "Map quality vs trainer rules: weak on relationship patterns. Every internal relationship is [U,PL|OHS]->[D,CF]: downstream Conformist to internal teams' languages everywhere, no ACL on any internal downstream, and no Customer/Supplier even though the expert said all teams are in one company (the run never asked about team relationships). This violates 'ACL default', 'C/S between internal teams' and 'CF only to well-established languages'. Positives: no Shared Kernel; CF to Stripe and ACL to the video provider are correct; no U/D cycles (verified with tsort), achieved by making LessonDelivery an OHS service called by Scheduling and by asking the expert to confirm - a cleaner cycle resolution than the with_skill run's kept indirect cycle. It also explicitly proposed breaking a loop by removing Pricing from Scheduling, the expert rejected it, and it found another fix - good behaviour.\n\nContext split: matches ground truth on all four key boundaries. Extras: TutorSearch modelled as a context although the expert said it has no rules (created only to break a cycle - questionable; a read model would do), Notifications as a context (improvised, no rules), TutorProfiles as a separate context with the rate. No subdomain classification, no canvases, no discovery report, no map approval, no process walkthroughs (did not ask for the expert's processes).\n\nCost: ~79k tokens, ~4 min, 4 expert rounds - much cheaper. For the skill, the comparison shows the skill's real value is in relationship patterns (C/S+ACL), critic catches (50% ownership) and traceable artifacts, not in the context split itself, which the baseline gets right. Assertions 1-5 and 7 do not discriminate between runs; only assertion 6 does."
+}

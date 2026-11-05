@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "git diff clean"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validated.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validated.cml']"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Message 1: \"**1 indirect U/D cycle:** Accounts -> Rentals -> Settlement -> Accounts.\" Q2 asks whose language blocking is; discovery.md F1 resolves it by flipping to `Accounts [U,OHS,PL]->[D,ACL] Settlement : AccountBlocking`."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": true,
+      "evidence": "Message 1 lists all 8 CFs: \"Under our rules CF is only OK towards a well-established language; 7 of the 8 are towards internal, young models.\" Q4 asks whether they were deliberate; Q5 asks whether the City zone map is a stable standard. Final: \"6 unjustified Conformists ... become ACLs\"; \"The 2 Conformists to Payments stay, justified in the CML comments.\""
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": true,
+      "evidence": "Message 1: \"**2 downstreams with neither ACL nor CF:** Rentals (from Accounts, `AccountStatus`) and FleetMaintenance (from CustomerSupport, the `_Unconfirmed` one).\" discovery.md F8/F9 tie both to integration rule 3, and both get an ACL."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Q7: \"*CustomerSupport -> FleetMaintenance.* Is the fleet-issue incident route confirmed now?\" The expert confirms it; F9: \"CustomerSupport -> FleetMaintenance unconfirmed, no ACL ... Confirmed by the expert; `_Unconfirmed` dropped; ACL; C/S.\""
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": true,
+      "evidence": "discovery.md '### Process walkthroughs' has step tables for all 4 processes. For example, 'Settle a ride and recover debt' covers total fee (PriceCalculation; ZoneMap) -> charge, retries (Charging) -> Rental Fee Unpaid -> block (AccountBlocking) -> recovery (DebtCollection) -> collect per instalment -> Outstanding Debt Cleared -> lift block -> recovery exhausted. P1-P6 were also proposed as a test bench in message 1."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": true,
+      "evidence": "The discovery.md findings table has a 'Rule' column for every finding F1-F10 (\"Relationship rule 3\", \"Integration rule 1\", \"Integration rule 3\", \"Relationship rule 5\"). Message 2 groups findings 'by rule' with the same references, and the CF rule is stated verbatim (\"CF is only OK towards a well-established language\")."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": true,
+      "evidence": "Transcript 'Critic verdicts' section: \"Map + all processes (final pass), round 2, AGREE: no cycle, all RULE/WARNING lines justified\", plus 4 per-process map reviews with AGREE in round 1. Message 2: \"Critic: each of your four processes got AGREE in round 1, and the final pass over all processes got AGREE in round 2.\" The verdicts are reported. The transcript summarises the critic runs and does not show the raw subagent output, so I could not check how independent the critic was."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "notes": "All 7 judgment assertions pass, and so do both mechanical ones (original untouched, validated CML passes validate_cml.sh). The validator script did most of the detection: the cycle, the 8 CFs and the 2 downstreams with neither ACL nor CF came straight out of its RULE lines, so the facilitator could ask targeted questions in message 1. That is the main reason this run is strong.\n\nCost of the critics: 13 critic calls (8 contexts, 4 per-process map checks, 1 final pass), and every one returned AGREE in its first round. The transcript says \"No critic round changed a relationship; they only sharpened comments.\" In validate mode the user asked about relationship rules, not about context boundaries, so the 8 per-context critic runs added little. Suggestion: in validate mode, skip per-context critics unless the user asks about boundaries or the validator/heuristics flag a context (for example an isolated context or a duplicated responsibility). Merge the 4 per-process map critics and the final pass into one map critic. That keeps assertion 7 satisfied at far lower cost. The per-context critics did contribute one point: the Settlement critic independently noted that Accounts should be upstream for blocking, which corroborated F1.\n\nQuality of the proposed map: good. It is acyclic. 6 of the 8 CFs became ACLs, and the 2 Payments CFs are justified. C/S is used where a single customer drives the supplier, and the reason OHS stays outside C/S (CML restriction) is explained. The 3 'ACL in C/S' warnings are deliberately kept and explained. Process walkthroughs map every hand-off to a named relationship. The run also caught that the invalid-card block must not be flipped (it would create a Payments<->Accounts pair), and it lists the knock-on edits needed in velocity-context-map.md. Minor: the facilitator proposed 6 processes and the expert collapsed them to 4. Seeding from the trainer's 4 canonical processes, if they are documented, would save a round.\n\nEval critique: assertions 1-6 were also passed by the baseline (see sibling run). Only assertion 7 (critic) discriminates, and it tests a process artefact rather than an outcome. Possible discriminating outcome assertions: 'proposes keeping Payments CFs with a written justification rather than converting every CF' (nuance), and 'does not add relationships the expert ruled out'. In this run the expert said not to add CustomerSupport -> DebtRecovery; in the baseline, a differently simulated expert asked for it. That shows the simulated expert answers inconsistently across runs. Pin its answers to make the eval reproducible. Timing: 87.9k tokens and 279s vs the baseline's 154k and 488s. The figure is possibly without subagent tokens; check whether critic subagent tokens are counted."
+}

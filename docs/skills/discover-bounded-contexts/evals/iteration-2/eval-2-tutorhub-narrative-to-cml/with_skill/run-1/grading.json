@@ -1,0 +1,101 @@
+{
+  "expectations": [
+    {
+      "text": "CML context map written under src/main/cml/",
+      "passed": true,
+      "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+    },
+    {
+      "text": "CML passes validate_cml.sh (exit 0)",
+      "passed": true,
+      "evidence": "exit=0 [ACL] : LessonEarnings\n  Complaints [PL] -> TutorVetting [ACL] : ComplaintUpheld\n  TutorVetting [PL] -> TutorCatalog [ACL] : TutorStanding\n  TutorVetting [PL] -> Payouts [ACL] : TutorSuspension\n  Reviews [PL] -> TutorCatalog [ACL] : TutorRating\nVALID: 10 bounded contexts, 19 relationships, 0 errors\n"
+    },
+    {
+      "text": "No Shared Kernel in the CML",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "The context downstream of the video provider uses an ACL",
+      "passed": true,
+      "evidence": "['  VideoProvider [] -> Scheduling [ACL] : VideoRooms']"
+    },
+    {
+      "text": "Discovery report written under docs/context-discovery/tutorhub/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md']"
+    },
+    {
+      "text": "At least 5 canvases created under docs/bounded-contexts/",
+      "passed": true,
+      "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/tutorcatalog/canvas.md', 'files/docs/bounded-contexts/tutorhub/tutorvetting/canvas.md']"
+    },
+    {
+      "text": "Canvas hand-off only: no plan.md and no Java code generated",
+      "passed": true,
+      "evidence": "plans=[] java=0"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "252 words"
+    },
+    {
+      "text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)",
+      "passed": true,
+      "evidence": "only external upstreams are conformed to"
+    },
+    {
+      "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+      "passed": true,
+      "evidence": "Message 4 table: Tutor Vetting (Trust & Safety) owns 'Tutor Suspended (reason: expired qualification / complaint upheld), Tutor Reinstated ... automatic suspension on Complaint Upheld'; Complaints: 'Doesn't suspend, doesn't move money.' CML: 'Complaints [U,PL]->[D,ACL] TutorVetting : ComplaintUpheld' with comment 'Trust & Safety suspends under its own rule'."
+    },
+    {
+      "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+      "passed": true,
+      "evidence": "Context #4 Pricing: 'Lesson Price Quoted (whole price frozen at booking), late-cancellation fee (50%), commission 15% / 10%'; 'H3: one calculation for quote, fee and charge'. CML: Pricing upstream of Scheduling (LessonQuoting) and Billing (FrozenLessonPrice)."
+    },
+    {
+      "text": "Payouts is a separate context from Billing (weekly clock)",
+      "passed": true,
+      "evidence": "Context #6 Payouts: 'H2 lane on its own Monday clock; owns the balance'. CML 'Billing [U,PL]->[D,ACL] Payouts : LessonEarnings'; payouts/canvas.md exists separately from billing/canvas.md."
+    },
+    {
+      "text": "Billing/settlement after Lesson Ended is its own context",
+      "passed": true,
+      "evidence": "Context #5 Billing: 'Owner of the far side of the appointment ended hand-off'; 'Charge within 1 h, retry twice, then unpaid + email'. CML 'Scheduling [U,PL]->[D,ACL] Billing : LessonOutcomes'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+      "passed": true,
+      "evidence": "Message 1: 11 numbered questions (H1); message 2: 8 numbered questions (H2); message 3: 10 numbered questions (H3 doubts); contexts first presented for approval in message 4."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+      "passed": true,
+      "evidence": "'Critic verdicts, contexts round 1' (9 per-context verdicts incl. 2 DISAGREE: Lesson Delivery, Tutor Profiles) and round 2; separately 'Critic verdicts, map round 1 (one per process)': 'Map + Weekly payout', 'Map + Complaint to refund and suspension', 'Map + Tutor onboarding', 'Map + Book and take a lesson', plus 'Map final pass'. The DISAGREE verdicts changed the outcome, suggesting real independence."
+    },
+    {
+      "text": "Asks the expert for approval of the contexts before building the map",
+      "passed": true,
+      "evidence": "Message 4: 'Please: 1. Do you approve these 8 contexts (and assumptions A1-A2)? 2. Do you want a context map...'; reply 4: 'I approve the 8 contexts'; map work starts in message 5."
+    },
+    {
+      "text": "No U/D cycle is kept, or every kept cycle documents attempted flips of each link with expert-confirmed rejection reasons",
+      "passed": true,
+      "evidence": "Message 6 documents two loops and tried flips ('Tried: dropping Scheduling's quote call. Rejected by your answer 1'); expert 'Yes to both fixes'. Final CML relationships form a DAG (verified manually: Pricing -> Scheduling -> {Billing, TutorVetting, Complaints, Reviews, TutorCatalog}, Billing -> {Complaints, Payouts}, Complaints -> TutorVetting -> {TutorCatalog, Payouts}, Reviews -> TutorCatalog); validator reports no ud-cycle."
+    }
+  ],
+  "summary": {
+    "passed": 18,
+    "failed": 0,
+    "total": 18,
+    "pass_rate": 1.0
+  },
+  "notes": "Map quality vs rules: all internal links are U/D with ACL downstream and OHS/PL upstream; CF only to Stripe (justified by expert 'industry standard'); ACL to the messy video provider; no SK; no cycles. Fully rule-compliant. However, two cycle-breaking flips invert the natural direction stated in the ground-truth facts: facts say 'Scheduling needs to know whether a tutor may teach (from Trust & Safety)' and 'Pricing reads the rating', but the map has Scheduling upstream of TutorVetting (T&S calls 'close/open calendar') and Reviews/TutorCatalog pushing into Pricing's API. Both flips were accepted only through [improvised] replies (6.1, 6.2, 7), and the loops themselves were created by improvised facts (5.5 Complaints reads Scheduling's lesson record; 2.7 suspension cancels future lessons). The simulated expert's agreeableness on improvised questions is doing a lot of work here; a real expert might reject 'T&S calls Scheduling's calendar API'. The Pricing 'everyone feeds it' design is defensible (Finance's calculator as a published-language service), but registering rates/ratings duplicates data ownership. Lesson Delivery merge into Scheduling: sound against the facts. Ground truth names no delivery team (teams list: T&S, Scheduling, Billing, Payouts, Community, Complaints, Finance), the no-show rule is 'we decide ourselves', the webhook churn is a technical reason handled by the ACL, and Lesson Ended remains the hand-off pivot to Billing. The ownership-by-Scheduling answers were improvised but consistent with the facts. The critic's DISAGREE that triggered the merge was well reasoned. Improvisation: 26 '[improvised]' markers. Rounds 2, 3 and 6-7 are mostly improvised, so much of the finer structure (slots in Scheduling, payouts held on suspension, frozen price, calendar API) rests on invented facts. The core assertion-relevant boundaries (suspension owner, Pricing, Billing, Payouts) come from scripted facts. Cost: 258,810 tokens and 1081 s, about 3.8x the tokens and 6x the time of the baseline. It made 8 expert round trips (heavy for a busy expert) and about 20 critic verdicts. Mechanical checks all passed: validator ok, 8 canvases, report, final message 252 words. Eval critique: assertion 8 is satisfied trivially by any acyclic map. It does not check whether the flips used to reach acyclicity contradict ground-truth directions (e.g. T&S -> Scheduling eligibility). Consider adding an assertion that 'Scheduling learns tutor eligibility from Trust & Safety' or that flips are not justified solely by improvised answers."
+}

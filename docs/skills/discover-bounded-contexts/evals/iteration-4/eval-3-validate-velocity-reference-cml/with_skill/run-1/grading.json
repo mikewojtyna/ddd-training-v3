@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "real file: git diff clean; run output uses a separate file"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validation.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validation.cml']"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "330 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Message 1: '1. **Indirect U/D cycle: Accounts -> Rentals -> Settlement -> Accounts.** ... Your velocity-context-map.md says \"No cycles\"'. Final message finding 1 repeats it; discovery.md finding 1 cites 'Relationship rule 3; validator ud-cycle-indirect'."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": true,
+      "evidence": "Message 1: 'Conformist on 8 of 11 relationships, 7 of them between your own contexts... Our rule: CF only towards a well-established language, ACL by default downstream.' Asked Q2 (teams) and Q3 (City zone map). Message 2: 'CF between your own contexts isn't justified... City -> Pricing CF is fine... exactly the \"well-established language\" case.' Proposal replaces the 7 internal CFs with C/S + ACL and keeps City CFs with justification comments."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": true,
+      "evidence": "Message 1: 'Accounts -> Rentals has no pattern on either side (no OHS, no ACL/CF)'. discovery.md validator section: 'no-acl Accounts->Rentals (finding 4), no-acl CustomerSupport->FleetMaintenance (finding 5)'. Proposal: 'Accounts [U,S,PL]->[D,C,ACL] Rentals', all internal downstreams get ACL ('Downstream ACL instead of CF', integration rules 1 and 3)."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Message 1: '5. **CustomerSupport -> FleetMaintenance is still marked unconfirmed**, and it's Customer Support's only relationship.' Plus Q4 asked about fleet-issue incidents."
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": true,
+      "evidence": "discovery.md 'Process walkthroughs' tables for P2 Rent a bike, P3/P5 Return-settle/Debt recovery, P7 Incidents, each step -> owning context -> relationship (e.g. 'Outstanding debt -> block (reason debt), notification | Settlement asks, Accounts blocks | Accounts -> Settlement AccountBlocking'). Map critic ran over 'all processes P1-P7' and found the unowned P2 location step."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": true,
+      "evidence": "discovery.md findings table has a Rule column for every finding: 'Relationship rule 3; validator ud-cycle-indirect', 'Integration rules 1 and 3', 'Relationship rule 5', 'Validator no-acl, integration rule 3', 'Direction follows model, not message; breaking-a-cycle step 1', 'Cross-cutting: every hand-off needs a relationship', 'H3 (one owner per responsibility)'. Final message names the CF rule ('CF is only allowed towards a well-established language') and H3. Minor gap: final message does not repeat the rule for findings 3-6, but the report does."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": true,
+      "evidence": "Transcript 'Critic verdicts': 'Map (all processes P1-P7), round 1: DISAGREE ... P2 location validated (service area) has no owner'; round 2: 'AGREE'. Final message: 'Map critic, round 1: it found the unowned location check, which led to finding 6.'"
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": true,
+      "evidence": "Expert R1 Q4 and R2 Q2: 'The agent reports the broken bike to the technicians' side... The agent never deals directly with the side that offers bikes to riders.' Proposal reverses it to 'FleetMaintenance [U,S,PL]->[D,C,ACL] CustomerSupport : BrokenBikeReport' with comment 'Confirmed: ... (expert, round 1, Q4 and round 2, Q2)'. Changed in direction and name based on expert facts, not just relabelled."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": true,
+      "evidence": "New relationships: City->Rentals ServiceArea (expert R3 Q1: 'The service area ... is part of the zone map the city publishes'), Settlement->CustomerSupport ChargeCorrection (R2 Q3, R3 Q2), DebtRecovery->CustomerSupport RecoveryPause (R1 Q5: 'the agent pauses the debt recovery'), Accounts->Settlement AccountBlocking (R2 Q1). discovery.md: 'No unconfirmed relationship remains in the proposal.'"
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)",
+      "passed": true,
+      "evidence": "Per-context critics only for Accounts, Settlement, Payments; discovery.md: 'Context critics ran only for flagged contexts (Accounts, Settlement, Payments). Rentals, Pricing, DebtRecovery, CustomerSupport and FleetMaintenance had no flag.' These were the contexts whose responsibilities changed (cycle fix, H3 charging). Map critic: 2 rounds, round 1 DISAGREE, round 2 AGREE - second pass justified by the disagreement."
+    },
+    {
+      "text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)",
+      "passed": true,
+      "evidence": "Message 2 presents options A/B/C in business terms and asks 'Which of A, B or C describes how VeloCity actually works... If you'd keep C, say so explicitly.' Expert R2 Q1: 'A describes how we work... So B isn't how we work, and I wouldn't keep C.' Final message: 'Fix, from your answer (option A)'."
+    }
+  ],
+  "summary": {
+    "passed": 14,
+    "failed": 0,
+    "total": 14,
+    "pass_rate": 1.0
+  },
+  "notes": "11/11. Thorough and rule-anchored, with good cycle resolution: the run gave the expert three options (A/B/C) in business language, including 'keep the cycle', and let the expert choose. Cost: 475s and 135k tokens, against the baseline's 152s and 69k, plus 3 expert rounds. The scope grew beyond a 'sanity check': H3 charging duplication, the location-check owner, billing-dispute relationships, refunds, and a house-style rewrite of every domainVisionStatement ('Answers: ...'). The location-check finding came from the map critic and is a real gap. The vision-statement rewrite and refunds are scope creep for a validation, so the skill could tell validate mode to list such findings but not fold them into the proposal unless asked. Per-context critics ran for 3 contexts that were changed, not flagged by the original validator. Accounts and Settlement are justified by the cycle fix. Payments was flagged only by the run's own H3 finding. That's still proportionate, not blanket. The proposal drops OHS because CML rejects OHS inside C/S and explains this in a comment. It also keeps 11 Context Mapper warnings about ACL in C/S on purpose. Both are worth surfacing to the trainer, since the reference map is meant to teach OHS. The final message stays under 400 words but lists 7 findings. The cycle and the CF findings are the headline, and the rest could be grouped as 'gaps found while walking processes'."
+}

@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "real file: git diff clean; run output uses a separate file"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validated.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validated.cml']"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "336 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Message 1: 'one indirect cycle, Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts'; final: 'An indirect cycle, Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts, while the write-up says \"No cycles\"'."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": true,
+      "evidence": "Message 1 Q5: 'Our rules allow CF only towards a well-established language, so this decides 8 of the 11 rule prompts'; Q3/Q4 in message 2 probe Rentals->FM, Settlement->DebtRecovery, Accounts->Rentals CF; expert justified ('used the same way across the whole company... none has changed meaning'); City CF probed in message 5. Report table row 1 records per-CF justification."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": true,
+      "evidence": "Message 1: '2 downstreams with neither ACL nor CF (Rentals from Accounts, and FleetMaintenance from CustomerSupport)'; validator lines 'RULE no-acl: Rentals is downstream of Accounts without an ACL' and 'RULE no-acl: FleetMaintenance is downstream of CustomerSupport without an ACL'."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Message 1: 'One of them, CustomerSupport \u2192 FleetMaintenance, is marked unconfirmed' and Q2 asks about it explicitly."
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": true,
+      "evidence": "discovery.md 'Process walkthroughs (proposed map)' has step/owner/hand-off tables for 4 processes (e.g. 'Rental Fee Unpaid \u2192 block | Settlement \u2192 Accounts | DebtBlocking'); message 3 'One more gap from walking \"rent and return\"' surfaced the live-estimate question."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": true,
+      "evidence": "Report findings table has a Rule column: 'integration rule 1 (\"justify every CF\")', 'integration rule 3', 'relationship rule 3; \"Breaking a cycle\"'; final message cites 'CF only towards a well-established language'. Row 9 is 'n/a' (a doc-consistency finding), minor."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": true,
+      "evidence": "Final: 'Map, round 1: flipped the Support/Fleet link...' 'Map, round 2: approved.' Transcript: 'Map (all processes), round 2: AGREE ... Only the documented indirect cycle remains'."
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": true,
+      "evidence": "Expert reply 2/5 confirm the handover: 'The agent hands over a broken bike, in the technicians' terms ... the technicians' side confirms back'. Proposed CML flips it to 'FleetMaintenance [U,OHS,PL]->[D,ACL] CustomerSupport : BrokenBikeHandover' with comment 'flipped on the expert's answer'."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": true,
+      "evidence": "New links each rest on expert statements: Settlement->CustomerSupport (reply 2.1 'Support ... tells the balance people to cancel it'), DebtRecovery->CustomerSupport (reply 2.1 'Support does tell recovery to pause ... and to resume'), Accounts->DebtRecovery (reply 5.4 'The accounts team keeps them ... Debt recovery always uses the current, verified contact details'). Caveat: their ACL patterns are defaults the CML itself marks 'expert not asked about translation', and the 'withdraw via Rentals inside the call' mechanism is the facilitator's design, not stated by the expert."
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)",
+      "passed": true,
+      "evidence": "Per-context critics ran only for Rentals and FleetMaintenance, explicitly 'the two contexts I flagged because the \"broken / withdrawn\" decision is spread across them' (triggered by expert reply 1.2 contradicting FM owning 'broken'). Map critic: round 1 DISAGREE, round 2 AGREE - a second pass is allowed because the first disagreed."
+    },
+    {
+      "text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)",
+      "passed": false,
+      "evidence": "The cycle is kept, but the expert was never shown the flips nor asked to confirm keeping it. Message 2 says 'I'll check the flips and report back' and never does; the flip table appears only in discovery.md and the final message ('I tried flipping each link, and every flip contradicts something you stated'), with no expert round on it. The decision was unilateral. The Settlement->Accounts flip is also ruled out by a misreading: 'Nobody else blocks or unblocks an account directly' is about who decides, and doesn't rule out Accounts offering an OHS that Settlement reports the debt fact to."
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 1,
+    "total": 14,
+    "pass_rate": 0.93
+  },
+  "notes": "10/11. The weak point is the cycle. The trainer's rule says cycles are almost always wrong, yet the run kept Accounts->Rentals->Settlement->Accounts on its own flip analysis and never showed the flips to the expert. That analysis is shaky: the Settlement->Accounts flip (Accounts OHS 'report unpaid debt / debt cleared', Settlement downstream calling it) is ruled out by quoting 'nobody else blocks or unblocks directly', which is about decision ownership, not model dependency. The baseline arrived at exactly that flip as its recommended fix, and it is likely the intended answer. Skill improvement: when the validator raises a cycle, require an expert round that shows each candidate flip with what it means in business terms, and treat 'keep the cycle' as needing explicit confirmation. Proportionality: 5 expert rounds, 3 critic contexts/passes, 678s and 170k tokens versus 95s and 51k for the baseline. That is heavy for a 'sanity-check before I show it'. The run drifted into re-discovery (billing disputes, partial refunds, reminder contacts, live estimate) and added 3 new relationships plus a flipped one. The findings are real, but the skill could cap a validation at 1-2 rounds focused on the validator's RULE lines and park completeness gaps as 'open questions' unless the user opts in. Good: it didn't overwrite the reference CML, it walked processes, it tied findings to rules, and its critic use was targeted. Eval critique: assertion 9 is lenient about defaulted ACL patterns on new links. Consider adding 'patterns on new links are confirmed or explicitly marked as defaults' and a 'stays within validation scope / proportional expert rounds' assertion."
+}

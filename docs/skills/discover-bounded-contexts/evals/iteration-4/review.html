@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "discover-bounded-contexts", "runs": [{"id": "eval-1-velocity-board-screenshot-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "The seven contexts are approved, and the discovery report is saved. As you asked, there's no context map today, and the canvases come next session.\n\n**File:** `docs/context-discovery/velocity/2026-11-05-bike-rental-board/discovery.md`. Status: `contexts approved`. It's also the resume point for next time.\n\n**Contexts and relationships:** 7 contexts and 0 relationships, because you declined the map. The contexts are Rider Accounts, Rental, Pricing, Settlement, Debt Recovery, Fleet Maintenance and Incident Handling. The payment processor stays an external party.\n\n**The critic round that changed something:**\n- Fleet Maintenance, round 1: the critic disagreed, because nothing started maintenance and nobody decided \"this bike needs repair\". Your answers gave it triggers (inspections, rounds, repair requests from incident agents), rules, and ownership of whether a bike is usable. Round 2 agreed. Incident Handling was re-checked for the new repair request and agreed.\n\n**Still open:**\n- Several boundaries rest on answers you flagged as improvised: blocking and unblocking, Payments being external, the forced end, and all of maintenance.\n- Non-blocking questions:\n  - Is the account activated before or after the card is verified?\n  - Is Settlement's schedule about retrying charges, and where does it hand over to Debt Recovery?\n  - What starts debt recovery, and what happens after it finally fails?\n  - Does a recovered debt settle the rental?\n  - Does a failed station lock still end the session?\n- Board changes are listed in the report: missing events such as Rental Session Ended, Payment Succeeded/Failed and Rental Settled/Unsettled, plus renames such as \"Hour Fee Applied\" to \"Fee Estimated\".\n\nNext session I'll hand each context to `bounded-context-scaffolder` for its canvas. A map can follow, saved under a new name so it doesn't overwrite the reference `VeloCity-Context-Map.cml`.\n"}], "grading": {"expectations": [{"text": "Discovery report written under docs/context-discovery/velocity/", "passed": true, "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-board/discovery.md']"}, {"text": "No CML and no canvases created (the expert declined both)", "passed": true, "evidence": "cml=[] canvases=[]"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "276 words"}, {"text": "Reads the board back to the expert before applying any heuristic", "passed": true, "evidence": "Round 1 opens with a full event-level read-back ('Main timeline', 'Branches', 'Disconnected clusters', 'Ambiguities: Rental Session Started and \"bike returned\" each appear twice...') before the '**H1, pivotal events.**' section. Caveat: the read-back and H1 are in the same message, so the expert could not correct the reading before H1 started."}, {"text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility", "passed": true, "evidence": "Round 1 = '**H1, pivotal events.**'; round 2 = 'Confirmed pivots (H1)' then '**H2, swimlanes.**'; round 3 = '**H3 draft (single responsibility):**'. discovery.md has a Heuristic trail with H1, H2, H3 tables in that order."}, {"text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list", "passed": true, "evidence": "Numbered question lists in rounds 1 (1-5), 2 (1-5), 3 (1-4), and 4 (1-4) before the final list in round 5."}, {"text": "An independent critic reviewed the contexts and its verdicts are logged", "passed": true, "evidence": "discovery.md '## Critic log' table records verdicts per context and round, e.g. 'Fleet Maintenance | 1 | DISAGREE | 1) nothing triggers maintenance, and nobody owns \"needs repair\"...' and 'Fleet Maintenance | 2 | AGREE'. The transcript also has 'Critic verdicts (context round 1)' and '(context round 2)' sections."}, {"text": "Account blocking ends up owned by exactly one context", "passed": true, "evidence": "Rider Accounts: 'Owns ... the blocked status with its reasons (invalid card, debt), each reason's own unblock ... H3: the one place that answers \"why can't I rent?\". Others only publish facts.' H3 table: 'Rider Accounts owns the blocked status and reasons ... Settlement and Debt Recovery publish facts.'"}, {"text": "Debt Recovery is a separate context from Payments", "passed": true, "evidence": "Debt Recovery is context 5 ('How do we recover what's owed?'). Payments is treated as an 'External party: the payment processor' after R3.2 ('Payments is just the external payment processor'), so recovery cannot live in it."}, {"text": "Settlement is identified as its own context", "passed": true, "evidence": "Context 4: '**Settlement:** *What does the rider owe for this rental, and is it settled?* Owns the reaction to Session Ended, the charge order to the payment processor, its schedule rules, and Rental Settled/Unsettled.'"}, {"text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)", "passed": true, "evidence": "Every context in the round 5 presentation and the discovery.md table has an italic one-line question, e.g. 'Rental: *Who has which bike, and when?*', 'Pricing: *What does this cost?*'."}, {"text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement", "passed": true, "evidence": "Round 1 Q3 asks 'When and where is the rider actually charged?', round 2 notes 'Ride ended ... this is where the real charge happens', and round 2 Q2 asks 'After the ride ends, who works out what the rider owes and makes sure it's paid?' The expert first says 'Settlement works out what's owed' in reply to that question. The scripted challenge 'So, who actually makes the settlement here?' never had to fire."}, {"text": "Fleet Maintenance is kept as its own context", "passed": true, "evidence": "Context 6: '**Fleet Maintenance:** *Is this bike fit for service?*', with critic agreement in round 2."}, {"text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map", "passed": false, "evidence": "The transcript only asks the yes/no question 'Do you want a context map...?' and the expert answers 'No context map for now.' But discovery.md '## Context map' then sketches relationships anyway: 'Fleet Maintenance is a likely upstream of Rental ... and of Incident Handling (repair-request API). Rental is a likely upstream of Incident Handling (Bike Fault Reported). The critic saw no cycle there.' The label 'not decisions' does not make these anything other than upstream/downstream sketches written without a yes."}, {"text": "No facilitator round asks more than 5 questions", "passed": true, "evidence": "Question counts per round: 5, 5, 4, 4, 2."}, {"text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)", "passed": true, "evidence": "Critic round 2 re-ran only Fleet Maintenance (round 1 DISAGREE) and Incident Handling. The critic log gives the reason for Incident Handling: 're-run because ownership changed (Repair Requested)'. The other five contexts were not re-run."}], "summary": {"passed": 15, "failed": 1, "total": 16, "pass_rate": 0.94}, "notes": "Strong run: the process and outcomes match the reference. Two points for the skill: (1) The read-back and H1 come in the same message, so the expert never confirms the reading before the heuristics start. Consider making the read-back its own step, or explicitly inviting corrections first. (2) The single failure: when the expert declines the map, the report still records critics' 'likely upstream' notes under '## Context map'. The skill should tell the critic and facilitator to leave relationship notes out when the map is declined, or keep only a neutral list such as 'integration events seen' without upstream/downstream wording. Payments was made an external party, but only after the facilitator asked 'is it just the external payment processor?' and the expert's answer was improvised. That is defensible, but it leans on improvisation. Many boundaries (blocking, all of maintenance) rest on answers flagged [improvised], and the run honestly lists them as open assumptions. Mechanical grading: report present, no CML, final message 276 words. Eval critique: A1 can't tell 'read back then confirmed' from 'read back in the same breath as H1'. If confirmation matters, tighten A1. A9 passes partly because the expert's own round 1 answer already used the word 'settled'. Tokens 136.8k, 430s."}}, {"id": "eval-1-velocity-board-screenshot-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "You approved this list: eight bounded contexts, plus a ninth I'm not sure about. The swimlanes are a good starting point but don't match the boundaries one-to-one: some stickies sit in the wrong lane, and one context, Settlement, isn't on the board at all. The expert's answers settled most of this. Settlement came out of the expert's reaction to my final list: \"So, who actually makes the settlement here?\"\n\n## Bounded contexts\n\n| # | Context | What it owns | Stickies from the board | Pivotal events |\n|---|---|---|---|---|\n| 1 | **Rider Accounts (Onboarding)** | Registration steps, account activation, the deadline for verifying the payment method, account status (active or blocked). Rental checks this status before every rental. | All of \"User Registration And Account Setup\", plus \"Account Blocked Due To Invalid Card\" from the debt lane | User Account Activated, Account Blocked |\n| 2 | **Rental** | The bike and the session: reservation, unlock, rental session, return at a station or drop zone, forced end of a session, the fault check on return. **It doesn't handle money.** | \"Bike Rental\" without the maintenance stickies; both return lanes without their fee stickies | Bike Reserved, Rental Session Started, Rental Ended / Forcibly Ended |\n| 3 | **Pricing** | The fee calculator: free period, hourly fees, max-time penalty, unauthorized-zone fee. The live estimate and the final amount use the same rules, and the rules change on their own schedule. | \"Pricing\" lane, Drop Zone Fee Applied, Unauthorized Zone Return Fee Applied | (calculations, not process events) |\n| 4 | **Settlement** | Settles an ended rental. It gets the final amount from Pricing, has Payments charge it, and records the rental as settled or unsettled. Its rules are mostly about when to settle and don't depend on the rental. | **Not on the board.** \"Rental Total Fee Calculated\" belongs here as the input. | Rental Settled, Rental Unsettled |\n| 5 | **Payments** | Runs charges through the external processor and knows no business rules. Generic; mostly an anti-corruption layer (ACL) around the processor. | Not on the board | Charge Succeeded / Failed |\n| 6 | **Debt Recovery** | Starts at an unsettled rental. Owns the recovery actions and their schedule: retry the charge, block the account, pause, resume, and lift the block once the debt is paid. | \"Account Block And Debt Recovery\" without the invalid-card branch | Debt Recovery Process Started / Succeeded / Failed |\n| 7 | **Incident Handling** (customer support) | Incidents reported by riders or detected automatically: broken bike, accident, stolen or missing bike, payment complaint. Nothing flows back to other contexts. | \"Customer Support And Incident Handling\", Customer Support Contacted | Incident Reported, Incident Resolved |\n| 8 | **Fleet Maintenance** | Taking broken bikes out of service, repairing them, putting them back into circulation | \"bike broken\", maintenance started, bike fixed, the technician's \"bike returned\" (all misplaced in the Bike Rental lane) | Bike Fixed / Back In Service |\n| 9? | **City Network** (tentative) | The map of stations, drop zones and unauthorized zones, kept by the operations team. It changes only a few times a season, so it may just be reference data, not a context of its own. | Not on the board | Map changed |\n\n## Why the lines fall where they do\n\n- **Settlement is separate from Rental.** The rental is about the bike and the session, and money is handled only after it ends. Settlement has its own rules (when to settle) that don't depend on the ride. My first draft had Rental call Pricing and Payments at the end of the ride. That pulled settlement rules into Rental without anyone owning them.\n- **Settlement, Pricing and Payments are three separate contexts.** Pricing is a calculator anyone can use, and its rules change on their own schedule. Payments only executes the charge and knows none of the rules. Settlement decides when to settle and what the outcome is. The board makes Pricing look like a clock that bills hour by hour, but the hourly amounts are only an estimate. The final amount is fixed when the rental ends.\n- **Maintenance isn't Rental.** A repair ride has no session and no price. \"Bike returned\" means different things in the two places: for a rider it ends the rental, for a technician it puts the bike back in service. One word with two meanings is a boundary signal.\n- **The two return lanes belong to Rental.** Station and drop-zone returns follow the same rules. Only the zone fees differ, and those go to Pricing.\n- **The debt lane covers two different blocks.** \"Blocked due to invalid card\" is the payment-method verification deadline passing, so it belongs to Rider Accounts. \"Blocked due to debt\" is a recovery action Debt Recovery takes under its own rules and schedule, and the account just records it.\n- **Incident Handling is a sink.** Rental publishes \"Bike Fault Reported\" and doesn't care what happens next. Support doesn't waive fees, end rides or unblock accounts.\n\n## Relationships (first sketch, upstream -> downstream)\n\n- Rider Accounts -> Rental: account status check before every rental\n- Rental -> Settlement: Rental Ended / Forcibly Ended (event)\n- Pricing -> Settlement and Rental: final amount and live estimate (Pricing as an open host service (OHS) with a published language (PL), since anyone can use it)\n- Payments -> Settlement and Debt Recovery: charge execution (generic, ACL on the consumer side)\n- Settlement -> Debt Recovery: Rental Unsettled starts a recovery\n- Debt Recovery -> Rider Accounts: block and lift the block\n- Rental -> Incident Handling: Bike Fault Reported\n- Incident Handling -> Fleet Maintenance: an incident can lead to a repair\n- Fleet Maintenance -> Rental: bike out of service / back in service\n- City Network -> Rental, Pricing (if it stays a context)\n\nThere are no upstream/downstream cycles: Payments only answers calls, and it is downstream of nothing.\n\n## Where the board and the expert disagree, and open questions\n\n1. **Onboarding order.** The board puts Payment Method Verified before Agreement Signed and Account Activated. The expert says the agreement comes first, the account is activated when the payment method is *added*, and verification follows with a deadline (the rider can rent until it passes). The board needs fixing.\n2. **Missing events:** Rental Settled / Unsettled, Charge Succeeded / Failed, Session Forcibly Ended, Verification Deadline Passed, Account Unblocked, Bike Back In Service.\n3. **How technicians take a bike.** The board reuses \"Bike Reserved\" for a broken bike. The expert says a repair ride isn't a rental, but didn't say whether technicians reserve and unlock through Rental or through Fleet Maintenance.\n4. **Is City Network its own context?** I'm leaning towards reference data.\n5. **Bike availability.** Rental, Fleet Maintenance and Incident Handling (stolen or missing bikes) all affect whether a bike can be rented. Who owns \"bike is available\" is still open.\n\nSeveral of the expert's answers were marked as improvised, mainly: technicians reserving bikes, the list of incident types, who decides each block, retries as a recovery action, and that settlement has no refunds or adjustments today. Treat those as softer than the rest.\n\nAs you asked, we're stopping at the contexts for today. I haven't drawn a context map or written any files. Next session we'll do the Bounded Context Canvases, and the open questions above are a good agenda for it.\n"}], "grading": {"expectations": [{"text": "Discovery report written under docs/context-discovery/velocity/", "passed": false, "evidence": "no report"}, {"text": "No CML and no canvases created (the expert declined both)", "passed": true, "evidence": "cml=[] canvases=[]"}, {"text": "Final message is under 400 words", "passed": false, "evidence": "1243 words"}, {"text": "Reads the board back to the expert before applying any heuristic", "passed": false, "evidence": "Message 1 only lists the lane names ('7 swimlanes (User Registration And Account Setup, Bike Rental, ...)') and goes straight to questions. There is no event-level read-back for the expert to correct. No heuristic is applied at any point either, so the ordering this assertion checks never happens."}, {"text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility", "passed": false, "evidence": "There is no mention of pivotal events, swimlanes as a heuristic, or single responsibility as an ordered method. The run goes from questions to a draft split ('Draft bounded contexts:') without a heuristic trail."}, {"text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list", "passed": false, "evidence": "Message 1 has a numbered list (1-8) and message 2 a lettered one (A-C). Message 4's questions are unnumbered prose ('Tell me what \"settling a rental\" means for you. Is it: ...? Does it have its own rules...?'). That makes at most two enumerated rounds before the first final list in message 3."}, {"text": "An independent critic reviewed the contexts and its verdicts are logged", "passed": false, "evidence": "No critic agent was used. Nothing in the transcript or outputs is a critic verdict."}, {"text": "Account blocking ends up owned by exactly one context", "passed": false, "evidence": "Two contexts decide blocks: Rider Accounts blocks for an invalid card ('Account Blocked Due To Invalid Card' moved to Rider Accounts), while Debt Recovery 'Owns the recovery actions ... block the account ... and lift the block'. The 'account just records' line makes Accounts store the status, but the blocking decision has two owners."}, {"text": "Debt Recovery is a separate context from Payments", "passed": true, "evidence": "Context 5 'Payments: Runs charges through the external processor and knows no business rules' and context 6 'Debt Recovery: Starts at an unsettled rental. Owns the recovery actions and their schedule' are separate."}, {"text": "Settlement is identified as its own context", "passed": true, "evidence": "Final list context 4: '**Settlement** | Settles an ended rental ... records the rental as settled or unsettled.' It was added only after the expert's challenge."}, {"text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)", "passed": false, "evidence": "The contexts are described by what they own ('Registration steps, account activation...') and not by a single business question. No context gets a question it answers."}, {"text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement", "passed": false, "evidence": "Message 1 Q2 asks 'Who charges the card?' (payment execution), but message 3 gives the 'final list' with settlement quietly inside Rental: 'Rental ends the session, asks Pricing for the final amount, asks Payments to charge'. The expert then had to fire the scripted challenge 'So, who actually makes the settlement here?', and the run admits 'Good catch: in my list nobody owns it; I quietly let Rental do it.'"}, {"text": "Fleet Maintenance is kept as its own context", "passed": true, "evidence": "Context 8: '**Fleet Maintenance** | Taking broken bikes out of service, repairing them, putting them back into circulation'."}, {"text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map", "passed": false, "evidence": "After the expert said 'no context map for now', the final message still has '## Relationships (first sketch, upstream -> downstream)' with 10 edges and OHS/PL/ACL patterns. Message 5 had also offered 'Next I could turn this into a Context Mapper context map'."}, {"text": "No facilitator round asks more than 5 questions", "passed": false, "evidence": "Round 1 asks 8 numbered questions (1-8), and several of them hold multiple sub-questions."}, {"text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)", "passed": false, "evidence": "No critics, so this fails by definition."}], "summary": {"passed": 4, "failed": 12, "total": 16, "pass_rate": 0.25}, "notes": "Baseline without the skill: the domain outcome is reasonable but the process is wrong. It does find Settlement, but only after the scripted expert challenge, which is the main discriminating behaviour (A9). It also adds a speculative ninth context, 'City Network (tentative)', from an improvised answer, and keeps Payments as a context. That is acceptable here because Debt Recovery is clearly separate. Blocking is split between Accounts (card) and Debt Recovery (debt decides the block, Accounts records it), which shows the lack of an H3 single-owner check. It ignores the expert declining the map and sketches 10 relationships with OHS/ACL patterns. The final message is 1243 words, with no report file. It was cheaper: 74.4k tokens, 247s, against 136.8k tokens, 430s with the skill. Eval critique: A3 could say whether lettered lists count as 'numbered'; I counted them, and the run fails anyway. The baseline's message 1 does probe the post-ride gap ('what happens after it is known? Who charges the card?'), so A9 stays discriminating only because it requires the facilitator to identify an *owner*. Consider rewording A9 to 'identifies that no context owns settlement'."}}, {"id": "eval-2-tutorhub-narrative-to-cml-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "Discovery is done. The map was approved, and I've written the canvases.\n\n**Files**\n- Report (rounds, critic log, open points): `docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md`\n- Context map: `src/main/cml/TutorHub-Context-Map.cml`. Context Mapper parses it with 0 errors and no rule warnings.\n- Canvases, one per context: `docs/bounded-contexts/tutorhub/{trustandsafety,scheduling,pricing,billing,payouts,reviews,complaints}/canvas.md`. These are canvases only; there's no plan or code yet.\n\n**Result:** 7 contexts and 13 relationships. 10 of the relationships are internal, and 3 go to Stripe or the video provider. There are no cycles.\n\n**Critic rounds that changed something**\n- Payouts and Billing (contexts): the tutor's earnings balance had two owners. Your answer gave it to Payouts, and Billing now only reports what each lesson earned.\n- LessonDelivery (context): it was separate only because the video provider's webhooks keep changing, which is a technical reason. Your answers folded it into Scheduling, with a translation layer in front of the video provider.\n- Weekly payout (map): there was a gap in who supplies the tutor's country for tax forms. I added Trust & Safety \u2192 Payouts.\n- Complaint process (map): my earlier question about the upheld-complaint report was an either/or. I asked again neutrally, and Trust & Safety stays upstream because it defines the categories.\n- After your round-6 answer, review eligibility moved to Community. Scheduling now reports every lesson outcome and Reviews decides which ones get a review.\n\n**Still open**\n- Several answers you gave on the spot are marked \"to re-confirm\" with the teams. They're listed in the report.\n- Reinstatement rules and the \"Tutor Reinstated\" event.\n- Which countries need tax forms, and whether a tutor's balance can go negative.\n- Renewing card holds for lessons booked far ahead.\n- What a tutor's no-show dispute can lead to.\n- The strategic classification of each context.\n- Several rules in the canvases still need concrete Given/When/Then examples before scaffolding.\n"}], "grading": {"expectations": [{"text": "CML context map written under src/main/cml/", "passed": true, "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"}, {"text": "CML passes validate_cml.sh (exit 0)", "passed": true, "evidence": "exit=0 outs [ACL] : TutorEarnings\n  Billing [OHS, PL] -> Complaints [ACL] : ChargesAndRefunds\n  Stripe [OHS, PL] -> Billing [ACL] : CardPayments\n  Stripe [OHS, PL] -> Payouts [ACL] : ConnectPayouts\n  VideoProvider [OHS] -> Scheduling [ACL] : VideoRooms\nVALID: 9 bounded contexts, 13 relationships, 0 errors\n"}, {"text": "No Shared Kernel in the CML", "passed": true, "evidence": "none"}, {"text": "No direct upstream/downstream cycle (validator reports no ud-cycle)", "passed": true, "evidence": "none"}, {"text": "The context downstream of the video provider uses an ACL", "passed": true, "evidence": "['  VideoProvider [OHS] -> Scheduling [ACL] : VideoRooms']"}, {"text": "Discovery report written under docs/context-discovery/tutorhub/", "passed": true, "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md']"}, {"text": "At least 5 canvases created under docs/bounded-contexts/", "passed": true, "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/trustandsafety/canvas.md']"}, {"text": "Canvas hand-off only: no plan.md and no Java code generated", "passed": true, "evidence": "plans=[] java=0"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "303 words"}, {"text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)", "passed": true, "evidence": "only external upstreams are conformed to"}, {"text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint", "passed": true, "evidence": "Round 4 list: 'Trust & Safety: ... the only suspension decision (it reacts to \"complaint upheld\")'; 'Complaints: ... it doesn't suspend or move money'. Map: TrustAndSafety [U,OHS,PL]->[D,ACL] Complaints : TutorConductReports (Complaints reports upheld complaints in T&S's form)."}, {"text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge", "passed": true, "evidence": "Round 4: 'Pricing: \"What does this lesson cost, including our commission?\" ... Why separate: finance changes it on its own schedule, and the quote, the fee and the charge all use it.' pricing/canvas.md: 'one calculation for the quote, the late-cancellation fee base and the final charge'. Caveat: in the CML only Scheduling consumes Pricing (LessonQuote); Billing gets the price as a locked quote carried by Scheduling->Billing, resting on the improvised round-3 answer 'The price quoted at booking is locked in'."}, {"text": "Payouts is a separate context from Billing (weekly clock)", "passed": true, "evidence": "Round 4: 'Payouts: \"How much do we owe each tutor, and when is it paid?\" ... Why separate: its own weekly clock.' Distinct BoundedContext Payouts; Billing->Payouts : TutorEarnings."}, {"text": "Billing/settlement after Lesson Ended is its own context", "passed": true, "evidence": "Round 4: 'Billing: \"What does the student pay for each lesson, and has it been collected?\" ... Why separate: Lesson Ended is the pivot'. Scheduling->Billing : LessonOutcomes."}, {"text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts", "passed": true, "evidence": "Numbered questions in round 1 (5, pivotal events), round 2 (5, swimlanes) and round 3 (5, single responsibility) before the candidate list in round 4."}, {"text": "An independent critic reviewed the contexts and, separately, the context map per business process", "passed": true, "evidence": "Critic verdict log: per-context round 1 and 2 (e.g. 'Critic: Payouts, context round 1: DISAGREE. The tutor earnings balance has two owners'; 'Critic: LessonDelivery, context round 1: DISAGREE'), and separately per process: 'Critic: map + (1) Tutor onboarding, round 1: AGREE', '(3) Weekly payout, round 1: DISAGREE', '(4) Complaint to refund and suspension, round 1: DISAGREE ... leading either/or question', '(2) Book and take a lesson, round 1: AGREE', plus final pass. Critic disagreements visibly changed the outcome (balance ownership, LessonDelivery fold, re-ask)."}, {"text": "Asks the expert for approval of the contexts before building the map", "passed": true, "evidence": "Round 4: '1. Do you approve these seven contexts? 2. Do you want a context map in Context Mapper (.cml) format?' Map hand-off questions only start in round 5 after 'yes to both'."}, {"text": "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)", "passed": true, "evidence": "Validator: no ud-cycle / ud-cycle-indirect lines; 13 relationships, 0 rule warnings. No kept cycles, so passes by the parenthetical. Note: the expert never chose between flips; the facilitator resolved the three loops itself and only reported them afterwards ('Three loops were avoided: ...') in round 7."}, {"text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)", "passed": true, "evidence": "CML: 'TrustAndSafety [U,OHS,PL]->[D,ACL] Scheduling : TutorEligibility' and 'Reviews [U,OHS,PL]->[D,ACL] Pricing : TutorRating'. Pricing->Scheduling (quote) also matches 'Scheduling needs ... the price (from Pricing)'."}, {"text": "No facilitator round asks more than 5 questions", "passed": true, "evidence": "Question counts per round: R1=5, R2=5, R3=5, R4=2, R5=5, R6=4. Max 5."}], "summary": {"passed": 20, "failed": 0, "total": 20, "pass_rate": 1.0}, "notes": "Acyclic map reached (iter-3 had 2 direct + 4 indirect U/D cycles: Billing<->Complaints, Billing<->Scheduling, Complaints->T&S->Scheduling->Complaints, Pricing->Scheduling->Reviews->Pricing; iter-4 has none, 0 rule warnings). How the cycles were broken:\n(a) Billing<->Complaints: Complaints becomes a client of Billing's refund/charge API (Billing upstream). Sound: matches the stated fact 'Billing knows how to reverse a charge, Complaints just says refund lesson L, amount A'.\n(b) Billing<->Scheduling (failed hold): Billing calls Scheduling's cancel, so Scheduling stays upstream. Sound API-client move, but the whole failed-hold flow is improvised (R3 Q5, R5 Q1); the facts only say the pre-auth is 'just Stripe holding money'.\n(c) Pricing->Scheduling->Reviews->Pricing: Scheduling carries the completed-lesson count in the quote request (sound carry-data move; the facts mention '>=100 lessons' but not the source, so the 'completed lessons' answer is improvised). Then Reviews<->Scheduling (search needs rating, Reviews needs lesson outcomes) was resolved by making Scheduling an API client pushing outcomes into Reviews' OHS, justified by the improvised R6 answer 'Community decides that only held lessons get a review request'. Defensible, but weaker: a context that consumes outcome facts is usually downstream; the 'who decides eligibility' question was asked specifically to justify the flip.\n(d) Complaints->T&S->Scheduling->Complaints: flipped to T&S upstream of Complaints. The R5 question was a leading either/or ('Does Trust & Safety set what that report must contain ... or does it take whatever Complaints sends?'); the critic caught it and the facilitator re-asked, but the 'neutral' re-ask asked 'Who came up with the categories and severity levels?', presupposing the categories the expert had just improvised. The facts only say Complaints says 'complaint upheld against tutor X'; the category/severity contract is entirely improvised, so this flip is contaminated by the earlier leading question even though it does not contradict any stated fact.\nNo direction contradicts a stated fact. Heavy reliance on improvisation (~15 [improvised] answers), but all are listed as 'to re-confirm', which is honest. The expert was never shown candidate flips and asked to choose; the facilitator decided and reported afterwards (assertion 8 passes only because nothing is kept).\nRegressions vs iter-3 / trainer rules: (1) Stripe is now [OHS,PL]->[ACL] although the expert facts say 'Stripe's API is an industry standard; we're happy to follow it' -> CF was the right call (iter-3 had CF). (2) No Customer/Supplier relationship anywhere although the trainer rule is 'C/S between internal teams' and all teams are internal; every internal link is OHS/PL->ACL (iter-3 used C/S, which caused validator ACL-in-C/S warnings, possibly why they were dropped). Missing Pricing->Billing link: the facts say 'Billing needs the price/fee calculation', handled only via the improvised locked-quote snapshot.\nEval critique: assertion 8 is weak (an acyclic map passes even if the facilitator, not the expert, picked every flip); add assertions for CF towards Stripe and C/S between internal teams, and one penalising cycle resolutions grounded only in [improvised] answers. Timing: 960.7s, 228,366 tokens (vs 223.4s/75,140 for baseline)."}}, {"id": "eval-2-tutorhub-narrative-to-cml-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "I've split TutorHub into 10 bounded contexts plus 2 external systems and written the context map to `src/main/cml/TutorHub-Context-Map.cml`. Context Mapper loads it with no errors (12 contexts, 22 relationships), and it renders to PNG with the repo's generator setup.\n\n**Bounded contexts.** Each one matches a team you named, and each team uses \"lesson\" in its own sense.\n\n| Context | Team | Owns |\n|---|---|---|\n| TutorVetting | Trust & Safety | Application, ID documents, qualification checks, approval, qualification expiry, and the single decision on whether a tutor may teach (suspend or reinstate) |\n| TutorCatalog | Marketplace | Profile pages and search. It has no rules of its own and only shows what others publish. |\n| StudentAccounts | n/a | Student registration. It only knows that a card is on file. |\n| Scheduling | Scheduling | Free slots, requests, bookings, reminders, up to 2 reschedules, and the 24h cancellation rule. Here a lesson is an appointment. |\n| LessonDelivery | Video integration | Video room, started and ended, no-show detection (not joined within 10 minutes). Its ACL protects the rest of the system from the provider's webhook model, which keeps changing. |\n| Pricing | Finance | Hourly rates and which rate applies at booking time. One calculation covers the quote, the 50% late cancellation fee and the final charge, plus the 15%/10% commission tier. |\n| Billing | Billing | Card reference, pre-authorization, the charge within 1 hour, retries, unpaid, the commission split, and carrying out refunds. Here a lesson is a chargeable item. |\n| Payouts | Payouts | Earnings balance and the Monday run via Stripe Connect: 20 EUR minimum, retry the next Monday, tax forms, refunds deducted from future earnings. |\n| Reviews | Community | Reviews within 14 days, and the rating as the average of the last 50 reviews |\n| Complaints | Complaints | Complaints and investigation. It publishes \"complaint upheld against tutor X\" and \"refund lesson L, amount A\", and never suspends anyone or moves money itself. |\n\nStripe and VideoProvider are external. Each one sits behind an ACL.\n\n**Key decisions.**\n- **Suspensions:** Today both Complaints and Trust & Safety suspend tutors. Now only TutorVetting suspends. Complaints just reports an upheld complaint, so a certificate renewal can no longer undo a complaint suspension.\n- **Hourly rate:** It lives in Pricing rather than on the profile, because \"the rate valid at booking time\" is a pricing rule. The catalog only displays it. You confirmed this.\n- **Cycles:** I removed every upstream/downstream cycle.\n  - Scheduling uses LessonDelivery's room service and Billing's payment service (pre-authorize, release, late fee). It doesn't feed events back to them.\n  - Complaints publishes its decisions, and Billing and TutorVetting follow them.\n- **No shared kernel:** The teams said they don't want a shared database or shared library again, so there is no Shared Kernel or Partnership.\n\n**Points the expert improvised (worth checking with the real team):**\n- Lessons already booked aren't cancelled when a tutor is suspended.\n- Refunds are deducted from future earnings.\n- Ratings don't drive suspensions.\n- The card reference lives in Billing.\n- If a pre-authorization fails, the booking doesn't go through.\n- Only complaints trigger refunds.\n- What \"lesson\" means to each team.\n\nTo open it, load the file in the Context Mapper plugin for VS Code or Eclipse. You can also copy `VelocityContextMap` and point `INPUT_FILE` at the new file to write a PNG to `target/`.\n\nThe file is at `.claude/skills/discover-bounded-contexts-workspace/iteration-4/eval-2-tutorhub-narrative-to-cml/without_skill/run-1/outputs/files/src/main/cml/TutorHub-Context-Map.cml`. The rendered PNG is in that run's `scratch/` folder.\n"}], "grading": {"expectations": [{"text": "CML context map written under src/main/cml/", "passed": true, "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"}, {"text": "CML passes validate_cml.sh (exit 0)", "passed": true, "evidence": "exit=0 established; otherwise it pollutes Payouts.\n  Scheduling [PL] -> TutorCatalog [CF] : FreeSlots\nRULE conformist-check: TutorCatalog conforms to Scheduling. OK only if Scheduling's language is well established; otherwise it pollutes TutorCatalog.\nVALID: 12 bounded contexts, 22 relationships, 0 errors\n"}, {"text": "No Shared Kernel in the CML", "passed": true, "evidence": "none"}, {"text": "No direct upstream/downstream cycle (validator reports no ud-cycle)", "passed": true, "evidence": "none"}, {"text": "The context downstream of the video provider uses an ACL", "passed": true, "evidence": "['  VideoProvider [] -> LessonDelivery [ACL] : VideoRooms']"}, {"text": "Discovery report written under docs/context-discovery/tutorhub/", "passed": false, "evidence": "no report"}, {"text": "At least 5 canvases created under docs/bounded-contexts/", "passed": false, "evidence": "[]"}, {"text": "Canvas hand-off only: no plan.md and no Java code generated", "passed": true, "evidence": "plans=[] java=0"}, {"text": "Final message is under 400 words", "passed": false, "evidence": "589 words"}, {"text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)", "passed": false, "evidence": "['Complaints [PL] -> TutorVetting [CF] : ComplaintOutcomes', 'Complaints [PL] -> Billing [CF] : RefundDecisions', 'TutorVetting [OHS, PL] -> TutorCatalog [CF] : TutorEligibility', 'TutorVetting [OHS, PL] -> Scheduling [CF] : TeachingEligibility', 'StudentAccounts [OHS] -> Scheduling [CF] : StudentStatus', 'StudentAccounts [OHS] -> Billing [CF] : StudentContact', 'StudentAccounts [OHS] -> Complaints [CF] : ComplainantIdentity', 'LessonDelivery [OHS, PL] -> Scheduling [CF] : LessonRooms', 'LessonD"}, {"text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint", "passed": true, "evidence": "Draft (round 2): 'Tutor Vetting (Trust & Safety): ... the single \"may this tutor teach?\" decision (suspend / reinstate). Complaints only reports \"complaint upheld against tutor X\".' CML: Complaints [PL] -> TutorVetting [CF] : ComplaintOutcomes."}, {"text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge", "passed": true, "evidence": "Draft: 'Pricing (Finance): one calculation for quote, late cancellation fee and final charge; commission rules (15% / 10% tier).' CML: Pricing -> Scheduling : PriceQuote and Pricing -> Billing : ChargeCalculation."}, {"text": "Payouts is a separate context from Billing (weekly clock)", "passed": true, "evidence": "Draft: 'Payouts: tutor earnings balance, weekly Monday payouts via Stripe Connect ...' separate from Billing; Billing -> Payouts : TutorEarnings."}, {"text": "Billing/settlement after Lesson Ended is its own context", "passed": true, "evidence": "Draft: 'Billing: card reference, pre-authorization, final charge within 1h, retries, unpaid, executing refunds.' LessonDelivery -> Billing : LessonOutcome."}, {"text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts", "passed": false, "evidence": "Only one round of clarifying questions (round 1, 9 questions) precedes the context list; round 2 already opens with 'Here is my first draft of the boundaries'."}, {"text": "An independent critic reviewed the contexts and, separately, the context map per business process", "passed": false, "evidence": "No critic or reviewer agent appears anywhere in the transcript; neither contexts nor the map per process were independently reviewed."}, {"text": "Asks the expert for approval of the contexts before building the map", "passed": false, "evidence": "Strict fail (borderline). Round 2 bundles the draft with 'Does anything look wrong or missing in my draft split?' (Q5 of 5). The expert said 'I'm fine with it', but there was no explicit approval gate; round 3 already presents relationship decisions and the map was built without a sign-off on the contexts."}, {"text": "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)", "passed": true, "evidence": "Validator on the baseline CML reports no ud-cycle or ud-cycle-indirect lines (22 relationships), so no cycles are kept. It passes by the parenthetical; the expert never chose flips (round 3 asked to 'confirm a few decisions' framed by the facilitator)."}, {"text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)", "passed": true, "evidence": "CML: 'TutorVetting [OHS, PL] -> Scheduling [CF] : TeachingEligibility' and 'Reviews [PL] -> Pricing [CF] : TutorRating'. No stated dependency inverted."}, {"text": "No facilitator round asks more than 5 questions", "passed": false, "evidence": "Round 1 asks 9 numbered questions."}], "summary": {"passed": 12, "failed": 8, "total": 20, "pass_rate": 0.6}, "notes": "Baseline produced a plausible 12-context split (adds TutorCatalog, StudentAccounts, LessonDelivery, which the facts describe as having no business rules or as Scheduling's) and an acyclic 22-relationship map, but violates trainer rules massively: every internal downstream is a Conformist (17 RULE conformist-check warnings) instead of ACL by default, while Stripe, the one language the expert said to follow, gets an ACL. No critic, no per-process map review, a 9-question first round, and no explicit approval gate. Round 3 Q1 was leading (proposing to move the hourly rate into Pricing, and the expert agreed). Its acyclicity comes from the facilitator's own framing (asking the expert to 'confirm' service directions) rather than from cycle analysis. Timing: 223.4s, 75,140 tokens."}}, {"id": "eval-3-validate-velocity-reference-cml-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "Short answer: yes, the reference map breaks several of our rules. The CML parses fine, but I wouldn't show it to the group as is. Your file is untouched. The corrections are in a separate proposal, and all critics agree with it.\n\n**What it breaks**\n1. **An indirect cycle: Accounts -> Rentals -> Settlement -> Accounts.** `velocity-context-map.md` says \"No cycles\". Fix, from your answer (option A): Accounts offers \"place / lift a block, with this reason\", and Settlement calls it.\n2. **7 Conformists between your own teams.** CF is only allowed towards a well-established language. Since every team is internal and plans for its customers, these become Customer/Supplier with an ACL downstream. The City -> Pricing CF is fine.\n3. **Accounts -> Rentals** has no pattern on either side.\n4. **CustomerSupport -> FleetMaintenance** was unconfirmed and pointed the wrong way. The agent reports a broken bike into Maintenance's model, so FleetMaintenance is upstream. Now confirmed.\n5. **Missing relationships for billing disputes:** pausing recovery, and charge correction or refund.\n6. **The location check before a reservation had no owner.** Rentals owns it and needs the city's service area, so I added City -> Rentals.\n7. **\"Charging\" was a responsibility of both Payments and Settlement (H3).** Settlement decides, Payments executes.\n\nThe proposal has 8 contexts (unchanged), 2 externals and 14 relationships, with no cycles. It validates with 0 errors. The only RULE lines are the two justified City CFs.\n\n**Critic rounds that changed something**\n- Map critic, round 1: it found the unowned location check, which led to finding 6.\n- Settlement critic: it asked about refunds on already-paid rides, which now go through Charging.\n\n**Files**\n- `src/main/cml/VeloCity-Context-Map-validation.cml`\n- `docs/context-discovery/velocity/2026-11-05-reference-map-validation/discovery.md`\n\n**Still open**\n- Do you approve the proposal? If you do, I'll update `VeloCity-Context-Map.cml`, `VeloCity-Bounded-Contexts.cml` and `velocity-context-map.md`. The doc's \"Settlement drives block and unblock\" and the \"Debt Recovery -> Accounts for unblocking\" alternative contradict your answers.\n- What lifts an invalid-card block? I haven't asked yet, and it shouldn't move a boundary.\n"}], "grading": {"expectations": [{"text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified", "passed": true, "evidence": "real file: git diff clean; run output uses a separate file"}, {"text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh", "passed": true, "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validation.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validation.cml']"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "330 words"}, {"text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts", "passed": true, "evidence": "Message 1: '1. **Indirect U/D cycle: Accounts -> Rentals -> Settlement -> Accounts.** ... Your velocity-context-map.md says \"No cycles\"'. Final message finding 1 repeats it; discovery.md finding 1 cites 'Relationship rule 3; validator ud-cycle-indirect'."}, {"text": "Flags the Conformist relationships and asks for or evaluates their justification", "passed": true, "evidence": "Message 1: 'Conformist on 8 of 11 relationships, 7 of them between your own contexts... Our rule: CF only towards a well-established language, ACL by default downstream.' Asked Q2 (teams) and Q3 (City zone map). Message 2: 'CF between your own contexts isn't justified... City -> Pricing CF is fine... exactly the \"well-established language\" case.' Proposal replaces the 7 internal CFs with C/S + ACL and keeps City CFs with justification comments."}, {"text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)", "passed": true, "evidence": "Message 1: 'Accounts -> Rentals has no pattern on either side (no OHS, no ACL/CF)'. discovery.md validator section: 'no-acl Accounts->Rentals (finding 4), no-acl CustomerSupport->FleetMaintenance (finding 5)'. Proposal: 'Accounts [U,S,PL]->[D,C,ACL] Rentals', all internal downstreams get ACL ('Downstream ACL instead of CF', integration rules 1 and 3)."}, {"text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship", "passed": true, "evidence": "Message 1: '5. **CustomerSupport -> FleetMaintenance is still marked unconfirmed**, and it's Customer Support's only relationship.' Plus Q4 asked about fleet-issue incidents."}, {"text": "Walks at least one business process step by step through the map", "passed": true, "evidence": "discovery.md 'Process walkthroughs' tables for P2 Rent a bike, P3/P5 Return-settle/Debt recovery, P7 Incidents, each step -> owning context -> relationship (e.g. 'Outstanding debt -> block (reason debt), notification | Settlement asks, Accounts blocks | Accounts -> Settlement AccountBlocking'). Map critic ran over 'all processes P1-P7' and found the unowned P2 location step."}, {"text": "Ties each finding to an explicit context-mapping rule rather than generic advice", "passed": true, "evidence": "discovery.md findings table has a Rule column for every finding: 'Relationship rule 3; validator ud-cycle-indirect', 'Integration rules 1 and 3', 'Relationship rule 5', 'Validator no-acl, integration rule 3', 'Direction follows model, not message; breaking-a-cycle step 1', 'Cross-cutting: every hand-off needs a relationship', 'H3 (one owner per responsibility)'. Final message names the CF rule ('CF is only allowed towards a well-established language') and H3. Minor gap: final message does not repeat the rule for findings 3-6, but the report does."}, {"text": "An independent critic reviewed the map and its verdict is reported", "passed": true, "evidence": "Transcript 'Critic verdicts': 'Map (all processes P1-P7), round 1: DISAGREE ... P2 location validated (service area) has no owner'; round 2: 'AGREE'. Final message: 'Map critic, round 1: it found the unowned location check, which led to finding 6.'"}, {"text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled", "passed": true, "evidence": "Expert R1 Q4 and R2 Q2: 'The agent reports the broken bike to the technicians' side... The agent never deals directly with the side that offers bikes to riders.' Proposal reverses it to 'FleetMaintenance [U,S,PL]->[D,C,ACL] CustomerSupport : BrokenBikeReport' with comment 'Confirmed: ... (expert, round 1, Q4 and round 2, Q2)'. Changed in direction and name based on expert facts, not just relabelled."}, {"text": "The proposed map adds no new unconfirmed relationships", "passed": true, "evidence": "New relationships: City->Rentals ServiceArea (expert R3 Q1: 'The service area ... is part of the zone map the city publishes'), Settlement->CustomerSupport ChargeCorrection (R2 Q3, R3 Q2), DebtRecovery->CustomerSupport RecoveryPause (R1 Q5: 'the agent pauses the debt recovery'), Accounts->Settlement AccountBlocking (R2 Q1). discovery.md: 'No unconfirmed relationship remains in the proposal.'"}, {"text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)", "passed": true, "evidence": "Per-context critics only for Accounts, Settlement, Payments; discovery.md: 'Context critics ran only for flagged contexts (Accounts, Settlement, Payments). Rentals, Pricing, DebtRecovery, CustomerSupport and FleetMaintenance had no flag.' These were the contexts whose responsibilities changed (cycle fix, H3 charging). Map critic: 2 rounds, round 1 DISAGREE, round 2 AGREE - second pass justified by the disagreement."}, {"text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)", "passed": true, "evidence": "Message 2 presents options A/B/C in business terms and asks 'Which of A, B or C describes how VeloCity actually works... If you'd keep C, say so explicitly.' Expert R2 Q1: 'A describes how we work... So B isn't how we work, and I wouldn't keep C.' Final message: 'Fix, from your answer (option A)'."}], "summary": {"passed": 14, "failed": 0, "total": 14, "pass_rate": 1.0}, "notes": "11/11. Thorough and rule-anchored, with good cycle resolution: the run gave the expert three options (A/B/C) in business language, including 'keep the cycle', and let the expert choose. Cost: 475s and 135k tokens, against the baseline's 152s and 69k, plus 3 expert rounds. The scope grew beyond a 'sanity check': H3 charging duplication, the location-check owner, billing-dispute relationships, refunds, and a house-style rewrite of every domainVisionStatement ('Answers: ...'). The location-check finding came from the map critic and is a real gap. The vision-statement rewrite and refunds are scope creep for a validation, so the skill could tell validate mode to list such findings but not fold them into the proposal unless asked. Per-context critics ran for 3 contexts that were changed, not flagged by the original validator. Accounts and Settlement are justified by the cycle fix. Payments was flagged only by the run's own H3 finding. That's still proportionate, not blanket. The proposal drops OHS because CML rejects OHS inside C/S and explains this in a comment. It also keeps 11 Context Mapper warnings about ACL in C/S on purpose. Both are worth surfacing to the trainer, since the reference map is meant to teach OHS. The final message stays under 400 words but lists 7 findings. The cycle and the CF findings are the headline, and the rest could be grouped as 'gaps found while walking processes'."}}, {"id": "eval-3-validate-velocity-reference-cml-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "final_message.md", "type": "text", "content": "Your reference map breaks one hard rule. It has an upstream/downstream cycle that the doc's \"No cycles\" check misses.\n\n**What breaks a rule**\n1. **3-context cycle: Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts.** Each of the three relationships is correct on its own. The doc's heuristic (\"two contexts with arrows in both directions\") only finds 2-node cycles, so it misses this one. Fix: flip the debt-block integration to `Accounts [U,OHS,PL]->[D,CF] Settlement : DebtBlocking`. Accounts offers block/unblock with a reason, and Settlement calls it on Rental Fee Unpaid or Outstanding Debt Cleared. Settlement is still the source of the \"debt paid\" fact, as the business requires.\n2. **The accepted alternative \"Debt Recovery \u2192 Accounts for unblocking\" adds another cycle.** It also contradicts the business: the expert says \"debt is paid\" always comes from the side that owns the balance.\n3. **Bare `[U]->[D]` relationships:** Accounts\u2192Rentals and CustomerSupport\u2192FleetMaintenance. Rentals only asks for account status and nothing flows back, so make it `Accounts [U,OHS]->[D,CF] Rentals`.\n\n**What's wrong against the business facts I confirmed with the expert**\n4. **The unconfirmed CustomerSupport \u2192 FleetMaintenance arrow points the wrong way.** Support escalates an accepted fleet-issue incident to the technicians. The technicians alone decide when the bike comes back, and support resolves the incident once it does. Proposed: `FleetMaintenance [U,OHS,PL]->[D,CF] CustomerSupport`.\n5. **Missing relationship: billing dispute \u2192 pause Debt Recovery.** It's listed as \"Deferred\", but the expert confirmed it. Proposed: `CustomerSupport [U,PL]->[D,CF] DebtRecovery`.\n\n**What's fine**\n- No Shared Kernel or Partnership.\n- Every ACL/CF is on a downstream end and every OHS/PL on an upstream end.\n- One optional point for the debrief: Pricing conforms to the external City. An ACL would be the safer default there.\n\nThe expert wouldn't define the modelling rules, so I applied these: no shared kernel, no directed cycles, ACL/CF downstream, OHS/PL upstream, and explicit patterns on every relationship. Tell me if your rules differ.\n\nI left `src/main/cml/VeloCity-Context-Map.cml` unchanged. The proposed map is cycle-free, but I haven't run it through Context Mapper. Run `VelocityContextMap` on it before the workshop. Files:\n- `velocity/velocity-context-map-review.md`: the findings, plus the edits the .md doc needs (diagrams, the cycle definition, accepted alternatives, deferred items).\n- `src/main/cml/VeloCity-Context-Map-Proposed.cml`: the corrected map.\n"}], "grading": {"expectations": [{"text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified", "passed": true, "evidence": "real file: git diff clean; run output uses a separate file"}, {"text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh", "passed": true, "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml']"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "361 words"}, {"text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts", "passed": true, "evidence": "Final message: '1. **3-context cycle: Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts.** ... The doc's heuristic (\"two contexts with arrows in both directions\") only finds 2-node cycles, so it misses this one.' Also finds the second cycle via the accepted alternative Debt Recovery -> Accounts."}, {"text": "Flags the Conformist relationships and asks for or evaluates their justification", "passed": false, "evidence": "No internal Conformist is flagged. Review finding 7: 'OK | R3 | All ACL/CF are on downstream ends' - only placement was checked. The only CF comment is finding 8 on City -> Pricing, suggesting 'an ACL is the more defensible default for an external system' - the opposite of the trainer's rule (CF fine towards a well-established language), and no justification was asked from the expert. The proposal keeps all 8 CFs and adds 4 more ([D,CF] on Rentals, Settlement/DebtBlocking, CustomerSupport, DebtRecovery)."}, {"text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)", "passed": false, "evidence": "Accounts->Rentals and CustomerSupport->FleetMaintenance are flagged only as 'Bare relationships' under self-invented R4 ('each relationship names its integration pattern explicitly'), and the fix is CF: 'make it Accounts [U,OHS]->[D,CF] Rentals' (ACL only as a parenthetical alternative). Missing ACL downstream is never treated as an issue; the proposal adds [D,CF] everywhere."}, {"text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship", "passed": true, "evidence": "Expert message 1: 'how to treat unconfirmed relationships like the CustomerSupport -> FleetMaintenance one'; review finding 3: 'CustomerSupport \u2192 FleetMaintenance (unconfirmed)... the opposite of the dashed arrow.'"}, {"text": "Walks at least one business process step by step through the map", "passed": false, "evidence": "No explicit walkthrough mapping process steps to contexts and relationships. The review only says 'I checked the business facts against the four processes ... with the domain expert'. The step-by-step fleet-issue narrative is the expert's own answer; the run's finding 3 summarises it in one paragraph rather than walking it through the map. The cycle-fix section gives a one-line edge check ('Rentals asks Accounts, Settlement reacts to Rental Session Ended, and blocks follow Settlement's debt facts'), not a process walk."}, {"text": "Ties each finding to an explicit context-mapping rule rather than generic advice", "passed": false, "evidence": "Rules are self-invented ('I checked the map against these common rules, so please confirm they match yours': R1-R4), and findings 3 and 4 have Rule '-'. Finding 8 (City CF -> ACL) is generic advice contrary to the trainer's rule."}, {"text": "An independent critic reviewed the map and its verdict is reported", "passed": false, "evidence": "No critic agent was used; the transcript contains no critic review or verdict."}, {"text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled", "passed": true, "evidence": "Expert reply 2 Q1 confirms the flow: 'They escalate it to the specialised team, which here means the technicians' side... they don't decide when a bike comes back.' Proposal replaces it with 'FleetMaintenance [U,OHS,PL]->[D,CF] CustomerSupport : FleetIssueEscalation' marked 'CONFIRMED with the domain expert'. Direction reversal is the run's modelling inference from confirmed facts, which is acceptable."}, {"text": "The proposed map adds no new unconfirmed relationships", "passed": true, "evidence": "Only new relationship is 'CustomerSupport [U,PL]->[D,CF] DebtRecovery : BillingDispute', backed by expert reply 2 Q2: 'Support raises the fact that a dispute is under review, and the debt-recovery people put the pursuit on hold because of it.' The DebtBlocking flip replaces an existing edge."}, {"text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)", "passed": false, "evidence": "No critic at all (assertion: 'no critic at all = false')."}, {"text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)", "passed": false, "evidence": "Unilateral: review says 'The cheapest edge to flip is Settlement \u2194 Accounts: Proposed: Accounts [U,OHS,PL]->[D,CF] Settlement'. The expert was never shown the option or asked whether Accounts offering a block-with-reason service matches how VeloCity works. The final message presents it as the fix."}], "summary": {"passed": 7, "failed": 7, "total": 14, "pass_rate": 0.5}, "notes": "4/11. The baseline caught the 3-node cycle, and the debrief cycle introduced by the accepted alternative, which is a nice catch the skill run did not make explicitly. It reversed the CS->FM arrow from expert facts and added the confirmed billing-dispute edge. Without the trainer's rules it invented generic ones (explicit patterns, no SK). As a result it saw nothing wrong with 8 Conformists, added 4 more, and recommended an ACL for the City (the opposite of the trainer's rule). The cycle was fixed unilaterally, though the chosen flip matches what the expert later confirmed in the skill run. There was no critic, no process walkthrough, and no CML validation ('I haven't run it through Context Mapper'), although the mechanical grader found the file valid. Eval critique: assertion 8 doesn't discriminate much. Both runs pass because the expert volunteers the flow whenever it's asked about support. A sharper check would be that the direction of the new CS/FM edge was justified by 'whose model is the request in', or confirmed. Assertion 5 could require an explicit step -> context -> relationship mapping. No assertion covers scope proportionality of the validation itself (cosmetic rewrites, extra expert rounds), which is where the skill run spends a lot of its extra cost. The simulated expert also gave different process lists in the two runs (four processes for the baseline, none for the skill run), which slightly confounds assertion 5."}}], "previous_feedback": {}, "previous_outputs": {"eval-1-velocity-board-screenshot-with_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "Done for today. The eight contexts are approved, and there's no map or canvases yet, as you asked.\n\n**Report:** `docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md` (Status: contexts approved). It's also where we resume next session.\n\n**Result:** 8 contexts: Rider Accounts, Rental, Pricing, Settlement, Payments, Debt Recovery, Incident Handling, Fleet Maintenance. There are 0 relationships, because the context map isn't requested yet.\n\n**Critic rounds that changed something:**\n- Pricing, round 1: a \"stateless calculator\" can't own the ticking estimate lane. Your answer moved the ride clock, the estimate trigger and the max-time limit to Rental. Pricing keeps only the calculation and the penalty amount.\n- Fleet Maintenance, round 1: nobody owned taking a bike out of service, or \"bike broken\". Your answer gave serviceability to Fleet Maintenance, and the \"bike broken\" branch leaves the Bike Rental lane.\n\n**Still open:**\n- Confirm the answers marked as improvised: the ride clock, the single limit, maintenance owning serviceability, and recovery \u2192 settled + unblocked.\n- Is the drop-zone fee real, or only the unauthorized-zone fee?\n- How does maintenance learn that a bike is broken?\n- What follows a failed debt recovery?\n- Is Customer Support Contacted the same as Incident Reported?\n\n**Next session:** the context map (if you want it), then one canvas per context via `bounded-context-scaffolder`.\n"}], "eval-1-velocity-board-screenshot-without_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "I worked from the board, asked the domain expert two rounds of questions, and ended up with **7 bounded contexts**. The board has 7 swimlanes too, but they don't line up one to one: two lanes fold into others, one lane splits in two, and Payments has no lane of its own.\n\n## Bounded contexts\n\n| # | Context | What it owns | Stickies from the board | Type |\n|---|---|---|---|---|\n| 1 | **Rider Accounts** | Registration, verification, activation, account status (active/blocked). Answers \"can this rider rent?\" | User Registered ... User Account Activated; Account Blocked Due To Invalid Card | Supporting |\n| 2 | **Rental** | The trip, from reservation to return. Covers reserving, unlocking, the rental session, returning at a station or a zone, a forced end, and a fault reported on return | User Location Validated, Bike Reserved, Bike Unlocked / Unlock Failed, Reservation Expired, Rental Session Started, Bike Returned To Station / to Zone, Bike Locked In Station / Locking Failed, Return To Drop Zone Accepted / Unauthorized Zone Detected, Bike Fault Reported | **Core** |\n| 3 | **Pricing** | A stateless fee calculator anyone can call. Holds the free period, hourly tiers, max-time penalty, drop-zone and unauthorized-zone fees. Gives the live estimate during a ride and the final fee at the end, using the same rules | the whole Pricing lane, Drop Zone Fee Applied, Unauthorized Zone Return Fee Applied, Penalty Applied | Core/Supporting |\n| 4 | **Payments** | Charges and verifies cards. Knows no business rules | User Payment Method Added/Verified; implicit in \"Rental Total Fee Calculated\" -> charge | Generic (likely an external gateway behind an ACL) |\n| 5 | **Debt Recovery** | The recovery process and its schedule of actions against a rider who owes money. Blocking the account is one of those actions | Account Blocked Due To Debt, Debt Recovery Process Started/Paused/Resumed/Succeeded/Failed | Supporting |\n| 6 | **Fleet Maintenance** | Inspections and repairs on the crew's own schedule. Also takes bikes reported as faulty | bike broken, maintenance started, bike fixed | Supporting |\n| 7 | **Incident Handling (Customer Support)** | The incident lifecycle: reported or detected, typed, assigned to an agent, accepted/rejected, escalated, reopened, resolved | the whole Customer Support lane; Customer Support Contacted | Supporting |\n\n## What I deliberately did *not* make a context\n- **Reservation**: a reservation only holds a bike and has no rules of its own (expert, Q6). It's the first step of Rental.\n- **Bike Station Return / Bike Zone Return**: same rules and same \"Bike Returned\" event. The only difference is a fee, and fees belong to Pricing. Both lanes go into Rental.\n- **Notifications** (\"Account Block Notification Sent\"): a technical service with no business rules or team. It's shared infrastructure, not a bounded context.\n\n## Board problems this exposes (good discussion material for the group)\n1. **Maintenance is in the Bike Rental lane** (\"Bike Unlocked -> maintenance started -> bike fixed -> bike returned\"), and \"bike broken\" points into \"Bike Reserved\". Maintenance actually runs on its own schedule, and riders never see it. The only link is a fault a rider reports on return.\n2. **\"bike returned\" shows up 4 times**. Each copy is the same pivotal event, and it ends the rental, together with \"session force-ended\". That event is the boundary between Rental and everything after it.\n3. **The Pricing lane is a policy dressed up as a timeline.** \"First Hour Fee Applied\", \"Second Hour Fee Applied\" and so on are tiers of a calculation, not business events. The only real fact is the final fee/charge at return. The hourly figures during the ride are only an estimate.\n4. **Payments is missing as a lane**, even though Debt Recovery starts when a payment fails.\n5. **\"Account Blocked\" has two owners.** An invalid or unverified card is decided by Accounts. Debt is decided by Debt Recovery, which then asks Accounts to block. It's one account, checked before every rental.\n6. Pivotal events I used to cut boundaries: *User Account Activated*, *Rental Session Started*, *Bike Returned / Session Force-Ended*, *Payment Failed* (missing from the board), *Account Blocked*, *Bike Fault Reported*, *Incident Reported*.\n\n## Sketch of the relationships (upstream -> downstream)\n- Rider Accounts -> Rental: account status, OHS/PL; Rental uses an ACL\n- Pricing -> Rental: fee quote, OHS/PL\n- Payments -> Rental: charge on return; Rental uses an ACL to the gateway\n- Payments -> Rider Accounts: payment-method verification\n- Payments -> Debt Recovery: `PaymentFailed` event\n- Rider Accounts -> Debt Recovery: Accounts publishes a block/unblock API (OHS); Debt Recovery calls it\n- Rental -> Incident Handling and Rental -> Fleet Maintenance: `BikeFaultReported` event (PL); nothing flows back\n\nThere are no cycles and no shared kernel. A fixed bike just goes back into a station, so there's no integration from Maintenance to Rental.\n\nParts of the expert's answers were marked as improvised: the maintenance inspection schedule, Debt Recovery owning the debt block, notifications having no team, and recovery being done in-house. Check those against the vision before you use them as the reference.\n\nI haven't written any files. Next I can turn this into a Context Mapper `.cml` map, or into Bounded Context Canvases for the scaffolder.\n"}], "eval-2-tutorhub-narrative-to-cml-with_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "Discovery is done, and the context map is approved.\n\n**Files**\n- Report: `docs/context-discovery/tutorhub/2026-11-05-event-storming/discovery.md` (Q&A, heuristic trail, critic log, cycle analysis, validator output)\n- Context map: `src/main/cml/TutorHub-Context-Map.cml` (opens in Context Mapper; validator: 9 contexts including Stripe and VideoProvider, 14 relationships, 0 errors)\n- Canvases: `docs/bounded-contexts/tutorhub/{trustandsafety,scheduling,pricing,billing,payouts,reviews,complaints}/canvas.md`\n\n**Result:** 7 bounded contexts and 14 relationships. 10 are internal Customer/Supplier or OHS links with an ACL downstream. Stripe is followed as is (Conformist), and the video provider sits behind an ACL. There's no shared kernel.\n\n**Critic rounds that changed something**\n- Tutor Listing: \"is this slot bookable?\" had two owners. Your answer (the booking wins) moved the slots into Scheduling, and Tutor Listing was dissolved.\n- Billing: the tutor's balance had no single owner. Payouts now holds it, and Billing only publishes per-lesson earnings.\n- Map v1: the Pricing \u2192 Billing link rested on an assumption I hadn't asked about. You confirmed the charge equals the booked quote, so the link was dropped, and several loops went with it.\n\n**Still open**\n- Four dependency loops remain, among them Scheduling \u2194 Billing and Billing \u2194 Complaints. Every flip was tried and contradicts one of your answers. The report lists them all.\n- No business rule is a strict Given/When/Then yet. Each canvas marks them, ready for your concrete examples.\n- Strategic classification (core, supporting or generic) wasn't discussed.\n- Smaller questions are in the report: pre-authorisation timing, negative tutor balances, review moderation, refund caps.\n\nReview the canvases, then run bounded-context-scaffolder per context to get a plan.\n"}], "eval-2-tutorhub-narrative-to-cml-without_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "I've written the TutorHub context map to `src/main/cml/TutorHub-Context-Map.cml`. Context Mapper loads it with no errors or warnings, and it renders to a PNG.\n\n## Bounded contexts (10 internal, 2 external)\n\n| Context | Team | What it owns |\n|---|---|---|\n| **TutorVetting** | Trust & Safety | Applications, ID and qualification checks, approval, qualification expiry. It is the **single** place that suspends and reinstates a tutor. |\n| **Marketplace** | Marketplace | Tutor profile pages and search. It is a read model built from what other contexts publish. |\n| **Scheduling** | Scheduling | Availability calendar, lesson requests and booking, rescheduling (max 2), cancellation rules (free until 24h before, then 50%), reminders. |\n| **LessonDelivery** | Scheduling team for now | Video rooms, Lesson Started/Ended, no-show detection (records who didn't show). It sits behind an ACL to the video provider. |\n| **Pricing** | Finance | The hourly rate and its history, and the lesson price using the rate valid when the lesson was booked. Commission is 15%, or 10% for tutors rated at least 4.8 with at least 100 held lessons. Quotes, late fees and final charges all use this one calculation. |\n| **Billing** | Billing | Pre-authorisation at booking, final charge (2 retries, then unpaid), commission, refunds capped at the amount charged. |\n| **Payouts** | Payouts | The earnings balance (it can go negative), Monday payouts (minimum 20 EUR, tax forms), retrying failed payouts the next Monday. |\n| **Reviews** | Community | Review requests, reviews within 14 days, rating as the average of the last 50 reviews. |\n| **Complaints** | Complaints | Complaints and investigations. It only states outcomes: \"upheld against tutor X\" and \"refund lesson L, amount A\". |\n| **StudentAccounts** | Platform (generic) | Sign-up, parental confirmation for students under 18, card on file in Stripe. |\n| Stripe, VideoProvider | external | Every context that talks to them does so through an ACL. |\n\n## What drove the boundaries\n- **The two \"Tutor Suspended\" stickies** are the same decision made for two reasons. Today two teams make it and overrule each other. TutorVetting now owns it, and Complaints only reports \"complaint upheld\".\n- **Payouts runs on its own clock.** It pays out every Monday whatever happens with lessons, so it is separate from Billing. Billing sends it credits and debits, and Payouts owns the balance.\n- **Reviews (up to 14 days later) and Complaints (any time)** each have their own lifecycle that runs well past the end of the lesson.\n- **LessonDelivery is split from Scheduling** to isolate the video provider. Its webhooks are unstable (they changed twice this year). It publishes Lesson Held and No-show, which Billing, Reviews and Pricing consume.\n- **Pricing changes on Finance's schedule** and is used in three places, so it is an Open Host Service.\n\n## Relationships\n- All relationships are upstream to downstream, they form a DAG with no cycles, and there is no Shared Kernel.\n- Wherever several consumers rely on a context, it is upstream with OHS/PL: TutorVetting, Pricing, LessonDelivery and Billing.\n- To keep the map acyclic, I made three choices and the expert confirmed them:\n  1. The rate history lives in Pricing. The tutor still edits the rate, and Marketplace only displays it.\n  2. Scheduling books rooms through LessonDelivery's API.\n  3. Complaints sends Billing a \"refund lesson L, amount A\" request and doesn't read data from Billing.\n\n## Open points\n- **Overpaid refund requests:** when Complaints asks for more than was charged, Billing refunds what was charged and flags the difference to the Complaints team. I treated that as a notification to the team, not a dependency in the model. If it ever becomes a Billing-to-Complaints event, the map would have a cycle, so it would need another look.\n- **Ownership:** LessonDelivery currently belongs to the Scheduling team. That is fine, but keep its model separate.\n- **Unconfirmed answers:** the expert marked several answers as improvised and they are worth confirming: what suspension does to lessons already booked, EUR only, refunds after payout pushing the balance negative, student sign-up, and Marketplace ownership.\n\n## Viewing it\nOpen the `.cml` file in the Context Mapper plugin (VS Code or Eclipse). To get a PNG, copy `VelocityContextMap` and point it at the new file.\n"}], "eval-3-validate-velocity-reference-cml-with_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "Your reference map parses cleanly (0 errors), and all eight contexts hold up under the three heuristics. As written, though, it breaks several of our context-mapping rules:\n\n1. **8 Conformists with no justification** (CF only towards a well-established language). Your answers justify all of them: one company, shared and stable terms. That justification just isn't written anywhere yet.\n2. **Two downstreams with neither an ACL nor a CF:** Accounts \u2192 Rentals, and Support \u2192 Fleet Maintenance.\n3. **An indirect cycle, Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts,** while the write-up says \"No cycles\". I tried flipping each link, and every flip contradicts something you stated. So it's a legitimate loop (an unpaid ride blocks future rentals), but it has to be documented.\n4. **Support \u2192 Fleet Maintenance points the wrong way.** The handover uses the technicians' words and they confirm it back, so Fleet Maintenance is upstream, through a handover service.\n5. **The billing-dispute hand-offs have no relationships:** pause/resume to Debt Recovery, and cancel/refund to Settlement. Neither does the rider's contact details for Debt Recovery's reminders.\n6. **Misleading wording.** \"Settlement drives block and unblock\" should say that Accounts alone decides. Two accepted alternatives contradict your own answers.\n\nI didn't touch your file. Paths:\n- Report: `docs/context-discovery/velocity/2026-11-05-reference-map-validation/discovery.md`\n- Proposed map: `src/main/cml/VeloCity-Context-Map-validated.cml`. It's valid, with 10 contexts and 14 relationships. The only rule line left is the documented cycle.\n\nWhat the critics changed:\n- **Rentals and Fleet Maintenance:** clarified who withdraws a bike (Rentals, for faults in its own flow) and who puts it back (Fleet Maintenance only).\n- **Map, round 1:** flipped the Support/Fleet link, and turned up partial disputes, refunds and reminder contacts.\n- **Map, round 2:** approved.\n\nStill open:\n- the ACL defaults on the four new links\n- who resumes recovery after a partly upheld dispute\n- where Rentals learns who is a technician\n\nDo you want the proposal to replace the reference CML, with `velocity-context-map.md` updated to match? Once the map is approved, I can also hand the contexts to bounded-context-scaffolder for canvases.\n"}], "eval-3-validate-velocity-reference-cml-without_skill-run-1": [{"name": "final_message.md", "type": "text", "content": "I checked `src/main/cml/VeloCity-Context-Map.cml` (and the matching `velocity/velocity-context-map.md`). Most of it holds up, but one thing breaks a rule outright: **the map has an upstream/downstream cycle**. Fix that before you show it.\n\n## Rule violation: a 3-context cycle\n\n| Relationship in the CML | Direction |\n|---|---|\n| `Accounts [U]->[D] Rentals : AccountStatus` | Accounts \u2192 Rentals |\n| `Rentals [U,PL]->[D,CF] Settlement : RentalSessionEnded` | Rentals \u2192 Settlement |\n| `Settlement [U,PL]->[D,CF] Accounts : DebtBlocking` | Settlement \u2192 Accounts |\n\nAccounts \u2192 Rentals \u2192 Settlement \u2192 Accounts closes a loop. You confirmed that cycles of any length count, not only two-way pairs. You also confirmed that each of the three arrows is drawn the right way round. Rentals accepts Accounts' answer to \"can this rider rent?\". Settlement takes Rental Session Ended as announced. Accounts applies Settlement's \"unpaid / debt cleared\" facts as given. So no arrow is mislabelled. The cycle is real.\n\nThe doc says \"No cycles\" twice (in the ride-to-money zoom and in Key Design Decisions). The group will catch that claim being false.\n\nWays to break it (your call as trainer):\n1. **Make Accounts the upstream for blocking (recommended).** Accounts publishes an OHS/PL \"block / unblock account (reason)\" API. Settlement calls it as a conformist downstream: `Accounts [U,OHS,PL]->[D,CF] Settlement : AccountBlocking`. Accounts still decides nothing about debt. Settlement only tells it to apply a block with reason \"outstanding debt\". This follows your own \"the caller is always downstream\" rule, which you already use for Pricing and Debt Recovery. Accounts becomes upstream of both Rentals and Settlement, and the cycle disappears.\n2. Keep the event direction and turn the Settlement \u2194 Accounts pair into an explicit **Partnership**. I'd avoid this: it puts a Partnership into a reference solution just to hide a loop.\n3. Move the \"blocked for debt\" check out of Accounts. For example, Rentals could ask Settlement \"does this rider have outstanding debt?\". That just creates a new two-way pair between Rentals and Settlement, so it doesn't help.\n\n## Smaller issues (my own conventions; you said the pattern rules are the method's call)\n\n- **`Accounts [U]->[D] Rentals` has no patterns.** Every other internal relationship names its patterns. The expert describes Rentals as accepting Accounts' answer as-is, so this should at least be `[D,CF]`, probably with `[U,OHS]`. If you take option 1 above, both Accounts arrows should look the same.\n- **`CustomerSupport [U]->[D] FleetMaintenance : FleetIssueIncident_Unconfirmed`** is still an assumption. The expert confirmed that nobody has said how fleet-related incidents reach maintenance. A reference solution can show it, but then label it as an open question for the debrief. If you keep it, give it patterns or drop it from the CML. Right now it's the only relationship with neither patterns nor a confirmed direction.\n- **`City [U]->[D,CF] Pricing`**: conforming to an external party works if the zone map is a stable, simple format. Since you protect Payments from the PaymentProcessor with an ACL, expect someone to ask why City gets no ACL. Have one sentence ready, or change it to `[D,ACL]`.\n- **\"Charging\" appears in both Payments' and Settlement's responsibilities.** The doc means Settlement decides and triggers the charge and Payments executes it against the processor. The CML text doesn't say so. Rewording Payments to something like \"Executing charges against the processor\" avoids a \"two owners of charging\" debate.\n\n## Rules the map passes\n\n- No Shared Kernel anywhere.\n- ACL appears only on a downstream side (`PaymentProcessor -> Payments`).\n- OHS and PL appear only on upstream sides; CF appears only on downstream sides.\n- Apart from the Accounts/Rentals/Settlement loop, there are no other cycles and no two-way pairs. The Rentals \u2192 FleetMaintenance, Pricing \u2192 Settlement, Payments \u2192 Settlement and Settlement \u2192 DebtRecovery directions all match \"the caller is downstream\".\n- Every bounded context in `contains` is defined, and every defined context is used.\n\nI didn't change any repo files. Want me to draft the corrected CML and the doc/mermaid updates for option 1?\n"}]}, "benchmark": {"metadata": {"skill_name": "discover-bounded-contexts", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-11-05T21:03:21Z", "evals_run": [1, 2, 3], "runs_per_configuration": 3}, "runs": [{"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 0.94, "passed": 15, "failed": 1, "total": 16, "time_seconds": 430.2, "tokens": 136799, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Discovery report written under docs/context-discovery/velocity/", "passed": true, "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-board/discovery.md']"}, {"text": "No CML and no canvases created (the expert declined both)", "passed": true, "evidence": "cml=[] canvases=[]"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "276 words"}, {"text": "Reads the board back to the expert before applying any heuristic", "passed": true, "evidence": "Round 1 opens with a full event-level read-back ('Main timeline', 'Branches', 'Disconnected clusters', 'Ambiguities: Rental Session Started and \"bike returned\" each appear twice...') before the '**H1, pivotal events.**' section. Caveat: the read-back and H1 are in the same message, so the expert could not correct the reading before H1 started."}, {"text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility", "passed": true, "evidence": "Round 1 = '**H1, pivotal events.**'; round 2 = 'Confirmed pivots (H1)' then '**H2, swimlanes.**'; round 3 = '**H3 draft (single responsibility):**'. discovery.md has a Heuristic trail with H1, H2, H3 tables in that order."}, {"text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list", "passed": true, "evidence": "Numbered question lists in rounds 1 (1-5), 2 (1-5), 3 (1-4), and 4 (1-4) before the final list in round 5."}, {"text": "An independent critic reviewed the contexts and its verdicts are logged", "passed": true, "evidence": "discovery.md '## Critic log' table records verdicts per context and round, e.g. 'Fleet Maintenance | 1 | DISAGREE | 1) nothing triggers maintenance, and nobody owns \"needs repair\"...' and 'Fleet Maintenance | 2 | AGREE'. The transcript also has 'Critic verdicts (context round 1)' and '(context round 2)' sections."}, {"text": "Account blocking ends up owned by exactly one context", "passed": true, "evidence": "Rider Accounts: 'Owns ... the blocked status with its reasons (invalid card, debt), each reason's own unblock ... H3: the one place that answers \"why can't I rent?\". Others only publish facts.' H3 table: 'Rider Accounts owns the blocked status and reasons ... Settlement and Debt Recovery publish facts.'"}, {"text": "Debt Recovery is a separate context from Payments", "passed": true, "evidence": "Debt Recovery is context 5 ('How do we recover what's owed?'). Payments is treated as an 'External party: the payment processor' after R3.2 ('Payments is just the external payment processor'), so recovery cannot live in it."}, {"text": "Settlement is identified as its own context", "passed": true, "evidence": "Context 4: '**Settlement:** *What does the rider owe for this rental, and is it settled?* Owns the reaction to Session Ended, the charge order to the payment processor, its schedule rules, and Rental Settled/Unsettled.'"}, {"text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)", "passed": true, "evidence": "Every context in the round 5 presentation and the discovery.md table has an italic one-line question, e.g. 'Rental: *Who has which bike, and when?*', 'Pricing: *What does this cost?*'."}, {"text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement", "passed": true, "evidence": "Round 1 Q3 asks 'When and where is the rider actually charged?', round 2 notes 'Ride ended ... this is where the real charge happens', and round 2 Q2 asks 'After the ride ends, who works out what the rider owes and makes sure it's paid?' The expert first says 'Settlement works out what's owed' in reply to that question. The scripted challenge 'So, who actually makes the settlement here?' never had to fire."}, {"text": "Fleet Maintenance is kept as its own context", "passed": true, "evidence": "Context 6: '**Fleet Maintenance:** *Is this bike fit for service?*', with critic agreement in round 2."}, {"text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map", "passed": false, "evidence": "The transcript only asks the yes/no question 'Do you want a context map...?' and the expert answers 'No context map for now.' But discovery.md '## Context map' then sketches relationships anyway: 'Fleet Maintenance is a likely upstream of Rental ... and of Incident Handling (repair-request API). Rental is a likely upstream of Incident Handling (Bike Fault Reported). The critic saw no cycle there.' The label 'not decisions' does not make these anything other than upstream/downstream sketches written without a yes."}, {"text": "No facilitator round asks more than 5 questions", "passed": true, "evidence": "Question counts per round: 5, 5, 4, 4, 2."}, {"text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)", "passed": true, "evidence": "Critic round 2 re-ran only Fleet Maintenance (round 1 DISAGREE) and Incident Handling. The critic log gives the reason for Incident Handling: 're-run because ownership changed (Repair Requested)'. The other five contexts were not re-run."}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 20, "failed": 0, "total": 20, "time_seconds": 960.7, "tokens": 228366, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "CML context map written under src/main/cml/", "passed": true, "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"}, {"text": "CML passes validate_cml.sh (exit 0)", "passed": true, "evidence": "exit=0 outs [ACL] : TutorEarnings\n  Billing [OHS, PL] -> Complaints [ACL] : ChargesAndRefunds\n  Stripe [OHS, PL] -> Billing [ACL] : CardPayments\n  Stripe [OHS, PL] -> Payouts [ACL] : ConnectPayouts\n  VideoProvider [OHS] -> Scheduling [ACL] : VideoRooms\nVALID: 9 bounded contexts, 13 relationships, 0 errors\n"}, {"text": "No Shared Kernel in the CML", "passed": true, "evidence": "none"}, {"text": "No direct upstream/downstream cycle (validator reports no ud-cycle)", "passed": true, "evidence": "none"}, {"text": "The context downstream of the video provider uses an ACL", "passed": true, "evidence": "['  VideoProvider [OHS] -> Scheduling [ACL] : VideoRooms']"}, {"text": "Discovery report written under docs/context-discovery/tutorhub/", "passed": true, "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md']"}, {"text": "At least 5 canvases created under docs/bounded-contexts/", "passed": true, "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/trustandsafety/canvas.md']"}, {"text": "Canvas hand-off only: no plan.md and no Java code generated", "passed": true, "evidence": "plans=[] java=0"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "303 words"}, {"text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)", "passed": true, "evidence": "only external upstreams are conformed to"}, {"text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint", "passed": true, "evidence": "Round 4 list: 'Trust & Safety: ... the only suspension decision (it reacts to \"complaint upheld\")'; 'Complaints: ... it doesn't suspend or move money'. Map: TrustAndSafety [U,OHS,PL]->[D,ACL] Complaints : TutorConductReports (Complaints reports upheld complaints in T&S's form)."}, {"text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge", "passed": true, "evidence": "Round 4: 'Pricing: \"What does this lesson cost, including our commission?\" ... Why separate: finance changes it on its own schedule, and the quote, the fee and the charge all use it.' pricing/canvas.md: 'one calculation for the quote, the late-cancellation fee base and the final charge'. Caveat: in the CML only Scheduling consumes Pricing (LessonQuote); Billing gets the price as a locked quote carried by Scheduling->Billing, resting on the improvised round-3 answer 'The price quoted at booking is locked in'."}, {"text": "Payouts is a separate context from Billing (weekly clock)", "passed": true, "evidence": "Round 4: 'Payouts: \"How much do we owe each tutor, and when is it paid?\" ... Why separate: its own weekly clock.' Distinct BoundedContext Payouts; Billing->Payouts : TutorEarnings."}, {"text": "Billing/settlement after Lesson Ended is its own context", "passed": true, "evidence": "Round 4: 'Billing: \"What does the student pay for each lesson, and has it been collected?\" ... Why separate: Lesson Ended is the pivot'. Scheduling->Billing : LessonOutcomes."}, {"text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts", "passed": true, "evidence": "Numbered questions in round 1 (5, pivotal events), round 2 (5, swimlanes) and round 3 (5, single responsibility) before the candidate list in round 4."}, {"text": "An independent critic reviewed the contexts and, separately, the context map per business process", "passed": true, "evidence": "Critic verdict log: per-context round 1 and 2 (e.g. 'Critic: Payouts, context round 1: DISAGREE. The tutor earnings balance has two owners'; 'Critic: LessonDelivery, context round 1: DISAGREE'), and separately per process: 'Critic: map + (1) Tutor onboarding, round 1: AGREE', '(3) Weekly payout, round 1: DISAGREE', '(4) Complaint to refund and suspension, round 1: DISAGREE ... leading either/or question', '(2) Book and take a lesson, round 1: AGREE', plus final pass. Critic disagreements visibly changed the outcome (balance ownership, LessonDelivery fold, re-ask)."}, {"text": "Asks the expert for approval of the contexts before building the map", "passed": true, "evidence": "Round 4: '1. Do you approve these seven contexts? 2. Do you want a context map in Context Mapper (.cml) format?' Map hand-off questions only start in round 5 after 'yes to both'."}, {"text": "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)", "passed": true, "evidence": "Validator: no ud-cycle / ud-cycle-indirect lines; 13 relationships, 0 rule warnings. No kept cycles, so passes by the parenthetical. Note: the expert never chose between flips; the facilitator resolved the three loops itself and only reported them afterwards ('Three loops were avoided: ...') in round 7."}, {"text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)", "passed": true, "evidence": "CML: 'TrustAndSafety [U,OHS,PL]->[D,ACL] Scheduling : TutorEligibility' and 'Reviews [U,OHS,PL]->[D,ACL] Pricing : TutorRating'. Pricing->Scheduling (quote) also matches 'Scheduling needs ... the price (from Pricing)'."}, {"text": "No facilitator round asks more than 5 questions", "passed": true, "evidence": "Question counts per round: R1=5, R2=5, R3=5, R4=2, R5=5, R6=4. Max 5."}], "notes": []}, {"eval_id": 3, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 14, "failed": 0, "total": 14, "time_seconds": 475.6, "tokens": 134822, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified", "passed": true, "evidence": "real file: git diff clean; run output uses a separate file"}, {"text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh", "passed": true, "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validation.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validation.cml']"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "330 words"}, {"text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts", "passed": true, "evidence": "Message 1: '1. **Indirect U/D cycle: Accounts -> Rentals -> Settlement -> Accounts.** ... Your velocity-context-map.md says \"No cycles\"'. Final message finding 1 repeats it; discovery.md finding 1 cites 'Relationship rule 3; validator ud-cycle-indirect'."}, {"text": "Flags the Conformist relationships and asks for or evaluates their justification", "passed": true, "evidence": "Message 1: 'Conformist on 8 of 11 relationships, 7 of them between your own contexts... Our rule: CF only towards a well-established language, ACL by default downstream.' Asked Q2 (teams) and Q3 (City zone map). Message 2: 'CF between your own contexts isn't justified... City -> Pricing CF is fine... exactly the \"well-established language\" case.' Proposal replaces the 7 internal CFs with C/S + ACL and keeps City CFs with justification comments."}, {"text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)", "passed": true, "evidence": "Message 1: 'Accounts -> Rentals has no pattern on either side (no OHS, no ACL/CF)'. discovery.md validator section: 'no-acl Accounts->Rentals (finding 4), no-acl CustomerSupport->FleetMaintenance (finding 5)'. Proposal: 'Accounts [U,S,PL]->[D,C,ACL] Rentals', all internal downstreams get ACL ('Downstream ACL instead of CF', integration rules 1 and 3)."}, {"text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship", "passed": true, "evidence": "Message 1: '5. **CustomerSupport -> FleetMaintenance is still marked unconfirmed**, and it's Customer Support's only relationship.' Plus Q4 asked about fleet-issue incidents."}, {"text": "Walks at least one business process step by step through the map", "passed": true, "evidence": "discovery.md 'Process walkthroughs' tables for P2 Rent a bike, P3/P5 Return-settle/Debt recovery, P7 Incidents, each step -> owning context -> relationship (e.g. 'Outstanding debt -> block (reason debt), notification | Settlement asks, Accounts blocks | Accounts -> Settlement AccountBlocking'). Map critic ran over 'all processes P1-P7' and found the unowned P2 location step."}, {"text": "Ties each finding to an explicit context-mapping rule rather than generic advice", "passed": true, "evidence": "discovery.md findings table has a Rule column for every finding: 'Relationship rule 3; validator ud-cycle-indirect', 'Integration rules 1 and 3', 'Relationship rule 5', 'Validator no-acl, integration rule 3', 'Direction follows model, not message; breaking-a-cycle step 1', 'Cross-cutting: every hand-off needs a relationship', 'H3 (one owner per responsibility)'. Final message names the CF rule ('CF is only allowed towards a well-established language') and H3. Minor gap: final message does not repeat the rule for findings 3-6, but the report does."}, {"text": "An independent critic reviewed the map and its verdict is reported", "passed": true, "evidence": "Transcript 'Critic verdicts': 'Map (all processes P1-P7), round 1: DISAGREE ... P2 location validated (service area) has no owner'; round 2: 'AGREE'. Final message: 'Map critic, round 1: it found the unowned location check, which led to finding 6.'"}, {"text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled", "passed": true, "evidence": "Expert R1 Q4 and R2 Q2: 'The agent reports the broken bike to the technicians' side... The agent never deals directly with the side that offers bikes to riders.' Proposal reverses it to 'FleetMaintenance [U,S,PL]->[D,C,ACL] CustomerSupport : BrokenBikeReport' with comment 'Confirmed: ... (expert, round 1, Q4 and round 2, Q2)'. Changed in direction and name based on expert facts, not just relabelled."}, {"text": "The proposed map adds no new unconfirmed relationships", "passed": true, "evidence": "New relationships: City->Rentals ServiceArea (expert R3 Q1: 'The service area ... is part of the zone map the city publishes'), Settlement->CustomerSupport ChargeCorrection (R2 Q3, R3 Q2), DebtRecovery->CustomerSupport RecoveryPause (R1 Q5: 'the agent pauses the debt recovery'), Accounts->Settlement AccountBlocking (R2 Q1). discovery.md: 'No unconfirmed relationship remains in the proposal.'"}, {"text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)", "passed": true, "evidence": "Per-context critics only for Accounts, Settlement, Payments; discovery.md: 'Context critics ran only for flagged contexts (Accounts, Settlement, Payments). Rentals, Pricing, DebtRecovery, CustomerSupport and FleetMaintenance had no flag.' These were the contexts whose responsibilities changed (cycle fix, H3 charging). Map critic: 2 rounds, round 1 DISAGREE, round 2 AGREE - second pass justified by the disagreement."}, {"text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)", "passed": true, "evidence": "Message 2 presents options A/B/C in business terms and asks 'Which of A, B or C describes how VeloCity actually works... If you'd keep C, say so explicitly.' Expert R2 Q1: 'A describes how we work... So B isn't how we work, and I wouldn't keep C.' Final message: 'Fix, from your answer (option A)'."}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.25, "passed": 4, "failed": 12, "total": 16, "time_seconds": 247.5, "tokens": 74426, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Discovery report written under docs/context-discovery/velocity/", "passed": false, "evidence": "no report"}, {"text": "No CML and no canvases created (the expert declined both)", "passed": true, "evidence": "cml=[] canvases=[]"}, {"text": "Final message is under 400 words", "passed": false, "evidence": "1243 words"}, {"text": "Reads the board back to the expert before applying any heuristic", "passed": false, "evidence": "Message 1 only lists the lane names ('7 swimlanes (User Registration And Account Setup, Bike Rental, ...)') and goes straight to questions. There is no event-level read-back for the expert to correct. No heuristic is applied at any point either, so the ordering this assertion checks never happens."}, {"text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility", "passed": false, "evidence": "There is no mention of pivotal events, swimlanes as a heuristic, or single responsibility as an ordered method. The run goes from questions to a draft split ('Draft bounded contexts:') without a heuristic trail."}, {"text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list", "passed": false, "evidence": "Message 1 has a numbered list (1-8) and message 2 a lettered one (A-C). Message 4's questions are unnumbered prose ('Tell me what \"settling a rental\" means for you. Is it: ...? Does it have its own rules...?'). That makes at most two enumerated rounds before the first final list in message 3."}, {"text": "An independent critic reviewed the contexts and its verdicts are logged", "passed": false, "evidence": "No critic agent was used. Nothing in the transcript or outputs is a critic verdict."}, {"text": "Account blocking ends up owned by exactly one context", "passed": false, "evidence": "Two contexts decide blocks: Rider Accounts blocks for an invalid card ('Account Blocked Due To Invalid Card' moved to Rider Accounts), while Debt Recovery 'Owns the recovery actions ... block the account ... and lift the block'. The 'account just records' line makes Accounts store the status, but the blocking decision has two owners."}, {"text": "Debt Recovery is a separate context from Payments", "passed": true, "evidence": "Context 5 'Payments: Runs charges through the external processor and knows no business rules' and context 6 'Debt Recovery: Starts at an unsettled rental. Owns the recovery actions and their schedule' are separate."}, {"text": "Settlement is identified as its own context", "passed": true, "evidence": "Final list context 4: '**Settlement** | Settles an ended rental ... records the rental as settled or unsettled.' It was added only after the expert's challenge."}, {"text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)", "passed": false, "evidence": "The contexts are described by what they own ('Registration steps, account activation...') and not by a single business question. No context gets a question it answers."}, {"text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement", "passed": false, "evidence": "Message 1 Q2 asks 'Who charges the card?' (payment execution), but message 3 gives the 'final list' with settlement quietly inside Rental: 'Rental ends the session, asks Pricing for the final amount, asks Payments to charge'. The expert then had to fire the scripted challenge 'So, who actually makes the settlement here?', and the run admits 'Good catch: in my list nobody owns it; I quietly let Rental do it.'"}, {"text": "Fleet Maintenance is kept as its own context", "passed": true, "evidence": "Context 8: '**Fleet Maintenance** | Taking broken bikes out of service, repairing them, putting them back into circulation'."}, {"text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map", "passed": false, "evidence": "After the expert said 'no context map for now', the final message still has '## Relationships (first sketch, upstream -> downstream)' with 10 edges and OHS/PL/ACL patterns. Message 5 had also offered 'Next I could turn this into a Context Mapper context map'."}, {"text": "No facilitator round asks more than 5 questions", "passed": false, "evidence": "Round 1 asks 8 numbered questions (1-8), and several of them hold multiple sub-questions."}, {"text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)", "passed": false, "evidence": "No critics, so this fails by definition."}], "notes": []}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.6, "passed": 12, "failed": 8, "total": 20, "time_seconds": 223.4, "tokens": 75140, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "CML context map written under src/main/cml/", "passed": true, "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"}, {"text": "CML passes validate_cml.sh (exit 0)", "passed": true, "evidence": "exit=0 established; otherwise it pollutes Payouts.\n  Scheduling [PL] -> TutorCatalog [CF] : FreeSlots\nRULE conformist-check: TutorCatalog conforms to Scheduling. OK only if Scheduling's language is well established; otherwise it pollutes TutorCatalog.\nVALID: 12 bounded contexts, 22 relationships, 0 errors\n"}, {"text": "No Shared Kernel in the CML", "passed": true, "evidence": "none"}, {"text": "No direct upstream/downstream cycle (validator reports no ud-cycle)", "passed": true, "evidence": "none"}, {"text": "The context downstream of the video provider uses an ACL", "passed": true, "evidence": "['  VideoProvider [] -> LessonDelivery [ACL] : VideoRooms']"}, {"text": "Discovery report written under docs/context-discovery/tutorhub/", "passed": false, "evidence": "no report"}, {"text": "At least 5 canvases created under docs/bounded-contexts/", "passed": false, "evidence": "[]"}, {"text": "Canvas hand-off only: no plan.md and no Java code generated", "passed": true, "evidence": "plans=[] java=0"}, {"text": "Final message is under 400 words", "passed": false, "evidence": "589 words"}, {"text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)", "passed": false, "evidence": "['Complaints [PL] -> TutorVetting [CF] : ComplaintOutcomes', 'Complaints [PL] -> Billing [CF] : RefundDecisions', 'TutorVetting [OHS, PL] -> TutorCatalog [CF] : TutorEligibility', 'TutorVetting [OHS, PL] -> Scheduling [CF] : TeachingEligibility', 'StudentAccounts [OHS] -> Scheduling [CF] : StudentStatus', 'StudentAccounts [OHS] -> Billing [CF] : StudentContact', 'StudentAccounts [OHS] -> Complaints [CF] : ComplainantIdentity', 'LessonDelivery [OHS, PL] -> Scheduling [CF] : LessonRooms', 'LessonD"}, {"text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint", "passed": true, "evidence": "Draft (round 2): 'Tutor Vetting (Trust & Safety): ... the single \"may this tutor teach?\" decision (suspend / reinstate). Complaints only reports \"complaint upheld against tutor X\".' CML: Complaints [PL] -> TutorVetting [CF] : ComplaintOutcomes."}, {"text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge", "passed": true, "evidence": "Draft: 'Pricing (Finance): one calculation for quote, late cancellation fee and final charge; commission rules (15% / 10% tier).' CML: Pricing -> Scheduling : PriceQuote and Pricing -> Billing : ChargeCalculation."}, {"text": "Payouts is a separate context from Billing (weekly clock)", "passed": true, "evidence": "Draft: 'Payouts: tutor earnings balance, weekly Monday payouts via Stripe Connect ...' separate from Billing; Billing -> Payouts : TutorEarnings."}, {"text": "Billing/settlement after Lesson Ended is its own context", "passed": true, "evidence": "Draft: 'Billing: card reference, pre-authorization, final charge within 1h, retries, unpaid, executing refunds.' LessonDelivery -> Billing : LessonOutcome."}, {"text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts", "passed": false, "evidence": "Only one round of clarifying questions (round 1, 9 questions) precedes the context list; round 2 already opens with 'Here is my first draft of the boundaries'."}, {"text": "An independent critic reviewed the contexts and, separately, the context map per business process", "passed": false, "evidence": "No critic or reviewer agent appears anywhere in the transcript; neither contexts nor the map per process were independently reviewed."}, {"text": "Asks the expert for approval of the contexts before building the map", "passed": false, "evidence": "Strict fail (borderline). Round 2 bundles the draft with 'Does anything look wrong or missing in my draft split?' (Q5 of 5). The expert said 'I'm fine with it', but there was no explicit approval gate; round 3 already presents relationship decisions and the map was built without a sign-off on the contexts."}, {"text": "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)", "passed": true, "evidence": "Validator on the baseline CML reports no ud-cycle or ud-cycle-indirect lines (22 relationships), so no cycles are kept. It passes by the parenthetical; the expert never chose flips (round 3 asked to 'confirm a few decisions' framed by the facilitator)."}, {"text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)", "passed": true, "evidence": "CML: 'TutorVetting [OHS, PL] -> Scheduling [CF] : TeachingEligibility' and 'Reviews [PL] -> Pricing [CF] : TutorRating'. No stated dependency inverted."}, {"text": "No facilitator round asks more than 5 questions", "passed": false, "evidence": "Round 1 asks 9 numbered questions."}], "notes": []}, {"eval_id": 3, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 7, "failed": 7, "total": 14, "time_seconds": 152.0, "tokens": 68710, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified", "passed": true, "evidence": "real file: git diff clean; run output uses a separate file"}, {"text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh", "passed": true, "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-Proposed.cml']"}, {"text": "Final message is under 400 words", "passed": true, "evidence": "361 words"}, {"text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts", "passed": true, "evidence": "Final message: '1. **3-context cycle: Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts.** ... The doc's heuristic (\"two contexts with arrows in both directions\") only finds 2-node cycles, so it misses this one.' Also finds the second cycle via the accepted alternative Debt Recovery -> Accounts."}, {"text": "Flags the Conformist relationships and asks for or evaluates their justification", "passed": false, "evidence": "No internal Conformist is flagged. Review finding 7: 'OK | R3 | All ACL/CF are on downstream ends' - only placement was checked. The only CF comment is finding 8 on City -> Pricing, suggesting 'an ACL is the more defensible default for an external system' - the opposite of the trainer's rule (CF fine towards a well-established language), and no justification was asked from the expert. The proposal keeps all 8 CFs and adds 4 more ([D,CF] on Rentals, Settlement/DebtBlocking, CustomerSupport, DebtRecovery)."}, {"text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)", "passed": false, "evidence": "Accounts->Rentals and CustomerSupport->FleetMaintenance are flagged only as 'Bare relationships' under self-invented R4 ('each relationship names its integration pattern explicitly'), and the fix is CF: 'make it Accounts [U,OHS]->[D,CF] Rentals' (ACL only as a parenthetical alternative). Missing ACL downstream is never treated as an issue; the proposal adds [D,CF] everywhere."}, {"text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship", "passed": true, "evidence": "Expert message 1: 'how to treat unconfirmed relationships like the CustomerSupport -> FleetMaintenance one'; review finding 3: 'CustomerSupport \u2192 FleetMaintenance (unconfirmed)... the opposite of the dashed arrow.'"}, {"text": "Walks at least one business process step by step through the map", "passed": false, "evidence": "No explicit walkthrough mapping process steps to contexts and relationships. The review only says 'I checked the business facts against the four processes ... with the domain expert'. The step-by-step fleet-issue narrative is the expert's own answer; the run's finding 3 summarises it in one paragraph rather than walking it through the map. The cycle-fix section gives a one-line edge check ('Rentals asks Accounts, Settlement reacts to Rental Session Ended, and blocks follow Settlement's debt facts'), not a process walk."}, {"text": "Ties each finding to an explicit context-mapping rule rather than generic advice", "passed": false, "evidence": "Rules are self-invented ('I checked the map against these common rules, so please confirm they match yours': R1-R4), and findings 3 and 4 have Rule '-'. Finding 8 (City CF -> ACL) is generic advice contrary to the trainer's rule."}, {"text": "An independent critic reviewed the map and its verdict is reported", "passed": false, "evidence": "No critic agent was used; the transcript contains no critic review or verdict."}, {"text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled", "passed": true, "evidence": "Expert reply 2 Q1 confirms the flow: 'They escalate it to the specialised team, which here means the technicians' side... they don't decide when a bike comes back.' Proposal replaces it with 'FleetMaintenance [U,OHS,PL]->[D,CF] CustomerSupport : FleetIssueEscalation' marked 'CONFIRMED with the domain expert'. Direction reversal is the run's modelling inference from confirmed facts, which is acceptable."}, {"text": "The proposed map adds no new unconfirmed relationships", "passed": true, "evidence": "Only new relationship is 'CustomerSupport [U,PL]->[D,CF] DebtRecovery : BillingDispute', backed by expert reply 2 Q2: 'Support raises the fact that a dispute is under review, and the debt-recovery people put the pursuit on hold because of it.' The DebtBlocking flip replaces an existing edge."}, {"text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)", "passed": false, "evidence": "No critic at all (assertion: 'no critic at all = false')."}, {"text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)", "passed": false, "evidence": "Unilateral: review says 'The cheapest edge to flip is Settlement \u2194 Accounts: Proposed: Accounts [U,OHS,PL]->[D,CF] Settlement'. The expert was never shown the option or asked whether Accounts offering a block-with-reason service matches how VeloCity works. The final message presents it as the fix."}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 0.98, "stddev": 0.0346, "min": 0.94, "max": 1.0}, "time_seconds": {"mean": 622.1667, "stddev": 294.056, "min": 430.2, "max": 960.7}, "tokens": {"mean": 166662.3333, "stddev": 53446.0849, "min": 134822, "max": 228366}}, "without_skill": {"pass_rate": {"mean": 0.45, "stddev": 0.1803, "min": 0.25, "max": 0.6}, "time_seconds": {"mean": 207.6333, "stddev": 49.6639, "min": 152.0, "max": 247.5}, "tokens": {"mean": 72758.6667, "stddev": 3524.3759, "min": 68710, "max": 75140}}, "delta": {"pass_rate": "+0.53", "time_seconds": "+414.5", "tokens": "+93904"}}, "notes": ["Cycle fix worked: eval 2 map has no cycles (iteration 3: 2 direct + 4 indirect), resolved mostly by API-client direction, carrying data and responsibility moves; no direction contradicts a stated fact. Eval 3: the expert chose the cycle fix from three options shown in business terms.", "Weak spots: two eval-2 flips rest on improvised expert answers (one after a leading either/or the critic caught); the skill resolved loops itself rather than offering options; Stripe got an ACL although the expert accepted conforming; no internal link is Customer/Supplier (CML forbids OHS in C/S).", "Eval 1: report sketched 'likely upstream' relationships after the map was declined (only failure).", "Validate mode still drifts in scope (refunds, rewritten vision statements); 3 expert rounds, 476s.", "Cost: with-skill ~2.6x tokens, ~3.3x time; token counts exclude nested critic/expert subagents. One run per configuration; simulated expert answers vary between runs (eval 1 treated Payments as external)."]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+/* TutorHub — context map from discover-bounded-contexts, 2026-11-05. Report: docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md
+ * Processes the map supports: (1) Tutor onboarding, (2) Book and take a lesson, (3) Weekly payout, (4) Complaint to refund and suspension.
+ * Direction follows model dependency (whose model is the contract), not the direction a message travels.
+ * Several answers below were given on the spot by the expert during the session; they are marked "to re-confirm" (answered by the expert, not yet re-confirmed with the teams); no relationship rests on an unanswered assumption.
+ */
+ContextMap TutorHubContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains TrustAndSafety
+	contains Scheduling
+	contains Pricing
+	contains Billing
+	contains Payouts
+	contains Reviews
+	contains Complaints
+	contains Stripe
+	contains VideoProvider
+
+	/* TrustAndSafety */
+
+	// Tutor Approved, Tutor Suspended (any reason), Tutor Reinstated (proposed event, implied by the re-activation story in round 1 Q4).
+	// Scheduling hides suspended tutors from search and refuses new bookings (expert, round 1 Q4).
+	TrustAndSafety [U,OHS,PL]->[D,ACL] Scheduling : TutorEligibility
+
+	// Report Upheld Complaint (tutor, lesson, category: safety | conduct | teaching quality, severity), in Trust & Safety's own terms.
+	// Direction: T&S came up with the categories and severity levels because its suspension rules use them, and Complaints has to
+	// classify differently when T&S adds or redefines a category (expert round 6 Q1, asked neutrally after round 5 Q3 was an either/or).
+	// T&S alone decides suspension (round 1 Q4). Expert answer given on the spot: to re-confirm.
+	TrustAndSafety [U,OHS,PL]->[D,ACL] Complaints : TutorConductReports
+
+	// Tutor Approved with the tutor's country from the vetted application; Payouts uses it for the per-country tax-form rule (round 6 Q3, to re-confirm).
+	TrustAndSafety [U,OHS,PL]->[D,ACL] Payouts : TutorApprovals
+
+	/* Reviews */
+
+	// Tutor Rating Updated (average of the last 50 reviews), read for the commission tier (expert round 2 Q1).
+	Reviews [U,OHS,PL]->[D,ACL] Pricing : TutorRating
+
+	// (a) Search shows the rating, which it reads from Community (round 5 Q2).
+	// (b) Report Lesson Outcome (lesson, student, tutor, date, outcome: held | student no-show | tutor no-show | late-cancelled):
+	//     Scheduling reports every lesson outcome to Reviews' API in Reviews' terms, and Community alone decides which outcomes get a
+	//     review request (today: held lessons only), so it can change that rule without Scheduling (round 6 Q4, to re-confirm).
+	// Scheduling as a client of Reviews' API breaks the direct cycle a Scheduling -> Reviews event subscription would create (search needs the rating).
+	Reviews [U,OHS,PL]->[D,ACL] Scheduling : TutorRatingAndLessonOutcomes
+
+	/* Pricing */
+
+	// Quote Lesson (hourly rate valid at booking, duration, tutor's completed-lesson count) -> Lesson Price Quoted (price, tutor share, commission).
+	// "Completed lesson" is defined in Pricing's OHS as a lesson that ended without a no-show (round 3 Q4).
+	// Scheduling sends the completed-lesson count in the request, so Pricing doesn't depend on Scheduling's model (no cycle).
+	// The quote is locked at booking (round 3 Q5, to re-confirm).
+	Pricing [U,OHS,PL]->[D,ACL] Scheduling : LessonQuote
+
+	/* Scheduling */
+
+	// Lesson Booked (with the locked quote and Pricing's breakdown re-published as part of Scheduling's PL, so Billing has no Pricing dependency), Lesson Cancelled (Late Cancellation Fee Incurred: 50% of the locked price),
+	// Lesson Completed, No-show Recorded (who no-showed).
+	// Cancel Booking (reason: card hold failed): Billing calls Scheduling's API and Scheduling cancels under its own rules (round 5 Q1, to re-confirm).
+	// That makes Billing a client of Scheduling and avoids a Billing -> Scheduling back-arrow (direct cycle).
+	Scheduling [U,OHS,PL]->[D,ACL] Billing : LessonOutcomes
+
+	// Lesson details and no-show record: a snapshot taken when the complaint is filed, re-opened read-only to double-check (round 5 Q4, round 6 Q2, to re-confirm).
+	Scheduling [U,OHS,PL]->[D,ACL] Complaints : LessonRecords
+
+	/* Billing */
+
+	// Lesson Earnings Recorded (board sticky "Tutor Earnings Credited": lesson L earned tutor X amount A); Lesson Earnings Reversed (tutor share taken back after a refund).
+	// Payouts keeps the balance and never hears from Complaints directly (round 3 Q1, round 5 Q5, to re-confirm).
+	Billing [U,OHS,PL]->[D,ACL] Payouts : TutorEarnings
+
+	// Charge and fee lookup for investigations (round 5 Q4), and Refund Lesson (lesson, amount, take back tutor share yes/no):
+	// Complaints decides, Billing executes through its own refund service (round 2 Q2, round 5 Q5).
+	Billing [U,OHS,PL]->[D,ACL] Complaints : ChargesAndRefunds
+
+	/* External systems */
+
+	// Card storage, holds (pre-authorisation), charges, refunds. ACL kept: Billing's retry and unpaid rules stay in our own model.
+	Stripe [U,OHS,PL]->[D,ACL] Billing : CardPayments
+
+	// Stripe Connect weekly payouts and payout failures.
+	Stripe [U,OHS,PL]->[D,ACL] Payouts : ConnectPayouts
+
+	// Room opening, join/leave and start/end webhooks. Their model changed twice this year, so the ACL absorbs it (round 2 Q3).
+	VideoProvider [U,OHS]->[D,ACL] Scheduling : VideoRooms
+}
+
+BoundedContext TrustAndSafety {
+	type = FEATURE
+	domainVisionStatement = "Answers: may this tutor teach on TutorHub? Vets applicants (per-country identity documents, accepted qualifications), approves once, tracks qualification expiry and is the single owner of suspension and reinstatement for any reason. Key language: application, verification, approval, qualification expiry, suspension, conduct report."
+	responsibilities = "Tutor vetting and approval", "Qualification expiry", "Suspension and reinstatement"
+}
+
+BoundedContext Scheduling {
+	type = FEATURE
+	domainVisionStatement = "Answers: what is the state of each lesson, from booking to held or no-show? Tutor offer (profile, hourly rate, slots, search), booking with the locked quote, reminders, reschedules (max 2), cancellations (free until 24h before, then 50% fee), live lesson and the 10-minute no-show rule. Key language: slot, booking, reschedule, late cancellation, lesson held, no-show."
+	responsibilities = "Tutor offer and search", "Booking, rescheduling and cancellation", "Live lesson and no-show detection"
+}
+
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does this lesson cost, including the platform commission? Hourly rate x duration + commission of 15%, or 10% for tutors rated 4.8+ with 100+ completed lessons. Set and changed by finance. Key language: quote, tutor share, commission tier."
+	responsibilities = "Lesson price quotes", "Commission tiers"
+}
+
+BoundedContext Billing {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does the student pay for each lesson, and has it been collected? Card hold after booking, final charge (locked price, late fee, full price on student no-show, nothing on tutor no-show) within 1 hour, two retries then unpaid, commission deduction, refund execution. Key language: hold, charge, unpaid, refund, lesson earnings."
+	responsibilities = "Card holds and charges", "Collection retries and unpaid charges", "Refund execution", "Per-lesson tutor earnings"
+}
+
+BoundedContext Payouts {
+	type = FEATURE
+	domainVisionStatement = "Answers: how much do we owe each tutor, and when is it paid out? Keeps the tutor earnings balance, runs payout-account onboarding and checks tax forms, pays every Monday via Stripe Connect (minimum 20 EUR, tax forms in some countries), retries failed payouts next Monday, applies clawbacks to the balance or the next payout. Key language: balance, weekly payout, payout failure, clawback."
+	responsibilities = "Tutor earnings balance", "Weekly payouts", "Clawbacks", "Tax forms and Stripe Connect payout onboarding"
+}
+
+BoundedContext Reviews {
+	type = FEATURE
+	domainVisionStatement = "Answers: what is this tutor's rating, based on students' lesson reviews? Run by the Community team: decides which lesson outcomes get a review request (today: held lessons), 1-5 rating and comment within 14 days, rating = average of the last 50 reviews. Key language: review request, review, rating."
+	responsibilities = "Review collection", "Tutor rating"
+}
+
+BoundedContext Complaints {
+	type = FEATURE
+	domainVisionStatement = "Answers: how is this complaint resolved? Filed by students or tutors at any time; outcome is rejected, refund, upheld against the tutor, or refund and upheld. Decides the refund amount and whether the tutor's share is taken back; does not suspend and does not move money. Key language: complaint, investigation, outcome, refund decision, conduct report."
+	responsibilities = "Complaint investigation", "Refund decisions", "Upheld-complaint reports"
+}
+
+BoundedContext Stripe {
+	type = SYSTEM
+	domainVisionStatement = "External payment provider for cards, holds, charges, refunds and Stripe Connect payouts (not designed by us)."
+}
+
+BoundedContext VideoProvider {
+	type = SYSTEM
+	domainVisionStatement = "External third-party video provider: lesson rooms and join/start/end webhooks (not designed by us)."
+}

@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": false,
+      "evidence": "Message 1 only says 'I've read the whole board (7 swimlanes: User Registration And Account Setup, Bike Rental, Pricing, ...)'. It lists lane titles and then asks questions. The run never read back the events or flows for the expert to confirm. It reads individual stickies only inside questions (for example '\"bike broken\" sits next to \"User Location Validated\"')."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": false,
+      "evidence": "The run never mentions pivotal events and never uses swimlanes or single responsibility as named steps. It moves from open questions (message 1) to money follow-ups (message 2) to a proposed split (message 3) with no heuristic structure. The only nod is in the final notes: 'Swimlanes aren't contexts one-for-one'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": false,
+      "evidence": "There are only 2 rounds of numbered questions: message 1 (questions 1-6) and message 2 (questions 1-5). Message 3 is itself the proposed list ('Here's my proposed split ...'), followed by 2 lettered questions '(a)' and '(b)'. Message 4 is the final list. Two numbered rounds came before the proposal."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": false,
+      "evidence": "The transcript shows no critic, sub-agent or verdict. The only review was the expert's approval: 'your list of 7 contexts is approved'."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Final table: 'Accounts | ... Blocks the account itself, for two reasons ... Unblocks automatically once the debt is paid' and 'Reacts to events from Settlement and Debt Recovery. They don't command it.' The draft in message 3 had 'Debt Recovery ... Its outcome tells Accounts to block/unblock'. The expert corrected it ('Accounts does the blocking itself ... They don't command it'), so a single owner came from the expert's correction."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "The final table has separate rows: '5 | Payments | Only moves money ... Knows no business rules' and '6 | Debt Recovery | ... Has its own rules about which actions to take and when'."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "The final table has '4 | Settlement | Collects each finished rental's final amount ... Retries for a couple of days, then declares the payment unsettled.' CONTAMINATED: the assistant did not propose Settlement before the leak. It first appears in the assistant's text in message 2 as 'You mentioned Settlement \"mostly about the schedule\"'. The expert had introduced the term in reply 1 ('Settlement has some rules of its own, mostly about the schedule') and added the hint 'What's really missing is where the money changes hands ... worth asking about'. The assistant first proposes Settlement as a context in message 3, after both expert rounds. Its own contribution was message 1's Q2, which spotted the missing money ('no event where the rider is actually charged ... Where does that happen'), but it never named a settlement owner unprompted. The pass is on the final outcome only."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers",
+      "passed": false,
+      "evidence": "The final table has 'Owns' and 'Talks to' columns and no question column. Only Accounts includes a question ('Answers \"is this rider eligible to rent?\"'). Rentals, Pricing, Settlement, Payments, Debt Recovery and Customer Support have no business question."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 6,
+    "total": 10,
+    "pass_rate": 0.4
+  },
+  "notes": "The baseline is fast and concise (65k tokens, 137 s, 4 assistant messages). Its questions were reasonable and well targeted (it spotted the money gap and the 'bike broken' guard), but it had no method: no readback, no named heuristics, no critic, and no report file. Its domain outcomes (Accounts as the single blocking owner, Debt Recovery separate from Payments, Settlement) largely repeat what the simulated expert said, which in round 1 included naming Settlement and pointing at the missing money. It dropped Fleet Maintenance as a context ('leave maintenance out of today's list') on the expert's suggestion, and kept zone definitions in Rentals. The final message includes useful trainer-facing teaching notes ('Those are the two contexts participants most often miss or merge'), which the skill run could borrow. EVAL CRITIQUE: the simulated expert leaked too much in reply 1 (it named Settlement and said 'What's really missing is where the money changes hands ... worth asking about'), so assertion 7 cannot discriminate between runs. The expert script should never volunteer context names, and assertion 7 should check that the facilitator raised the gap first."
+}

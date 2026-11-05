@@ -1,0 +1,111 @@
+{
+  "expectations": [
+    {
+      "text": "CML context map written under src/main/cml/",
+      "passed": true,
+      "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+    },
+    {
+      "text": "CML passes validate_cml.sh (exit 0)",
+      "passed": true,
+      "evidence": "exit=0 ne arrow is only event flow drawn the wrong way.\nRULE ud-cycle-indirect: Pricing -> Scheduling -> Reviews -> Pricing. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\nVALID: 9 bounded contexts, 14 relationships, 0 errors\n"
+    },
+    {
+      "text": "No Shared Kernel in the CML",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+      "passed": false,
+      "evidence": "['RULE ud-cycle: Billing -> Complaints -> Billing. Upstream/downstream going both ways is almost always a design error.', \"RULE ud-cycle-indirect: Billing -> Complaints -> TrustAndSafety -> Scheduling -> Billing. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\", 'RULE ud-cycle: Billing -> Scheduling -> Billing. Upstream/downstream going both ways is almost always a design error.', \"RULE ud-cycle-indirect: Billing -> "
+    },
+    {
+      "text": "The context downstream of the video provider uses an ACL",
+      "passed": true,
+      "evidence": "['  VideoProvider [] -> Scheduling [ACL] : VideoRoomWebhooks']"
+    },
+    {
+      "text": "Discovery report written under docs/context-discovery/tutorhub/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-event-storming/discovery.md']"
+    },
+    {
+      "text": "At least 5 canvases created under docs/bounded-contexts/",
+      "passed": true,
+      "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/trustandsafety/canvas.md']"
+    },
+    {
+      "text": "Canvas hand-off only: no plan.md and no Java code generated",
+      "passed": true,
+      "evidence": "plans=[] java=0"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "250 words"
+    },
+    {
+      "text": "No Conformist between internal contexts (CF only towards external Stripe/video provider)",
+      "passed": true,
+      "evidence": "only external upstreams are conformed to"
+    },
+    {
+      "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+      "passed": true,
+      "evidence": "Round 2: '\"May this tutor teach?\" gets one owner, Trust & Safety. It owns approval, expiry, suspension and reinstatement. Complaints only publishes \"complaint upheld\".' Approved table: Complaints 'publishes \"upheld\" (never suspends)'. CML: 'Complaints [U,S,PL]->[D,C,ACL] TrustAndSafety : UpheldComplaints' with comment 'Trust & Safety decides the suspension under its own rule'."
+    },
+    {
+      "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+      "passed": true,
+      "evidence": "Round 2: 'Price calculation is used in three places (quote, late fee, final charge) and its commission rules change on finance's own schedule. That points to one Pricing owner'. Pricing is a BoundedContext in the CML. Caveat: in the final map Billing no longer calls Pricing; late fee and final charge reuse Pricing's booked quote republished by Scheduling (R8-1: 'the charge equals the quote the student saw'). The calculation still has one owner, but it reaches Billing second-hand."
+    },
+    {
+      "text": "Payouts is a separate context from Billing (weekly clock)",
+      "passed": true,
+      "evidence": "Approved table: 'Payouts | What do we owe each tutor, and what do we pay them this Monday? | tutor balance, 20 EUR minimum ... | Monday clock (H2), own team'. CML: 'Billing [U,S,PL]->[D,C,ACL] Payouts : TutorEarnings'."
+    },
+    {
+      "text": "Billing/settlement after Lesson Ended is its own context",
+      "passed": true,
+      "evidence": "Approved table: 'Billing | What is charged for this lesson, and is it paid? | card, pre-auth, charge within 1h, 2 retries, unpaid status ... | hand-off after Lesson Ended / No-show / Fee Due'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+      "passed": true,
+      "evidence": "Rounds 1 to 4 each end with a numbered 'Questions' list (5, 5, 4 and 5 questions) before the round-5 'candidates for approval' table."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+      "passed": true,
+      "evidence": "Critic log: per-context verdicts (for example 'Tutor Listing | r1 | DISAGREE', 'Billing | r2 | AGREE'), then separate map verdicts per process ('Map v1 + P1 onboarding | r1 | DISAGREE', '... P2 booking', '... P3 weekly payout', '... P4 complaint', then v2 r2 AGREE for each, plus a 'Map v2 final pass (P1-P4)'). Round 8: 'Four independent reviewers walked your four processes through it'. Note: the map critics accepted the kept cycles ('cycles accepted') without challenging them."
+    },
+    {
+      "text": "Asks the expert for approval of the contexts before building the map",
+      "passed": true,
+      "evidence": "Round 5: '1. Do you approve these seven contexts? 2. Do you want a context map in Context Mapper (.cml) format?' Expert: 'Yes, I approve the seven.' The map work starts in round 6."
+    },
+    {
+      "text": "No U/D cycle is kept, or every kept cycle documents attempted flips of each link with expert-confirmed rejection reasons",
+      "passed": false,
+      "evidence": "Validator v3 shows that 2 direct cycles ('RULE ud-cycle: Billing -> Complaints -> Billing', 'RULE ud-cycle: Billing -> Scheduling -> Billing') and 4 indirect ones were kept. The report's 'Breaking cycles' table lists flips with answer references (R6-3, R7-2, R7-3, R6-4, R6-2, R7-4), so the documentation exists. The rejections are not expert-confirmed rejections of the flips, though. (1) The links that create both direct cycles rest on improvised answers that are not in the fact sheet: R3-1 'A student with an \"unpaid\" lesson can't book again [improvised]' and R6-4 'Complaints needs ... what was charged from Billing [improvised]'. (2) The concrete alternatives were never put to the expert, for example a Billing-side refund cap so Complaints needs no ChargeDetails (the baseline run got the expert to accept exactly that), or a Scheduling-owned booking-block input. (3) The rating-in-request flip was not asked neutrally, unlike the held-count flip in R7-1. (4) The combination cycles are dismissed with 'as above'. On a literal reading this is close to a pass; on substance, against a rule that a two-way U/D is a design error, it is not."
+    },
+    {
+      "text": "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)",
+      "passed": true,
+      "evidence": "CML: 'TrustAndSafety [U,S,PL]->[D,C,ACL] Scheduling : TutorEligibility' and 'Reviews [U,S,PL]->[D,C,ACL] Pricing : TutorRating'. 'Pricing [U,OHS,PL]->[D,ACL] Scheduling' matches 'Scheduling needs ... the price (from Pricing)'."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": true,
+      "evidence": "Numbered question counts per round: R1 5, R2 5, R3 4, R4 5, R5 2, R6 5, R7 4, R8 4, R9 1 (map approval). Several numbered items bundle 2 or 3 sub-questions (for example R4 Q5 and R6 Q4), which stretches the spirit of the limit."
+    }
+  ],
+  "summary": {
+    "passed": 18,
+    "failed": 2,
+    "total": 20,
+    "pass_rate": 0.9
+  },
+  "notes": "CYCLES. The kept direct cycles are weakly justified under the trainer's rules (U/D both ways between two contexts = design error). (a) Billing<->Complaints: RefundDecisions is a command 'refund lesson L, amount A' that Billing executes, and ChargeDetails is a read of Billing's data. Both are naturally Billing-upstream: Billing offers an OHS/PL 'refund' API plus charge lookup, and Complaints is downstream with an ACL. Sending a command to an upstream's API does not make the sender upstream. The run rejected this with R7-3 ('doesn't fill in anyone else's form'), which is the expert's choice in a binary 'whose terms' question about a two-field message, not a structural fact. The baseline also showed that ChargeDetails can simply be dropped: the complaint carries the lesson ref and Billing caps the refund at the charged amount, which the expert accepted. So this cycle should have been broken. (b) Billing<->Scheduling: LessonOutcomes (Scheduling upstream) is solid in the fact sheet ('Billing needs ... the lesson facts'). The back link StudentPaymentStanding comes from an improvised fact. Better options: treat 'Lesson Unpaid/Paid' as event notification into a Scheduling-owned language, where Scheduling publishes a 'StudentBookingBlock' input/OHS that Billing feeds (Billing downstream, keeping 'booking keeps its own note'); or, if the teams really co-evolve both directions, model it honestly as a Partnership (internal teams; the trainer's rules don't forbid it) instead of two opposing C/S arrows. A merge is wrong (different teams, rules and clocks). (c) The indirect cycles (Pricing->Scheduling->Reviews->Pricing; Complaints->T&S->Scheduling->Complaints) are mostly benign. Each arrow is a narrow, different language, and the chains are event flows, so keeping them with documented reasons is acceptable. SKILL GUIDANCE: The skill should treat a DIRECT two-way U/D as a hard error that can't be kept. It must be resolved by (1) re-reading one side as a command to, or query of, the other's API (direction follows whose model is the contract, not message direction); (2) moving a responsibility or dropping a dependency (could the data travel in the message, or could the upstream enforce the cap?); (3) declaring Partnership; (4) a merge as the last resort. INDIRECT cycles should be a review warning: check each arrow is a model dependency rather than plain event flow, and keep them with a documented reason. The skill should also forbid justifying a kept cycle by an [improvised] answer, or by the expert's pick in a binary 'whose terms' question, and require the alternative flip itself to be put to the expert. The map critics accepted the cycles ('cycles accepted'); the critic prompt should challenge every direct cycle. EVAL CRITIQUE: assertion 8 can be satisfied by paperwork; split it into 'no direct U/D cycle kept' (strict) and 'indirect cycles documented'. Assertion 2 passes even though Billing no longer depends on Pricing directly; consider whether that is intended. Not covered: whether kept dependencies rest on [improvised] facts. Cost: 262k tokens and 1154 s versus the baseline's 77k tokens and 242 s, for 9 expert rounds. Mechanical grading: 9/10, with the failure on the direct ud-cycle. Canvases, the report and C/S+ACL defaults are clearly better than the baseline."
+}

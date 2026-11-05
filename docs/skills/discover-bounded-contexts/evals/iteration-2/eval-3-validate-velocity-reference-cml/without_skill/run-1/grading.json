@@ -1,0 +1,76 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": false,
+      "evidence": "real file: git diff clean; run output overwrites the original path"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map.cml'] valid=['files/src/main/cml/VeloCity-Context-Map.cml']"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "395 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Final message: 'Cycle: Settlement \u2192 Accounts \u2192 Rentals \u2192 Settlement. It is made of DebtBlocking, AccountStatus and RentalSessionEnded.' Same cycle, different start node."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": false,
+      "evidence": "Only City -> Pricing CF was questioned ('Pricing conforms to an external party you don't control. I suggest an ACL'). The 7 internal CFs were not flagged; the review states 'all CF, OHS and PL markers are on the correct sides', and the proposed map keeps CF everywhere and adds new CFs (ClientAuthorization, FleetIssueHandover, RecoveryPause)."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": false,
+      "evidence": "Accounts -> Rentals flagged only as 'has no patterns on either side', not as a missing ACL; the fix makes Accounts a [D,CF]. CustomerSupport -> FleetMaintenance flagged for direction/unconfirmed, not for missing ACL; new version is [D,CF]. Missing-ACL is not treated as a finding anywhere except City -> Pricing."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Finding 5: 'CustomerSupport [U]->[D] FleetMaintenance : FleetIssueIncident_Unconfirmed ... Unconfirmed in a reference solution'; asked expert Q2 about fleet-issue incidents."
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": false,
+      "evidence": "No step-by-step walk of a process through the map's contexts/relationships. The expert listed four processes to check against, but the review only reasons about individual edges; the closest is the expert's own ordered answer on fleet issues, which the agent did not map step by step."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": false,
+      "evidence": "Rules were self-invented as 'the standard relationship rules' (no SK, no cycles, ACL/CF downstream, OHS/PL upstream, explicit roles). Only the cycle ties to an explicit rule (the doc's 'No cycles'). Others are generic: 'Pricing [U,OHS] has no PL. Every other OHS in the map has one'; City ACL justified by analogy to Payments."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": false,
+      "evidence": "No critic was used; no critic verdict anywhere in transcript or outputs."
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": true,
+      "evidence": "Expert Q2 answer: 'support hands the case to the technicians. Support never takes a bike out of circulation itself.' Map changed to 'FleetMaintenance [U,OHS]->[D,CF] CustomerSupport : FleetIssueHandover' (direction reversed)."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": false,
+      "evidence": "'Rentals [U,OHS,PL]->[D,CF] Accounts : ClientAuthorization' is a new relationship with new semantics (Accounts pushes authorise/revoke to Rentals) that the expert was never asked about; the expert only confirmed Accounts owns the block rule. The RecoveryPause direction/pattern (DebtRecovery upstream of CustomerSupport) is also the agent's own choice."
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed",
+      "passed": false,
+      "evidence": "Not applicable -> false: no critic used (assertion 7 also fails)."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 8,
+    "total": 13,
+    "pass_rate": 0.38
+  },
+  "notes": "Baseline found the cycle and resolved the unconfirmed link quickly (171s, 2 expert rounds), but without the trainer's rules it accepted CF as the default everywhere and never flagged missing ACLs, so it missed 7 of 8 rule violations and even added three new CFs. Its cycle fix (invert Accounts <-> Rentals into a push-authorization model) was not validated with the expert and contradicts the vision's 'is account active?' query; the skill run instead asked and got an expert-confirmed flip of DebtBlocking. It also never ran a CML validator ('I haven't run the corrected CML') and wrote the proposal at the original's path inside its output folder (mechanical check flagged this). It did surface a useful item the skill run deferred: the expert in this run confirmed billing disputes pause Debt Recovery, and it noted the open write-off question. Simulated expert behaviour diverged between runs (deferred vs confirmed billing disputes), which affects comparability."
+}

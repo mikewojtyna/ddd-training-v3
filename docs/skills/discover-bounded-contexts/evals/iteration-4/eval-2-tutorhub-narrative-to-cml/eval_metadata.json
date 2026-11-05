@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "tutorhub-narrative-to-cml",
+  "prompt": "I typed up the stickies from our TutorHub event storming in evals/files/tutorhub-narrative.md (path relative to the skill folder). Can you figure out where the bounded context boundaries are and then draw me a context map I can open in Context Mapper?",
+  "assertions": [
+    "CML context map written under src/main/cml/",
+    "CML passes validate_cml.sh (exit 0)",
+    "No Shared Kernel in the CML",
+    "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+    "The context downstream of the video provider uses an ACL",
+    "Discovery report written under docs/context-discovery/tutorhub/",
+    "At least 5 canvases created under docs/bounded-contexts/",
+    "Canvas hand-off only: no plan.md and no Java code generated",
+    "No Conformist between internal contexts (CF only towards external Stripe/video provider)",
+    "Final message is under 400 words",
+    "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+    "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+    "Payouts is a separate context from Billing (weekly clock)",
+    "Billing/settlement after Lesson Ended is its own context",
+    "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+    "An independent critic reviewed the contexts and, separately, the context map per business process",
+    "Asks the expert for approval of the contexts before building the map",
+    "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)",
+    "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)",
+    "No facilitator round asks more than 5 questions"
+  ]
+}
