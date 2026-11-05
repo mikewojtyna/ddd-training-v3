@@ -1,0 +1,159 @@
+/* VeloCity — reference context map, validated proposal (discover-bounded-contexts, 2026-11-05).
+   Based on src/main/cml/VeloCity-Context-Map.cml, which is NOT modified.
+   Report: docs/context-discovery/velocity/2026-11-05-reference-map-validation/discovery.md
+   Every internal Conformist below is justified by the domain expert (2026-11-05): all eight internal teams
+   are in one company, and the upstream terms are used the same way company-wide and have been stable since launch. */
+ContextMap VeloCityContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains Accounts
+	contains Rentals
+	contains Pricing
+	contains Settlement
+	contains Payments
+	contains DebtRecovery
+	contains CustomerSupport
+	contains FleetMaintenance
+	contains PaymentProcessor
+	contains City
+
+	/* External parties */
+
+	PaymentProcessor [U]->[D,ACL] Payments : PaymentProcessing
+
+	// zone map (stations, drop zones; everything else is an unauthorized zone). CF: the City's own fixed, documented
+	// format that VeloCity can't change; taken version by version, a few times a year (expert). Only Pricing needs it at launch;
+	// the service area is VeloCity's own decision, checked by Rentals (expert).
+	City [U]->[D,CF] Pricing : ZoneMap
+
+	/* Payments */
+
+	// verify payment method, Payment Method Invalidated (Accounts decides the block).
+	// CF: "payment method, verified, invalidated" is company-wide, stable language (expert).
+	Payments [U,OHS,PL]->[D,CF] Accounts : PaymentMethodVerification
+
+	// charge, refund (upheld dispute about a paid charge). CF: "charge" is company-wide, stable language (expert).
+	Payments [U,OHS,PL]->[D,CF] Settlement : Charging
+
+	/* Accounts */
+
+	// can this person rent right now? ("active" = activated and not blocked).
+	// CF: Rentals takes Accounts' answer as it is, without translating it (expert).
+	// Part of the indirect cycle Accounts -> Rentals -> Settlement -> Accounts: kept, see the report.
+	Accounts [U,OHS]->[D,CF] Rentals : AccountStatus
+
+	// current, verified rider contact details (email, phone) at the moment a reminder is sent; DebtRecovery keeps no copy (expert).
+	// ACL by default (expert not asked about translation).
+	Accounts [U,OHS]->[D,ACL] DebtRecovery : RiderContactDetails
+
+	/* Rentals */
+
+	// Rental Session Ended (start, end, location, reason). CF: company-wide, stable language (expert).
+	Rentals [U,PL]->[D,CF] Settlement : RentalSessionEnded
+
+	// Bike Withdrawn (reason: lock failed | fault reported at return | bike fault signal); withdraw / make available;
+	// reserve / unlock (a technician's unlock never starts a session). Rentals withdraws immediately on faults seen in
+	// its own flow, with no confirmation; Fleet Maintenance alone puts a bike back (expert).
+	// Fleet Maintenance withdraws a handed-over broken bike within the BrokenBikeHandover call: no window where it is offered (expert).
+	// CF: technicians use "reserve, unlock, withdrawn, available" exactly as Rentals does (expert).
+	Rentals [U,OHS,PL]->[D,CF] FleetMaintenance : BikeAvailability
+
+	/* Pricing */
+
+	// price for session (tariff valid at session start). No live estimate during a ride (expert).
+	// CF: "the price of a session" is company-wide, stable language (expert).
+	Pricing [U,OHS]->[D,CF] Settlement : PriceCalculation
+
+	/* Settlement */
+
+	// Rental Fee Unpaid, Outstanding Debt Cleared (paid | cancelled). Settlement states the facts;
+	// Accounts alone decides block and unblock (expert). CF: company-wide, stable language (expert).
+	Settlement [U,PL]->[D,CF] Accounts : DebtBlocking
+
+	// Rental Fee Unpaid -> start recovery; attempt collection; Outstanding Debt Cleared (paid | cancelled) ends the case.
+	// CF: the recovery team uses "outstanding debt" and "attempt collection" as Settlement defines them (expert).
+	Settlement [U,OHS,PL]->[D,CF] DebtRecovery : DebtCollection
+
+	// cancel a disputed amount, in full or in part, or refund a paid charge (after Support upholds a billing dispute; Support decides
+	// the amount; only Settlement moves money, both ways); Support views charges and balance.
+	// Confirmed by the expert; ACL is the default downstream pattern (the expert wasn't asked about translation).
+	Settlement [U,OHS,PL]->[D,ACL] CustomerSupport : DisputedAmountCancellation
+
+	/* Debt Recovery */
+
+	// pause recovery (dispute opened), resume recovery (dispute rejected; or partly upheld: recovery resumes for the rest).
+	// Confirmed by the expert;
+	// ACL is the default downstream pattern.
+	DebtRecovery [U,OHS,PL]->[D,ACL] CustomerSupport : RecoveryPause
+
+	/* Fleet Maintenance */
+
+	// hand over a broken bike (bike, fault) -> confirmation "broken, in the queue, off offer"; Support resolves the incident on it.
+	// FM's language (broken bike, fault); the incident stays in Support (expert). Withdrawal via Rentals happens inside the
+	// handover, so there is no window between acceptance and off offer. Was CustomerSupport -> FleetMaintenance
+	// (FleetIssueIncident_Unconfirmed); flipped on the expert's answer. ACL by default (Support keeps its incident model).
+	FleetMaintenance [U,OHS,PL]->[D,ACL] CustomerSupport : BrokenBikeHandover
+}
+
+/* Bounded Contexts */
+
+BoundedContext Accounts {
+	type = FEATURE
+	domainVisionStatement = "Answers: can this rider use the service? Onboarding, account activation, account blocks and unblocks (sole owner of every block decision). Key language: user, registration, activated, blocked."
+	responsibilities = "Onboarding", "Account activation", "Account blocks and unblocks"
+}
+
+BoundedContext Rentals {
+	type = FEATURE
+	domainVisionStatement = "Answers: who has which bike, and when? Bike availability (available / withdrawn), reserve & unlock for riders and technicians, rental sessions, station and zone returns & locking, max-rental-time end, withdrawing a bike immediately on a fault seen in its own flow (lock failure, fault reported at return, the bike's own fault signal); never decides broken or fixed. Key language: reservation, unlock, rental session, available, withdrawn."
+	responsibilities = "Bike availability", "Reserve and unlock", "Rental sessions", "Station and zone returns and locking", "Max rental time end", "Withdrawing bikes on faults seen in its own flow"
+}
+
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does this ride cost? Pure calculation of the total fee: tiered hourly fees, penalty, drop zone / unauthorized zone fees, tariff valid at session start. Key language: free period, hourly fee, penalty, drop zone fee, total fee."
+	responsibilities = "Total fee calculation", "Tariffs"
+}
+
+BoundedContext Settlement {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does the rider owe, and is it settled? Charging each finished ride, retries, rider's balance, outstanding debt, cancelling disputed amounts in full or in part, refunds on upheld disputes about paid charges. The only context that moves money, both ways. Key language: charge, settled, outstanding debt, cleared."
+	responsibilities = "Charging finished rides", "Charge retries", "Rider balance", "Outstanding debt", "Cancelling disputed amounts", "Refunds"
+}
+
+BoundedContext Payments {
+	type = FEATURE
+	domainVisionStatement = "Answers: did the payment method verify, and did the charge go through? Shields VeloCity from the external processor. Key language: payment method, pre-authorization, verified, charge."
+	responsibilities = "Payment method verification", "Charging"
+}
+
+BoundedContext DebtRecovery {
+	type = FEATURE
+	domainVisionStatement = "Answers: how do we recover what is owed? Reminders, payment plans, pause / resume. Key language: recovery process, paused, resumed, exhausted, payment plan."
+	responsibilities = "Reminders", "Payment plans", "Pausing and resuming recovery"
+}
+
+BoundedContext CustomerSupport {
+	type = FEATURE
+	domainVisionStatement = "Answers: what went wrong for the rider, and is it resolved? Incidents: reported, type detected, assigned, accepted / rejected, escalated, reopened, resolved; confirming fleet issues (handing broken bikes to Fleet Maintenance) and deciding billing disputes. Key language: incident, accept, reject, escalate, reopen, resolve, dispute."
+	responsibilities = "Incident handling", "Confirming fleet issues", "Deciding billing disputes"
+}
+
+BoundedContext FleetMaintenance {
+	type = FEATURE
+	domainVisionStatement = "Answers: is this broken bike fixed, and when does it go back into circulation? Takes in broken bikes from Rentals' fault facts and from Support's handover of accepted fleet issues (withdrawing them on handover, as execution of Support's decision), maintenance (started on a technician's unlock), bike fixed, sole decision to make a bike available again. Key language: broken, maintenance, fixed, back in circulation."
+	responsibilities = "Maintenance queue", "Maintenance", "Returning bikes to circulation"
+}
+
+/* External parties */
+
+BoundedContext PaymentProcessor {
+	type = SYSTEM
+	domainVisionStatement = "External payment processor."
+}
+
+BoundedContext City {
+	type = SYSTEM
+	domainVisionStatement = "External party providing the zone map used by Pricing."
+}

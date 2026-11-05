@@ -1,0 +1,139 @@
+/* VeloCity — validated proposal of the reference context map, from discover-bounded-contexts (validate mode), 2026-11-05.
+   Original: src/main/cml/VeloCity-Context-Map.cml (left untouched).
+   Report: docs/context-discovery/velocity/2026-11-05-validate-reference-map/discovery.md
+   Changes vs the original:
+   - Every internal Conformist is now an ACL (all teams are internal; no well-established internal language - expert, Q3).
+   - City -> Pricing is ACL: the zone map is imposed by the City, not a well-established language.
+   - DebtBlocking flipped: Accounts offers "block / unblock with a reason" (OHS); Settlement calls it. Breaks Accounts -> Rentals -> Settlement -> Accounts.
+   - Invalid card: Payments publishes Payment Method Invalidated; Accounts' ACL turns it into "block, reason: invalid card" (keeps Payments upstream, no Payments <-> Accounts cycle).
+   - CustomerSupport -> FleetMaintenance (unconfirmed) replaced by FleetMaintenance [OHS] -> CustomerSupport (confirmed: support hands fleet issues over to maintenance).
+   Team relationship: every internal U/D link below is Customer/Supplier in team terms (one company, one product, negotiable).
+   CML can't combine C/S with OHS, so the links are written as U/D with OHS/PL + ACL. */
+ContextMap VeloCityContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains Accounts
+	contains Rentals
+	contains Pricing
+	contains Settlement
+	contains Payments
+	contains DebtRecovery
+	contains CustomerSupport
+	contains FleetMaintenance
+	contains PaymentProcessor
+	contains City
+
+	/* External parties */
+
+	// verify payment method (pre-authorization), charge -> succeeded / failed
+	PaymentProcessor [U]->[D,ACL] Payments : PaymentProcessing
+
+	// zone map: stations, drop zones, everything else = unauthorized zone (imposed by the City, translated in Pricing's ACL).
+	// The service area checked at reservation is VeloCity's own (expert), so Rentals has no City link.
+	City [U]->[D,ACL] Pricing : ZoneMap
+
+	/* Payments */
+
+	// verify payment method; Payment Method Invalidated -> Accounts' ACL: block, reason invalid card;
+	// a new successful verification clears the reason -> Accounts unblocks
+	Payments [U,OHS,PL]->[D,ACL] Accounts : PaymentMethodVerification
+
+	// execute charge -> Charge Succeeded / Charge Failed (no rules of its own)
+	Payments [U,OHS,PL]->[D,ACL] Settlement : Charging
+
+	/* Accounts */
+
+	// is the account active (activated and not blocked)? Rentals' ACL: may this rider reserve and unlock?
+	Accounts [U,OHS]->[D,ACL] Rentals : AccountStatus
+
+	// block / unblock with a reason (reason: outstanding debt); Settlement knows when the debt is paid
+	Accounts [U,OHS]->[D,ACL] Settlement : AccountBlocking
+
+	/* Rentals */
+
+	// Rental Session Ended (start, end, location, reason: return / max time / lock failed)
+	Rentals [U,PL]->[D,ACL] Settlement : RentalSessionEnded
+
+	// Bike Withdrawn (fault detected, lock failed); withdraw / make available; reserve / unlock for technicians
+	Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance : BikeAvailability
+
+	/* Pricing */
+
+	// price for session (tariff valid at session start, penalty, zone fees)
+	Pricing [U,OHS]->[D,ACL] Settlement : PriceCalculation
+
+	/* Settlement */
+
+	// Rental Fee Unpaid -> start recovery; collect outstanding debt (Settlement is the only one moving money)
+	Settlement [U,OHS,PL]->[D,ACL] DebtRecovery : DebtCollection
+
+	/* Fleet Maintenance */
+
+	// report a faulty bike (accepted fleet-issue incident); maintenance then withdraws it through Rentals
+	FleetMaintenance [U,OHS]->[D,ACL] CustomerSupport : FaultReporting
+
+	// Deferred (expert): billing dispute under review -> pause / resume Debt Recovery. Not modelled; open question.
+}
+
+/* Bounded Contexts */
+
+BoundedContext Accounts {
+	type = FEATURE
+	domainVisionStatement = "Answers: can this person use VeloCity right now? Sequential onboarding, account activation, account blocks and unblocks with a reason (invalid card, outstanding debt), block notifications. Key language: user, registration, activated, blocked, block reason."
+	responsibilities = "Onboarding", "Account activation", "Account blocks and unblocks", "Block notifications"
+}
+
+BoundedContext Rentals {
+	type = FEATURE
+	domainVisionStatement = "Answers: who has which bike, and when? Bike availability (available / withdrawn), reserve & unlock for any authorised client, rental sessions, station returns & locking, max-rental-time end, withdrawing a bike on a fault it detects. Key language: reservation, unlock, rental session, available, withdrawn."
+	responsibilities = "Bike availability", "Reserve and unlock", "Rental sessions", "Station returns and locking", "Max rental time end", "Withdrawing faulty bikes"
+}
+
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does this ride cost? Pure calculation of the total fee: tiered hourly fees, penalty, drop zone / unauthorized zone fees, tariff valid at session start. Key language: free period, hourly fee, penalty, drop zone fee, total fee."
+	responsibilities = "Total fee calculation", "Tariffs"
+}
+
+BoundedContext Settlement {
+	type = FEATURE
+	domainVisionStatement = "Answers: has this ride been paid for? Charging each finished ride, retries, rider's balance and outstanding debt; asks Accounts to block / unblock for debt. The only context that decides to move money (Payments executes). Key language: charge, settled, outstanding debt."
+	responsibilities = "Settling finished rides (charge and retry decisions)", "Rider balance", "Outstanding debt"
+}
+
+BoundedContext Payments {
+	type = FEATURE
+	domainVisionStatement = "Answers: is this payment method usable, and did this charge go through? Payment method verification and executing charges, no charging rules of its own; shields VeloCity from the external processor. Key language: payment method, pre-authorization, verified, invalidated, charge succeeded / failed."
+	responsibilities = "Payment method verification", "Executing charges", "Detecting invalid payment methods"
+}
+
+BoundedContext DebtRecovery {
+	type = FEATURE
+	domainVisionStatement = "Answers: how do we get the owed money back? Active pursuit of outstanding debt: reminders, payment plans, pause / resume. Key language: recovery process, paused, resumed, exhausted, payment plan."
+	responsibilities = "Reminders", "Payment plans", "Pausing and resuming recovery"
+}
+
+BoundedContext CustomerSupport {
+	type = FEATURE
+	domainVisionStatement = "Answers: is this rider's issue resolved? Incidents: reported, type detected, assigned, accepted / rejected, escalated, reopened, resolved. Key language: incident, accept, reject, escalate, reopen, resolve."
+	responsibilities = "Incident handling"
+}
+
+BoundedContext FleetMaintenance {
+	type = FEATURE
+	domainVisionStatement = "Answers: is this bike fit to ride? Broken bikes (withdrawn by Rentals on faults it detects, or reported by support), withdrawing bikes reported by support, maintenance, deciding when a bike returns to circulation. Key language: broken, maintenance, fixed, back in circulation."
+	responsibilities = "Broken bikes", "Maintenance", "Returning bikes to circulation"
+}
+
+/* External parties */
+
+BoundedContext PaymentProcessor {
+	type = SYSTEM
+	domainVisionStatement = "External payment processor (not designed by us)."
+}
+
+BoundedContext City {
+	type = SYSTEM
+	domainVisionStatement = "External party providing the zone map used by Pricing."
+}

@@ -1,0 +1,176 @@
+/* TutorHub — Context Map (from the event storming narrative + domain-expert Q&A, 2026-11-05) */
+ContextMap TutorHubContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains TutorVetting
+	contains Complaints
+	contains StudentAccounts
+	contains LessonDelivery
+	contains Reviews
+	contains Pricing
+	contains Billing
+	contains Payouts
+	contains Scheduling
+	contains TutorCatalog
+	contains Stripe
+	contains VideoProvider
+
+	/* External parties */
+
+	// cards, pre-authorizations, charges, refunds
+	Stripe [U]->[D,ACL] Billing : CardPayments
+
+	// Stripe Connect payouts
+	Stripe [U]->[D,ACL] Payouts : ConnectPayouts
+
+	// rooms + webhooks; model is messy and changed twice this year
+	VideoProvider [U]->[D,ACL] LessonDelivery : VideoRooms
+
+	/* Complaints */
+
+	// Complaint Upheld (against tutor X) -> Trust & Safety decides suspension
+	Complaints [U,PL]->[D,CF] TutorVetting : ComplaintOutcomes
+
+	// Refund Decided (lesson L, amount A) -> Billing reverses the charge
+	Complaints [U,PL]->[D,CF] Billing : RefundDecisions
+
+	/* Tutor Vetting (Trust & Safety) */
+
+	// Tutor Approved / Suspended / Reinstated -> publish / hide profile
+	TutorVetting [U,OHS,PL]->[D,CF] TutorCatalog : TutorEligibility
+
+	// may this tutor receive bookings?
+	TutorVetting [U,OHS,PL]->[D,CF] Scheduling : TeachingEligibility
+
+	/* Student Accounts */
+
+	// student registered / account active
+	StudentAccounts [U,OHS]->[D,CF] Scheduling : StudentStatus
+
+	// student contact for "unpaid" emails
+	StudentAccounts [U,OHS]->[D,CF] Billing : StudentContact
+
+	// who filed the complaint
+	StudentAccounts [U,OHS]->[D,CF] Complaints : ComplainantIdentity
+
+	/* Lesson Delivery */
+
+	// set up / move / close a video room; Lesson Happened, Student No-show, Tutor No-show
+	LessonDelivery [U,OHS,PL]->[D,CF] Scheduling : LessonRooms
+
+	// lesson outcome -> final charge (tutor no-show: no charge; student no-show: full price)
+	LessonDelivery [U,PL]->[D,CF] Billing : LessonOutcome
+
+	// Lesson Ended -> Review Requested (14-day window)
+	LessonDelivery [U,PL]->[D,CF] Reviews : LessonEnded
+
+	// completed lessons count for the commission tier (>= 100 lessons)
+	LessonDelivery [U,PL]->[D,CF] Pricing : CompletedLessons
+
+	/* Reviews (Community) */
+
+	// Tutor Rating Updated -> commission tier (>= 4.8)
+	Reviews [U,PL]->[D,CF] Pricing : TutorRating
+
+	// Tutor Rating Updated -> shown and filterable in search
+	Reviews [U,PL]->[D,CF] TutorCatalog : TutorRatingDisplay
+
+	/* Pricing (Finance) */
+
+	// Lesson Price Quoted (rate valid at booking time x duration + commission)
+	Pricing [U,OHS]->[D,CF] Scheduling : PriceQuote
+
+	// final charge, late cancellation fee (50%), commission split — same calculation
+	Pricing [U,OHS]->[D,CF] Billing : ChargeCalculation
+
+	// current hourly rate shown on profile / search
+	Pricing [U,PL]->[D,CF] TutorCatalog : CurrentHourlyRate
+
+	/* Billing */
+
+	// pre-authorize at booking (failure blocks the booking), release on free cancellation, charge late cancellation fee
+	Billing [U,OHS]->[D,CF] Scheduling : LessonPayment
+
+	// Tutor Earnings Credited / Earnings Deducted (refund)
+	Billing [U,PL]->[D,CF] Payouts : TutorEarnings
+
+	/* Scheduling */
+
+	// tutor's free slots for search
+	Scheduling [U,PL]->[D,CF] TutorCatalog : FreeSlots
+}
+
+/* Bounded Contexts */
+
+BoundedContext TutorVetting {
+	type = FEATURE
+	domainVisionStatement = "Trust & Safety: tutor application, identity documents per country, qualification checks, one-time approval, qualification expiry, and the single decision whether a tutor may teach (suspend / reinstate, including after an upheld complaint). Key language: application, verified, approved, expired, suspended, reinstated."
+	responsibilities = "Tutor applications", "Identity and qualification verification", "Qualification expiry", "Teaching eligibility (suspend / reinstate)"
+}
+
+BoundedContext TutorCatalog {
+	type = FEATURE
+	domainVisionStatement = "Marketplace team: tutor profile pages and search by subject, price, rating and free slots. No rules of its own; shows what others publish. Key language: profile, published, hidden, search."
+	responsibilities = "Tutor profiles", "Tutor search"
+}
+
+BoundedContext StudentAccounts {
+	type = FEATURE
+	domainVisionStatement = "Student registration and account status. Knows only that a card is on file, not the card itself. Key language: student, registered."
+	responsibilities = "Student registration"
+}
+
+BoundedContext Scheduling {
+	type = FEATURE
+	domainVisionStatement = "Lesson as an appointment in the tutor's calendar: free slots, requests, bookings, reminders, reschedules (max 2) and cancellations (free until 24h before, late after). Key language: slot, request, booking, reschedule, late cancellation."
+	responsibilities = "Tutor availability slots", "Lesson booking", "Reminders", "Rescheduling", "Cancellation rules"
+}
+
+BoundedContext LessonDelivery {
+	type = FEATURE
+	domainVisionStatement = "Lesson day: video room via the external provider (opened 5 minutes before), lesson started / ended, no-show detection (not joined within 10 minutes). Shields TutorHub from the provider's changing webhook model. Key language: room, session, joined, happened, no-show."
+	responsibilities = "Video rooms", "Lesson attendance", "No-show detection"
+}
+
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Finance's rules: tutor hourly rates with validity (rate valid at booking time applies), one calculation for quote, late cancellation fee and final charge, and commission (15%, or 10% for rating >= 4.8 and >= 100 lessons). Key language: hourly rate, quote, commission tier, fee."
+	responsibilities = "Hourly rates", "Lesson price calculation", "Late cancellation fee calculation", "Commission rules"
+}
+
+BoundedContext Billing {
+	type = FEATURE
+	domainVisionStatement = "Lesson as a chargeable item: card on file, pre-authorization, final charge within 1 hour, two retries then unpaid, commission deduction, crediting tutor earnings, executing refunds decided by Complaints. Key language: pre-authorization, charge, unpaid, commission, refund."
+	responsibilities = "Card on file", "Pre-authorization", "Charging students", "Charge retries and unpaid", "Commission deduction", "Refund execution"
+}
+
+BoundedContext Payouts {
+	type = FEATURE
+	domainVisionStatement = "Tutor earnings balance and the weekly Monday payout run via Stripe Connect, independent of lessons: 20 EUR minimum, retry next Monday on failure, tax forms required in some countries, refunds deducted from future earnings. Key language: earnings balance, payout, payout failed, tax form."
+	responsibilities = "Tutor earnings balance", "Weekly payouts", "Payout failures", "Tax forms"
+}
+
+BoundedContext Reviews {
+	type = FEATURE
+	domainVisionStatement = "Community: review requests, 1-5 reviews with comment up to 14 days after the lesson, tutor rating as the average of the last 50 reviews. Separate from complaints. Key language: review, rating."
+	responsibilities = "Review requests", "Reviews", "Tutor rating"
+}
+
+BoundedContext Complaints {
+	type = FEATURE
+	domainVisionStatement = "Lesson as the subject of a complaint: complaints filed anytime, investigation, upheld / rejected, refund decision. Publishes decisions; does not suspend or move money itself. Key language: complaint, investigation, upheld, refund decision."
+	responsibilities = "Complaint handling", "Refund decisions"
+}
+
+/* External parties */
+
+BoundedContext Stripe {
+	type = SYSTEM
+	domainVisionStatement = "External payment provider: cards, charges, refunds and Stripe Connect payouts."
+}
+
+BoundedContext VideoProvider {
+	type = SYSTEM
+	domainVisionStatement = "External third-party video provider hosting the lesson rooms and sending webhooks."
+}

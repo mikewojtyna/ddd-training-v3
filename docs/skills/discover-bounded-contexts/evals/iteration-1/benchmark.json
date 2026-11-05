@@ -1,0 +1,519 @@
+{
+  "metadata": {
+    "skill_name": "discover-bounded-contexts",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-05T19:17:07Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 396.8,
+        "tokens": 133910,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Discovery report written under docs/context-discovery/velocity/",
+          "passed": true,
+          "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md']"
+        },
+        {
+          "text": "No CML and no canvases created (the expert declined both)",
+          "passed": true,
+          "evidence": "cml=[] canvases=[]"
+        },
+        {
+          "text": "Reads the board back to the expert before applying any heuristic",
+          "passed": true,
+          "evidence": "discovery.md has a full 'Reading of the input' section (lanes, sticky sequences, ambiguities such as 'bike broken' as a guard and duplicated stickies) and records 'The expert called the reading \"mostly right\"'. Expert reply 1 opens with 'Your reading of the board is mostly right.' The Q&A labels round 1 '(reading + H1)'. CAVEAT: the facilitator's message 1 in transcript.md is NOT the board readback. It is a 'Validate mode' analysis of the existing VeloCity-Context-Map.cml ('8 internal contexts ... 11 relationships ... 1 indirect U/D cycle'), and it does not match the expert's answers. The readback is only evidenced indirectly, through the report and the expert's reply. The reading and the H1 questions were also sent in the same message, so the expert confirmed the reading and answered the pivot questions together. [Note: transcript message 1 was overwritten by a concurrent eval run via the shared scratchpad; the board reading is in discovery.md \"Reading of the input\" and the expert confirmed it.]"
+        },
+        {
+          "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+          "passed": true,
+          "evidence": "The report's 'Heuristic trail' runs H1 Pivotal events, then H2 Swimlanes, then H3 Single responsibility, and each step cites the round of answers it relies on (R1.x for H1, R2.x for H2, R2/R3 for H3). The rounds are labeled 'Round 1 (reading + H1)', 'Round 2 (H2)' and 'Round 3 (H3 draft + critic's ...)'. Message 3 reads 'Round 3: H3, single responsibility'. Expert reply 2 is headed 'Domain expert answers to Round 2 (H2, swimlanes)'. (The transcript text of message 2 is corrupted in the same way as message 1. It shows a map-validation result, so the order is evidenced by the labels and the report, not by the text of message 2.) [Note: transcript message 1 was overwritten by a concurrent eval run via the shared scratchpad; the board reading is in discovery.md \"Reading of the input\" and the expert confirmed it.]"
+        },
+        {
+          "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+          "passed": true,
+          "evidence": "Round 1 had 8 numbered questions (report: '(1) Account Activated vs Location Validated; (2) meaning of Rental Session Started ... (8) duplicated stickies'), answered 1-8. Round 2 had 7 ('(1) maintenance independence ... (7) incidents' own people and rules'), answered 1-7. Round 3 (message 3, verbatim in the transcript) had 6, for example '1. When a rider reports a bike broken on return ... who decides the bike is out of service'. The final list came in message 4."
+        },
+        {
+          "text": "An independent critic reviewed the contexts and its verdicts are logged",
+          "passed": true,
+          "evidence": "Transcript: 'Critic verdicts (round 1, run in parallel before message 3)', with 8 per-context verdicts including 'Fleet Maintenance, round 1, DISAGREE: \"bike out of service\" had no confirmed single owner', and 'Critic verdicts (round 2)' with Fleet Maintenance AGREE and Incident Handling AGREE. discovery.md has a 'Critic log' table with 10 rows. The DISAGREE produced new expert questions (R3.1/R3.2), so the critic actually changed the outcome."
+        },
+        {
+          "text": "Account blocking ends up owned by exactly one context",
+          "passed": true,
+          "evidence": "Rider Accounts owns 'Account Blocked (any reason), Account Unblocked, Account Block Notification Sent'. The H3 row reads: 'Rider Accounts is the single owner of every block/unblock; others publish reasons (R2.4)'. Debt Recovery and Settlement own no blocking events."
+        },
+        {
+          "text": "Debt Recovery is a separate context from Payments",
+          "passed": true,
+          "evidence": "These are separate rows in the final table: 'Payments | Did the charge go through?' and 'Debt Recovery | How do we recover what's owed?'. The H3 row reads: 'payment has no rules (R2.3), debt recovery has its own (R2.2) \u2192 two contexts'."
+        },
+        {
+          "text": "Settlement is identified as its own context",
+          "passed": true,
+          "evidence": "Final table: 'Settlement | What does the rider owe for this rental, and is it settled?'. The facilitator raised it before the expert did. Round 2 question '(5) who settles' came before the expert's R2.5 'Settlement has its own rules'. The H3 trail reads: 'Who settles? | nobody: Pricing calculates, Payments executes, Rental ends at the pivot | empty side of Rental Session Ended \u2192 Settlement'. No hint leaked to this run."
+        },
+        {
+          "text": "Each final context is stated with the single business question it answers",
+          "passed": true,
+          "evidence": "The final message table pairs all 8 contexts with one question each, for example 'Rider Accounts | Can this rider use the service right now?', 'Rental | Who has which bike, and when?', 'Fleet Maintenance | Is this bike in working order?' and 'Incident Handling | What went wrong, and is it resolved?'. The same pairs appear in the report's 'Bounded contexts' table."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 1199.1,
+        "tokens": 255290,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CML context map written under src/main/cml/",
+          "passed": true,
+          "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+        },
+        {
+          "text": "CML passes validate_cml.sh (exit 0)",
+          "passed": true,
+          "evidence": "exit=0 w drawn the wrong way.\nRULE ud-cycle-indirect: LessonDelivery -> Reviews -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\nVALID: 11 bounded contexts, 20 relationships, 0 errors\n"
+        },
+        {
+          "text": "No Shared Kernel in the CML",
+          "passed": true,
+          "evidence": "none"
+        },
+        {
+          "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+          "passed": true,
+          "evidence": "[\"RULE ud-cycle-indirect: LessonDelivery -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\", \"RULE ud-cycle-indirect: LessonDelivery -> Reviews -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\"]"
+        },
+        {
+          "text": "The context downstream of the video provider uses an ACL",
+          "passed": true,
+          "evidence": "['  VideoProvider [OHS, PL] -> LessonDelivery [ACL] : VideoSessions']"
+        },
+        {
+          "text": "Discovery report written under docs/context-discovery/tutorhub/",
+          "passed": true,
+          "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md']"
+        },
+        {
+          "text": "At least 5 canvases created under docs/bounded-contexts/",
+          "passed": true,
+          "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/lessondelivery/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/studentaccounts/canvas.md', 'files/docs/bo"
+        },
+        {
+          "text": "Canvas hand-off only: no plan.md and no Java code generated",
+          "passed": true,
+          "evidence": "plans=[] java=0"
+        },
+        {
+          "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+          "passed": true,
+          "evidence": "Round 5 table: 'Tutor Trust & Safety | May this tutor teach? | ... Tutor Suspended (the single owner, any reason)'; Complaints: 'outcome: rejected / Refund Decided / Complaint Upheld Against Tutor; never suspends, never moves money'. CML: 'TutorTrustAndSafety [U,S,PL]->[D,C,ACL] Complaints : UpheldComplaintIntake // Trust & Safety alone decides the suspension'."
+        },
+        {
+          "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+          "passed": true,
+          "evidence": "Round 2 H3: 'Price appeared in the quote, the late fee and the charge. It's one calculation ... so it becomes a separate Pricing context used by all three.' CML: 'Pricing [U,S,PL]->[D,C,ACL] Scheduling : LessonQuotation' and 'Pricing ... Billing : CommissionSplit // commission split of any charged or refunded amount (lesson, late-cancellation share, partial refund)'. Scheduling owns only the 50% percentage, applied to Pricing's quoted price (expert r4 Q1 confirms)."
+        },
+        {
+          "text": "Payouts is a separate context from Billing (weekly clock)",
+          "passed": true,
+          "evidence": "H2 table: 'Weekly payouts (Payouts team) | lane | own Monday clock, \"nothing to do with lessons\"'. Payouts context: 'tutor earnings balance (ledger, sole owner), Weekly Payout Sent every Monday'. CML: 'Billing [U,S,PL]->[D,C,ACL] Payouts : LessonEarnings'."
+        },
+        {
+          "text": "Billing/settlement after Lesson Ended is its own context",
+          "passed": true,
+          "evidence": "Billing: 'What does the student owe for this lesson, and is it paid? | ... Student Charged (within 1 h, 2 retries \u2192 Lesson Marked Unpaid) ... | H1: far side of Lesson Ended'. CML 'LessonDelivery [U,S,PL]->[D,C,ACL] Billing : LessonOutcomes'."
+        },
+        {
+          "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+          "passed": true,
+          "evidence": "Round 1 has questions 1-8 (pivots), round 2 has 1-8, round 3 has 1-5, round 4 has 1-4; the final 'Proposed bounded contexts (9)' table comes only in round 5. (A draft candidate table appears in round 2, but it is explicitly a draft for questioning.)"
+        },
+        {
+          "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+          "passed": true,
+          "evidence": "Critic log in discovery.md and transcript: per-context verdicts ('Pricing | round 1 | DISAGREE | 50% late-cancellation rule owned by Pricing, Scheduling and Billing', '... round 2 | AGREE'), and separate map reviews per process: 'Map + P4 Weekly payout | round 1 | DISAGREE', 'Map + P1 Tutor onboarding | round 1 | AGREE', 'Map + P6 Complaint | AGREE', 'Map + P2 Book and take a lesson | DISAGREE', 'Map v3 + all processes P1-P8 | final pass | AGREE'. Critics' findings visibly changed the outcome (50% ownership, opaque quote reference rejected, TutorCountry added). Independence of the agents is asserted by the transcript, not directly observable in sub-agent logs."
+        },
+        {
+          "text": "Asks the expert for approval of the contexts before building the map",
+          "passed": true,
+          "evidence": "Round 5: '1. Do you approve these nine contexts? If anything is off, tell me which one and why.' Expert: 'Yes, I approve the nine.' The map draft first appears in round 6 ('I've drafted the map')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 9,
+        "failed": 0,
+        "total": 9,
+        "time_seconds": 488.3,
+        "tokens": 154181,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+          "passed": true,
+          "evidence": "git diff clean"
+        },
+        {
+          "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+          "passed": true,
+          "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-validated.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-validated.cml']"
+        },
+        {
+          "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+          "passed": true,
+          "evidence": "Message 1: \"**1 indirect U/D cycle:** Accounts -> Rentals -> Settlement -> Accounts.\" Q2 asks whose language blocking is; discovery.md F1 resolves it by flipping to `Accounts [U,OHS,PL]->[D,ACL] Settlement : AccountBlocking`."
+        },
+        {
+          "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+          "passed": true,
+          "evidence": "Message 1 lists all 8 CFs: \"Under our rules CF is only OK towards a well-established language; 7 of the 8 are towards internal, young models.\" Q4 asks whether they were deliberate; Q5 asks whether the City zone map is a stable standard. Final: \"6 unjustified Conformists ... become ACLs\"; \"The 2 Conformists to Payments stay, justified in the CML comments.\""
+        },
+        {
+          "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+          "passed": true,
+          "evidence": "Message 1: \"**2 downstreams with neither ACL nor CF:** Rentals (from Accounts, `AccountStatus`) and FleetMaintenance (from CustomerSupport, the `_Unconfirmed` one).\" discovery.md F8/F9 tie both to integration rule 3, and both get an ACL."
+        },
+        {
+          "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+          "passed": true,
+          "evidence": "Q7: \"*CustomerSupport -> FleetMaintenance.* Is the fleet-issue incident route confirmed now?\" The expert confirms it; F9: \"CustomerSupport -> FleetMaintenance unconfirmed, no ACL ... Confirmed by the expert; `_Unconfirmed` dropped; ACL; C/S.\""
+        },
+        {
+          "text": "Walks at least one business process step by step through the map",
+          "passed": true,
+          "evidence": "discovery.md '### Process walkthroughs' has step tables for all 4 processes. For example, 'Settle a ride and recover debt' covers total fee (PriceCalculation; ZoneMap) -> charge, retries (Charging) -> Rental Fee Unpaid -> block (AccountBlocking) -> recovery (DebtCollection) -> collect per instalment -> Outstanding Debt Cleared -> lift block -> recovery exhausted. P1-P6 were also proposed as a test bench in message 1."
+        },
+        {
+          "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+          "passed": true,
+          "evidence": "The discovery.md findings table has a 'Rule' column for every finding F1-F10 (\"Relationship rule 3\", \"Integration rule 1\", \"Integration rule 3\", \"Relationship rule 5\"). Message 2 groups findings 'by rule' with the same references, and the CF rule is stated verbatim (\"CF is only OK towards a well-established language\")."
+        },
+        {
+          "text": "An independent critic reviewed the map and its verdict is reported",
+          "passed": true,
+          "evidence": "Transcript 'Critic verdicts' section: \"Map + all processes (final pass), round 2, AGREE: no cycle, all RULE/WARNING lines justified\", plus 4 per-process map reviews with AGREE in round 1. Message 2: \"Critic: each of your four processes got AGREE in round 1, and the final pass over all processes got AGREE in round 2.\" The verdicts are reported. The transcript summarises the critic runs and does not show the raw subagent output, so I could not check how independent the critic was."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 4,
+        "failed": 6,
+        "total": 10,
+        "time_seconds": 136.8,
+        "tokens": 65071,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Discovery report written under docs/context-discovery/velocity/",
+          "passed": false,
+          "evidence": "no report"
+        },
+        {
+          "text": "No CML and no canvases created (the expert declined both)",
+          "passed": true,
+          "evidence": "cml=[] canvases=[]"
+        },
+        {
+          "text": "Reads the board back to the expert before applying any heuristic",
+          "passed": false,
+          "evidence": "Message 1 only says 'I've read the whole board (7 swimlanes: User Registration And Account Setup, Bike Rental, Pricing, ...)'. It lists lane titles and then asks questions. The run never read back the events or flows for the expert to confirm. It reads individual stickies only inside questions (for example '\"bike broken\" sits next to \"User Location Validated\"')."
+        },
+        {
+          "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+          "passed": false,
+          "evidence": "The run never mentions pivotal events and never uses swimlanes or single responsibility as named steps. It moves from open questions (message 1) to money follow-ups (message 2) to a proposed split (message 3) with no heuristic structure. The only nod is in the final notes: 'Swimlanes aren't contexts one-for-one'."
+        },
+        {
+          "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+          "passed": false,
+          "evidence": "There are only 2 rounds of numbered questions: message 1 (questions 1-6) and message 2 (questions 1-5). Message 3 is itself the proposed list ('Here's my proposed split ...'), followed by 2 lettered questions '(a)' and '(b)'. Message 4 is the final list. Two numbered rounds came before the proposal."
+        },
+        {
+          "text": "An independent critic reviewed the contexts and its verdicts are logged",
+          "passed": false,
+          "evidence": "The transcript shows no critic, sub-agent or verdict. The only review was the expert's approval: 'your list of 7 contexts is approved'."
+        },
+        {
+          "text": "Account blocking ends up owned by exactly one context",
+          "passed": true,
+          "evidence": "Final table: 'Accounts | ... Blocks the account itself, for two reasons ... Unblocks automatically once the debt is paid' and 'Reacts to events from Settlement and Debt Recovery. They don't command it.' The draft in message 3 had 'Debt Recovery ... Its outcome tells Accounts to block/unblock'. The expert corrected it ('Accounts does the blocking itself ... They don't command it'), so a single owner came from the expert's correction."
+        },
+        {
+          "text": "Debt Recovery is a separate context from Payments",
+          "passed": true,
+          "evidence": "The final table has separate rows: '5 | Payments | Only moves money ... Knows no business rules' and '6 | Debt Recovery | ... Has its own rules about which actions to take and when'."
+        },
+        {
+          "text": "Settlement is identified as its own context",
+          "passed": true,
+          "evidence": "The final table has '4 | Settlement | Collects each finished rental's final amount ... Retries for a couple of days, then declares the payment unsettled.' CONTAMINATED: the assistant did not propose Settlement before the leak. It first appears in the assistant's text in message 2 as 'You mentioned Settlement \"mostly about the schedule\"'. The expert had introduced the term in reply 1 ('Settlement has some rules of its own, mostly about the schedule') and added the hint 'What's really missing is where the money changes hands ... worth asking about'. The assistant first proposes Settlement as a context in message 3, after both expert rounds. Its own contribution was message 1's Q2, which spotted the missing money ('no event where the rider is actually charged ... Where does that happen'), but it never named a settlement owner unprompted. The pass is on the final outcome only."
+        },
+        {
+          "text": "Each final context is stated with the single business question it answers",
+          "passed": false,
+          "evidence": "The final table has 'Owns' and 'Talks to' columns and no question column. Only Accounts includes a question ('Answers \"is this rider eligible to rent?\"'). Rentals, Pricing, Settlement, Payments, Debt Recovery and Customer Support have no business question."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 12,
+        "failed": 3,
+        "total": 15,
+        "time_seconds": 246.8,
+        "tokens": 78930,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CML context map written under src/main/cml/",
+          "passed": true,
+          "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+        },
+        {
+          "text": "CML passes validate_cml.sh (exit 0)",
+          "passed": true,
+          "evidence": "exit=0 lished; otherwise it pollutes Scheduling.\n  Notifications [OHS] -> Reviews [CF] : SendNotification\nRULE conformist-check: Reviews conforms to Notifications. OK only if Notifications's language is well established; otherwise it pollutes Reviews.\nVALID: 14 bounded contexts, 25 relationships, 0 errors\n"
+        },
+        {
+          "text": "No Shared Kernel in the CML",
+          "passed": true,
+          "evidence": "none"
+        },
+        {
+          "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+          "passed": true,
+          "evidence": "none"
+        },
+        {
+          "text": "The context downstream of the video provider uses an ACL",
+          "passed": true,
+          "evidence": "['  VideoProvider [] -> LessonDelivery [ACL] : VideoRooms']"
+        },
+        {
+          "text": "Discovery report written under docs/context-discovery/tutorhub/",
+          "passed": false,
+          "evidence": "no report"
+        },
+        {
+          "text": "At least 5 canvases created under docs/bounded-contexts/",
+          "passed": false,
+          "evidence": "[]"
+        },
+        {
+          "text": "Canvas hand-off only: no plan.md and no Java code generated",
+          "passed": true,
+          "evidence": "plans=[] java=0"
+        },
+        {
+          "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+          "passed": true,
+          "evidence": "Final message: 'Suspension: only TutorVetting suspends tutors ... Now Complaints only publishes \"complaint upheld against tutor X\". TutorVetting decides whether a tutor may teach'. CML: 'Complaints [U,PL]->[D,CF] TutorVetting : ComplaintUpheld' and Complaints vision 'Does not suspend tutors itself.'"
+        },
+        {
+          "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+          "passed": true,
+          "evidence": "CML: 'Pricing [U,OHS]->[D,CF] Scheduling : PriceQuote // quote and late-cancellation fee basis' and 'Pricing [U,OHS]->[D,CF] Billing : PriceCalculation // final charge uses the same calculation as the quote'. Pricing vision: 'the same for quote, late fee and final charge'."
+        },
+        {
+          "text": "Payouts is a separate context from Billing (weekly clock)",
+          "passed": true,
+          "evidence": "Payouts context: 'Paying out accumulated tutor earnings every Monday via Stripe Connect, independent of lessons'. CML: 'Billing [U,PL]->[D,CF] Payouts : TutorEarnings'."
+        },
+        {
+          "text": "Billing/settlement after Lesson Ended is its own context",
+          "passed": true,
+          "evidence": "Billing vision: 'charging within 1 hour of Lesson Ended / no-show / late cancellation, two retries then unpaid, commission deduction, crediting tutor earnings'. CML: 'LessonDelivery [U,PL]->[D,CF] Billing : LessonOutcome'."
+        },
+        {
+          "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+          "passed": true,
+          "evidence": "Message 1 asks numbered questions 1-6; message 2 asks numbered follow-ups 1-5; the context list is first presented in message 3."
+        },
+        {
+          "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+          "passed": false,
+          "evidence": "No critic or reviewer agent appears anywhere in the transcript or final message. The only check mentioned is 'No upstream/downstream loops (checked with tsort)'. No per-process walkthrough of the map."
+        },
+        {
+          "text": "Asks the expert for approval of the contexts before building the map",
+          "passed": true,
+          "evidence": "Message 3 presents the context list and asks 'Is that right? Anything misplaced?'; expert: 'the list of contexts is right'. Message 4 adds TutorSearch and asks 'Does that still match how you work?'; expert: 'With these two changes I'm happy with the list.' The map is only produced in message 5. Note: the map itself was never shown for approval, and the expert was never asked which processes to check or whether a CML map is wanted."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.89,
+        "passed": 8,
+        "failed": 1,
+        "total": 9,
+        "time_seconds": 279.5,
+        "tokens": 87889,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+          "passed": true,
+          "evidence": "git diff clean"
+        },
+        {
+          "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+          "passed": true,
+          "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-Corrected.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-Corrected.cml']"
+        },
+        {
+          "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+          "passed": true,
+          "evidence": "Message 1: \"Accounts -> Rentals -> Settlement -> Accounts forms a three-context upstream/downstream loop\". Final: \"**Cycle through three contexts: Accounts -> Rentals -> Settlement -> Accounts.** I checked each arrow, and each one is a real dependency ... the 'No cycles' claim ... is wrong.\""
+        },
+        {
+          "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+          "passed": true,
+          "evidence": "Message 2, Q2 'CF justifications' evaluates each CF: City -> Pricing becomes ACL (\"not a well-established standard\"), the 4 internal CFs become ACL, and the Payments CFs stay CF with a justification. It asks \"Do you agree, or should those be ACL too?\" Review table row 3: \"CF without justification on City->Pricing, Rentals->Settlement, ...\""
+        },
+        {
+          "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+          "passed": true,
+          "evidence": "Final: \"**Two relationships have no patterns on either side:** Accounts -> Rentals and CustomerSupport -> FleetMaintenance. Every downstream must state ACL or CF.\" Review row 2 corrects them to `Accounts [U,OHS]->[D,ACL] Rentals` and `CustomerSupport [S,PL]->[C,ACL] FleetMaintenance`."
+        },
+        {
+          "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+          "passed": true,
+          "evidence": "Message 1: \"CustomerSupport -> FleetMaintenance is named FleetIssueIncident_Unconfirmed and is marked as not confirmed with you.\" Final finding 4: \"An unconfirmed relationship is marked through its name (`FleetIssueIncident_Unconfirmed`).\" The run never asked the expert to confirm the route. It only fixed how the assumption is marked, and the route stays unconfirmed in the corrected CML."
+        },
+        {
+          "text": "Walks at least one business process step by step through the map",
+          "passed": true,
+          "evidence": "velocity-context-map-review.md '## Process walk-through (corrected map)' walks all 4 processes step by step. For example, process 3: \"Settlement consumes *Rental Session Ended* and asks Pricing for the price ... charges through Payments, with retries ... calls Accounts' block service and Debt Recovery starts ... When the debt is cleared, Settlement calls Accounts to lift the block.\" The expert's reply 1 asked for this explicitly. The final chat message only says \"I walked all four processes\"."
+        },
+        {
+          "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+          "passed": true,
+          "evidence": "The review.md findings table has a 'Rule' column on every row, e.g. \"No U/D cycles, direct or through several contexts\", \"Every downstream states ACL or CF\", \"ACL is the default. CF only towards a well-established language, with a written justification\", \"Internal U/D relationships are Customer/Supplier by default\". The rules came from the expert after the run asked for them; it did not fall back on generic DDD advice."
+        },
+        {
+          "text": "An independent critic reviewed the map and its verdict is reported",
+          "passed": false,
+          "evidence": "No critic or subagent review appears in the transcript or outputs. The run reviewed the map itself and reported only its own conclusions (\"Every hand-off has a relationship, and it has no cycles\")."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 694.7333,
+        "stddev": 439.1837,
+        "min": 396.8,
+        "max": 1199.1
+      },
+      "tokens": {
+        "mean": 181127.0,
+        "stddev": 65021.8524,
+        "min": 133910,
+        "max": 255290
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6967,
+        "stddev": 0.2608,
+        "min": 0.4,
+        "max": 0.89
+      },
+      "time_seconds": {
+        "mean": 221.0333,
+        "stddev": 74.758,
+        "min": 136.8,
+        "max": 279.5
+      },
+      "tokens": {
+        "mean": 77296.6667,
+        "stddev": 11496.3522,
+        "min": 65071,
+        "max": 87889
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.30",
+      "time_seconds": "+473.7",
+      "tokens": "+103830"
+    }
+  },
+  "notes": [
+    "Non-discriminating: eval 2 boundary assertions (suspension owner, Pricing, Payouts, Billing, rounds, approval) and most eval 3 findings pass for both configs - the simulated expert's answers carry the baseline there. They need harder, outcome-level assertions (e.g. internal links C/S+ACL instead of Conformist; unconfirmed relationships confirmed, not relabelled).",
+    "Discriminating: heuristic order, read-back, critic use, one-question-per-context, discovery report and canvases (eval 1: 10/10 vs 4/10). In eval 2 the baseline map made every internal downstream Conformist - not caught by any mechanical assertion.",
+    "Cost: with-skill is ~2.3x tokens and ~3x time on average (eval 2: 255k tokens / 20 min vs 79k / 4 min). Token counts exclude nested critic and expert subagents, so the real gap is larger. Eval 3 spent 13 critic calls, all AGREE in round 1, none changed a relationship.",
+    "Weakness found: eval 2 with-skill kept an indirect U/D cycle with a justification instead of trying to flip a link (the baseline broke the same loop by letting the called context offer an API).",
+    "Eval-harness artifact: concurrent runs shared the session scratchpad; eval 1 with-skill transcript message 1 was overwritten (the real message is reflected in discovery.md and the expert reply). Single run per config, so no variance estimate."
+  ]
+}

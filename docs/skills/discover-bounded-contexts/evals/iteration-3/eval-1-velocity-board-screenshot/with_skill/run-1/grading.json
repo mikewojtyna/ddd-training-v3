@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md']"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "209 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": true,
+      "evidence": "Round 1 opens with '**How I read the board** (correct me before we build on it):' listing main timeline, Pricing lane, Returns, Disconnected clusters and Ambiguous stickies, and only then '**H1: candidate pivotal events.**'"
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": true,
+      "evidence": "Round 1: 'H1: candidate pivotal events'; round 2: 'Confirmed pivots' then '**H2: swimlanes**' (price estimation, maintenance, incidents, debt recovery as lanes; station/zone as variants); round 2/3: single-owner questions ('one owner whatever the reason, or each department its own block?') and the 8-context draft, each with one question. Report has '### H1: Pivotal events', '### H2: Swimlanes', '### H3: Single responsibility' in that order."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": true,
+      "evidence": "Facilitator rounds 1, 2 and 3 each end with 'Questions:' numbered 1-5; the final table of contexts appears in round 4."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": true,
+      "evidence": "scratch/critic-log.txt and transcript 'Critic verdicts (context mode, round 1)' list all 8 contexts with AGREE/DISAGREE, e.g. 'Pricing | 1 | DISAGREE | 'Stateless calculator' contradicts owning the ticking estimate lane'. Report has a '## Critic log' section; critic briefs r1/r2 in scratch."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Final table: Rider Accounts owns 'block/unblock for every reason'; 'Why it's separate: ... H3 single owner of blocking'. Expert R2.4: 'There's one place that blocks and unblocks the rider, whatever the reason.'"
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Final table rows 'Payments | Did the charge go through? ... Mechanical, no rules' and 'Debt Recovery | How do we recover what's owed? ... Own lane, own long clock, own rules'."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "'Settlement | Is this rental paid for? | charge/retry/give-up schedule; Rental Settled/Unsettled | Fills the empty side of the session-ended pivot; its own rules'."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)",
+      "passed": true,
+      "evidence": "Round 4 table has a 'Question' column for all 8, e.g. 'Rider Accounts | Can this rider use the service?', 'Rental | Who has which bike, and when?'. (Fleet Maintenance's question is compound: 'Is this bike fit to ride, and when is it serviced?'; Incident Handling's too: 'What went wrong, and is it resolved?' - still one business concern each.)"
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": true,
+      "evidence": "Round 2: 'The ended-session pivot now has an empty side: after the ride ends, I can see who prices it, but not who turns that into a charge and decides it's settled or not.' Q1: 'After a session ends, who decides what the rider owes for that rental and whether it's settled: when to charge, whether to retry, when to give up?' Expert only then says 'Yes, settlement has rules of its own.' (Expert had used the word 'settled' for a payment in R1.5, but never named a settlement owner.)"
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "'Fleet Maintenance | Is this bike fit to ride, and when is it serviced? | out of service / fixed / back in service | Follows the bike, not the rental; own schedule'."
+    },
+    {
+      "text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+      "passed": true,
+      "evidence": "Round 4 asks 'Do you want a context map in Context Mapper (.cml) format?'; expert declines; final: 'There are 0 relationships, because the context map isn't requested yet.' No upstream/downstream, ACL, OHS or PL mentioned to the expert. Caveat: round 3 Q4 says '(Decides the hand-offs between Settlement, Debt Recovery and Rider Accounts.)' and the table says 'eligibility check (asks Accounts)' - these are event/ownership flows used for H3, not map patterns, so not counted as relationship sketching."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": true,
+      "evidence": "Rounds 1, 2, 3 each have exactly 5 numbered questions; round 4 has 2."
+    },
+    {
+      "text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)",
+      "passed": true,
+      "evidence": "Round 2 critic re-ran only Fleet Maintenance and Pricing (both DISAGREE in r1) and Rental; critic-brief-r2.md justifies Rental: 're-reviewed because its ownership changed (it gained the estimate clock, the max-time limit and the forced end...)'. The 5 unchanged AGREE contexts were not re-run."
+    }
+  ],
+  "summary": {
+    "passed": 16,
+    "failed": 0,
+    "total": 16,
+    "pass_rate": 1.0
+  },
+  "notes": "Strong, disciplined run: read-back, H1->H2->H3 order, <=5 questions per round, critic with targeted re-runs, map offered not assumed. Observations: (1) Settlement gained 'marks the rental paid when Debt Recovery succeeds' and Rider Accounts gained 'unblock on recovery success' after round 3, yet neither was re-reviewed; arguably a small ownership change that the re-run rule should catch - the skill could define 'ownership changed' more precisely (any new owned event/decision). (2) Final message lists 'Is the drop-zone fee real?' as still open, although the expert answered in R4 that the zone fee is real (it only confirmed the unauthorized-zone fee, so partly defensible, but reads as ignoring the answer). (3) The final message repeats 'Confirm the answers marked as improvised' - good. (4) Cost: ~136k tokens / 370s vs 60k / 120s baseline. Eval critique: assertion 9 is somewhat leaky since the expert's own R1 answer already used 'settled'; consider making the simulated expert avoid that word. Assertion 8 could require exactly one question (several contexts state a compound 'X, and Y?' question). Assertion 11 might clarify whether inter-context hand-off questions count as relationships."
+}

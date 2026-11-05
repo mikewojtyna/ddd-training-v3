@@ -1,0 +1,16 @@
+{
+  "eval_id": 3,
+  "eval_name": "validate-velocity-reference-cml",
+  "prompt": "can you sanity-check the VeloCity context map in src/main/cml/VeloCity-Context-Map.cml? I wrote it as the reference solution for the workshop and I want to know if it breaks any of our context mapping rules before I show it to the group.",
+  "assertions": [
+    "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+    "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+    "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+    "Flags the Conformist relationships and asks for or evaluates their justification",
+    "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+    "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+    "Walks at least one business process step by step through the map",
+    "Ties each finding to an explicit context-mapping rule rather than generic advice",
+    "An independent critic reviewed the map and its verdict is reported"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "expectations": [
+    {
+      "text": "CML context map written under src/main/cml/",
+      "passed": true,
+      "evidence": "['files/src/main/cml/TutorHub-Context-Map.cml']"
+    },
+    {
+      "text": "CML passes validate_cml.sh (exit 0)",
+      "passed": true,
+      "evidence": "exit=0 w drawn the wrong way.\nRULE ud-cycle-indirect: LessonDelivery -> Reviews -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\nVALID: 11 bounded contexts, 20 relationships, 0 errors\n"
+    },
+    {
+      "text": "No Shared Kernel in the CML",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "text": "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+      "passed": true,
+      "evidence": "[\"RULE ud-cycle-indirect: LessonDelivery -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\", \"RULE ud-cycle-indirect: LessonDelivery -> Reviews -> Pricing -> Scheduling -> LessonDelivery. Check whether each context really depends on the next one's model, or whether one arrow is only event flow drawn the wrong way.\"]"
+    },
+    {
+      "text": "The context downstream of the video provider uses an ACL",
+      "passed": true,
+      "evidence": "['  VideoProvider [OHS, PL] -> LessonDelivery [ACL] : VideoSessions']"
+    },
+    {
+      "text": "Discovery report written under docs/context-discovery/tutorhub/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/tutorhub/2026-11-05-platform/discovery.md']"
+    },
+    {
+      "text": "At least 5 canvases created under docs/bounded-contexts/",
+      "passed": true,
+      "evidence": "['files/docs/bounded-contexts/tutorhub/billing/canvas.md', 'files/docs/bounded-contexts/tutorhub/complaints/canvas.md', 'files/docs/bounded-contexts/tutorhub/lessondelivery/canvas.md', 'files/docs/bounded-contexts/tutorhub/payouts/canvas.md', 'files/docs/bounded-contexts/tutorhub/pricing/canvas.md', 'files/docs/bounded-contexts/tutorhub/reviews/canvas.md', 'files/docs/bounded-contexts/tutorhub/scheduling/canvas.md', 'files/docs/bounded-contexts/tutorhub/studentaccounts/canvas.md', 'files/docs/bo"
+    },
+    {
+      "text": "Canvas hand-off only: no plan.md and no Java code generated",
+      "passed": true,
+      "evidence": "plans=[] java=0"
+    },
+    {
+      "text": "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+      "passed": true,
+      "evidence": "Round 5 table: 'Tutor Trust & Safety | May this tutor teach? | ... Tutor Suspended (the single owner, any reason)'; Complaints: 'outcome: rejected / Refund Decided / Complaint Upheld Against Tutor; never suspends, never moves money'. CML: 'TutorTrustAndSafety [U,S,PL]->[D,C,ACL] Complaints : UpheldComplaintIntake // Trust & Safety alone decides the suspension'."
+    },
+    {
+      "text": "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+      "passed": true,
+      "evidence": "Round 2 H3: 'Price appeared in the quote, the late fee and the charge. It's one calculation ... so it becomes a separate Pricing context used by all three.' CML: 'Pricing [U,S,PL]->[D,C,ACL] Scheduling : LessonQuotation' and 'Pricing ... Billing : CommissionSplit // commission split of any charged or refunded amount (lesson, late-cancellation share, partial refund)'. Scheduling owns only the 50% percentage, applied to Pricing's quoted price (expert r4 Q1 confirms)."
+    },
+    {
+      "text": "Payouts is a separate context from Billing (weekly clock)",
+      "passed": true,
+      "evidence": "H2 table: 'Weekly payouts (Payouts team) | lane | own Monday clock, \"nothing to do with lessons\"'. Payouts context: 'tutor earnings balance (ledger, sole owner), Weekly Payout Sent every Monday'. CML: 'Billing [U,S,PL]->[D,C,ACL] Payouts : LessonEarnings'."
+    },
+    {
+      "text": "Billing/settlement after Lesson Ended is its own context",
+      "passed": true,
+      "evidence": "Billing: 'What does the student owe for this lesson, and is it paid? | ... Student Charged (within 1 h, 2 retries \u2192 Lesson Marked Unpaid) ... | H1: far side of Lesson Ended'. CML 'LessonDelivery [U,S,PL]->[D,C,ACL] Billing : LessonOutcomes'."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+      "passed": true,
+      "evidence": "Round 1 has questions 1-8 (pivots), round 2 has 1-8, round 3 has 1-5, round 4 has 1-4; the final 'Proposed bounded contexts (9)' table comes only in round 5. (A draft candidate table appears in round 2, but it is explicitly a draft for questioning.)"
+    },
+    {
+      "text": "An independent critic reviewed the contexts and, separately, the context map per business process",
+      "passed": true,
+      "evidence": "Critic log in discovery.md and transcript: per-context verdicts ('Pricing | round 1 | DISAGREE | 50% late-cancellation rule owned by Pricing, Scheduling and Billing', '... round 2 | AGREE'), and separate map reviews per process: 'Map + P4 Weekly payout | round 1 | DISAGREE', 'Map + P1 Tutor onboarding | round 1 | AGREE', 'Map + P6 Complaint | AGREE', 'Map + P2 Book and take a lesson | DISAGREE', 'Map v3 + all processes P1-P8 | final pass | AGREE'. Critics' findings visibly changed the outcome (50% ownership, opaque quote reference rejected, TutorCountry added). Independence of the agents is asserted by the transcript, not directly observable in sub-agent logs."
+    },
+    {
+      "text": "Asks the expert for approval of the contexts before building the map",
+      "passed": true,
+      "evidence": "Round 5: '1. Do you approve these nine contexts? If anything is off, tell me which one and why.' Expert: 'Yes, I approve the nine.' The map draft first appears in round 6 ('I've drafted the map')."
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0,
+    "total": 15,
+    "pass_rate": 1.0
+  },
+  "notes": "Map quality vs trainer rules: very good. All internal relationships are [U,S,PL]->[D,C,ACL] (C/S between internal teams, ACL default, PL upstream); no Shared Kernel (comment cites expert's 'no shared database or library'); Conformist only to Stripe, justified as industry-standard; VideoProvider -> LessonDelivery ACL. Complaints is placed downstream of Trust & Safety and Billing (speaking their intake language), which avoids a T&S->Scheduling->Complaints->T&S cycle and the direction was confirmed by the expert. Subdomain classification (core = Trust + Reviews) included. Canvases created, no code. Mechanical grading all green.\n\nKept indirect cycle (Pricing -> Scheduling -> LessonDelivery (-> Reviews) -> Pricing): the justification (slow business feedback loop, each arrow a different concept, documented in CML) is defensible but not fully convincing. An acyclic alternative existed and was not considered: make LessonDelivery an OHS service that Scheduling calls to set up/move/cancel sessions (LessonDelivery upstream of Scheduling), which is exactly how the baseline run broke the same loop with expert confirmation. The 'alternatives rejected' list only covers counting from Billing and a Pricing intake API. The skill applied the 'downstream speaks upstream's intake API' trick for Complaints but not to Scheduling->LessonDelivery. Suggest the skill instruct: before keeping a cycle, enumerate flipping each edge in the cycle (incl. 'callee offers OHS API') and ask the expert about the cheapest one. Also, the critic final pass approved the cycle; the critic should be prompted to propose concrete edge flips.\n\nOver-engineering / drift from facts: many decisions rest on [improvised] answers the facilitator's questions elicited: Student Accounts gets a 'student block' decision (unpaid lessons), Payouts owns the earnings ledger, Billing reports payment-guarantee into Scheduling's API, Trust & Safety -> Payouts TutorCountry. Each is reasonable but the map becomes larger than the ground truth needs; questions in rounds 2-4 drilled into edge cases (pre-auth failure, collections, suspended tutor payouts) that do not change boundaries. The skill could cap rounds or prioritise questions that move a boundary. Also an open contradiction is surfaced ('commission added on top vs deducted') - good.\n\nCost: 7 expert rounds, ~255k tokens, ~20 min vs baseline ~79k tokens / ~4 min (3.2x tokens, 4.9x time). The value is real (critic caught the 50% triple ownership and a hidden-cycle assumption) but the per-context critic round plus per-process map critics plus final pass is heavy for a 9-context system; consider batching per-context critics into one call and only re-running DISAGREE ones (it already does the latter).\n\nEval critique: assertions 1-4 are passed by the baseline too, so they don't discriminate; the discriminating outcomes are relationship patterns (C/S+ACL vs CF) and cycle handling, which only mechanical checks partly cover. Consider adding: 'internal relationships are Customer/Supplier with ACL downstream (no CF to internal contexts)' and 'no U/D cycle, or a kept cycle is justified after considering flipping each edge'."
+}

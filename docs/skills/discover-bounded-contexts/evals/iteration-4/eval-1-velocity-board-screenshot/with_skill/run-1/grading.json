@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-board/discovery.md']"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": true,
+      "evidence": "276 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": true,
+      "evidence": "Round 1 opens with a full event-level read-back ('Main timeline', 'Branches', 'Disconnected clusters', 'Ambiguities: Rental Session Started and \"bike returned\" each appear twice...') before the '**H1, pivotal events.**' section. Caveat: the read-back and H1 are in the same message, so the expert could not correct the reading before H1 started."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": true,
+      "evidence": "Round 1 = '**H1, pivotal events.**'; round 2 = 'Confirmed pivots (H1)' then '**H2, swimlanes.**'; round 3 = '**H3 draft (single responsibility):**'. discovery.md has a Heuristic trail with H1, H2, H3 tables in that order."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": true,
+      "evidence": "Numbered question lists in rounds 1 (1-5), 2 (1-5), 3 (1-4), and 4 (1-4) before the final list in round 5."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": true,
+      "evidence": "discovery.md '## Critic log' table records verdicts per context and round, e.g. 'Fleet Maintenance | 1 | DISAGREE | 1) nothing triggers maintenance, and nobody owns \"needs repair\"...' and 'Fleet Maintenance | 2 | AGREE'. The transcript also has 'Critic verdicts (context round 1)' and '(context round 2)' sections."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Rider Accounts: 'Owns ... the blocked status with its reasons (invalid card, debt), each reason's own unblock ... H3: the one place that answers \"why can't I rent?\". Others only publish facts.' H3 table: 'Rider Accounts owns the blocked status and reasons ... Settlement and Debt Recovery publish facts.'"
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Debt Recovery is context 5 ('How do we recover what's owed?'). Payments is treated as an 'External party: the payment processor' after R3.2 ('Payments is just the external payment processor'), so recovery cannot live in it."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "Context 4: '**Settlement:** *What does the rider owe for this rental, and is it settled?* Owns the reaction to Session Ended, the charge order to the payment processor, its schedule rules, and Rental Settled/Unsettled.'"
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)",
+      "passed": true,
+      "evidence": "Every context in the round 5 presentation and the discovery.md table has an italic one-line question, e.g. 'Rental: *Who has which bike, and when?*', 'Pricing: *What does this cost?*'."
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": true,
+      "evidence": "Round 1 Q3 asks 'When and where is the rider actually charged?', round 2 notes 'Ride ended ... this is where the real charge happens', and round 2 Q2 asks 'After the ride ends, who works out what the rider owes and makes sure it's paid?' The expert first says 'Settlement works out what's owed' in reply to that question. The scripted challenge 'So, who actually makes the settlement here?' never had to fire."
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "Context 6: '**Fleet Maintenance:** *Is this bike fit for service?*', with critic agreement in round 2."
+    },
+    {
+      "text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+      "passed": false,
+      "evidence": "The transcript only asks the yes/no question 'Do you want a context map...?' and the expert answers 'No context map for now.' But discovery.md '## Context map' then sketches relationships anyway: 'Fleet Maintenance is a likely upstream of Rental ... and of Incident Handling (repair-request API). Rental is a likely upstream of Incident Handling (Bike Fault Reported). The critic saw no cycle there.' The label 'not decisions' does not make these anything other than upstream/downstream sketches written without a yes."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": true,
+      "evidence": "Question counts per round: 5, 5, 4, 4, 2."
+    },
+    {
+      "text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)",
+      "passed": true,
+      "evidence": "Critic round 2 re-ran only Fleet Maintenance (round 1 DISAGREE) and Incident Handling. The critic log gives the reason for Incident Handling: 're-run because ownership changed (Repair Requested)'. The other five contexts were not re-run."
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 1,
+    "total": 16,
+    "pass_rate": 0.94
+  },
+  "notes": "Strong run: the process and outcomes match the reference. Two points for the skill: (1) The read-back and H1 come in the same message, so the expert never confirms the reading before the heuristics start. Consider making the read-back its own step, or explicitly inviting corrections first. (2) The single failure: when the expert declines the map, the report still records critics' 'likely upstream' notes under '## Context map'. The skill should tell the critic and facilitator to leave relationship notes out when the map is declined, or keep only a neutral list such as 'integration events seen' without upstream/downstream wording. Payments was made an external party, but only after the facilitator asked 'is it just the external payment processor?' and the expert's answer was improvised. That is defensible, but it leans on improvisation. Many boundaries (blocking, all of maintenance) rest on answers flagged [improvised], and the run honestly lists them as open assumptions. Mechanical grading: report present, no CML, final message 276 words. Eval critique: A1 can't tell 'read back then confirmed' from 'read back in the same breath as H1'. If confirmation matters, tighten A1. A9 passes partly because the expert's own round 1 answer already used the word 'settled'. Tokens 136.8k, 430s."
+}

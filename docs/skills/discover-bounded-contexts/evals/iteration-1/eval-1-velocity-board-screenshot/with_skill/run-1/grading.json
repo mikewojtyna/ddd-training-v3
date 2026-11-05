@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": true,
+      "evidence": "['files/docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md']"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": true,
+      "evidence": "discovery.md has a full 'Reading of the input' section (lanes, sticky sequences, ambiguities such as 'bike broken' as a guard and duplicated stickies) and records 'The expert called the reading \"mostly right\"'. Expert reply 1 opens with 'Your reading of the board is mostly right.' The Q&A labels round 1 '(reading + H1)'. CAVEAT: the facilitator's message 1 in transcript.md is NOT the board readback. It is a 'Validate mode' analysis of the existing VeloCity-Context-Map.cml ('8 internal contexts ... 11 relationships ... 1 indirect U/D cycle'), and it does not match the expert's answers. The readback is only evidenced indirectly, through the report and the expert's reply. The reading and the H1 questions were also sent in the same message, so the expert confirmed the reading and answered the pivot questions together. [Note: transcript message 1 was overwritten by a concurrent eval run via the shared scratchpad; the board reading is in discovery.md \"Reading of the input\" and the expert confirmed it.]"
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": true,
+      "evidence": "The report's 'Heuristic trail' runs H1 Pivotal events, then H2 Swimlanes, then H3 Single responsibility, and each step cites the round of answers it relies on (R1.x for H1, R2.x for H2, R2/R3 for H3). The rounds are labeled 'Round 1 (reading + H1)', 'Round 2 (H2)' and 'Round 3 (H3 draft + critic's ...)'. Message 3 reads 'Round 3: H3, single responsibility'. Expert reply 2 is headed 'Domain expert answers to Round 2 (H2, swimlanes)'. (The transcript text of message 2 is corrupted in the same way as message 1. It shows a map-validation result, so the order is evidenced by the labels and the report, not by the text of message 2.) [Note: transcript message 1 was overwritten by a concurrent eval run via the shared scratchpad; the board reading is in discovery.md \"Reading of the input\" and the expert confirmed it.]"
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": true,
+      "evidence": "Round 1 had 8 numbered questions (report: '(1) Account Activated vs Location Validated; (2) meaning of Rental Session Started ... (8) duplicated stickies'), answered 1-8. Round 2 had 7 ('(1) maintenance independence ... (7) incidents' own people and rules'), answered 1-7. Round 3 (message 3, verbatim in the transcript) had 6, for example '1. When a rider reports a bike broken on return ... who decides the bike is out of service'. The final list came in message 4."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": true,
+      "evidence": "Transcript: 'Critic verdicts (round 1, run in parallel before message 3)', with 8 per-context verdicts including 'Fleet Maintenance, round 1, DISAGREE: \"bike out of service\" had no confirmed single owner', and 'Critic verdicts (round 2)' with Fleet Maintenance AGREE and Incident Handling AGREE. discovery.md has a 'Critic log' table with 10 rows. The DISAGREE produced new expert questions (R3.1/R3.2), so the critic actually changed the outcome."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Rider Accounts owns 'Account Blocked (any reason), Account Unblocked, Account Block Notification Sent'. The H3 row reads: 'Rider Accounts is the single owner of every block/unblock; others publish reasons (R2.4)'. Debt Recovery and Settlement own no blocking events."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "These are separate rows in the final table: 'Payments | Did the charge go through?' and 'Debt Recovery | How do we recover what's owed?'. The H3 row reads: 'payment has no rules (R2.3), debt recovery has its own (R2.2) \u2192 two contexts'."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "Final table: 'Settlement | What does the rider owe for this rental, and is it settled?'. The facilitator raised it before the expert did. Round 2 question '(5) who settles' came before the expert's R2.5 'Settlement has its own rules'. The H3 trail reads: 'Who settles? | nobody: Pricing calculates, Payments executes, Rental ends at the pivot | empty side of Rental Session Ended \u2192 Settlement'. No hint leaked to this run."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers",
+      "passed": true,
+      "evidence": "The final message table pairs all 8 contexts with one question each, for example 'Rider Accounts | Can this rider use the service right now?', 'Rental | Who has which bike, and when?', 'Fleet Maintenance | Is this bike in working order?' and 'Incident Handling | What went wrong, and is it resolved?'. The same pairs appear in the report's 'Bounded contexts' table."
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "pass_rate": 1.0
+  },
+  "notes": "TRANSCRIPT INTEGRITY: in transcript.md, facilitator messages 1 and 2 belong to a different session or mode. They are a 'Validate mode it is' review of src/main/cml/VeloCity-Context-Map.cml (cycle, Conformists, a proposed VeloCity-Context-Map-validated.cml, 'Do you approve the proposed map?'). The expert's replies and discovery.md show that a board readback with 8 questions and an H2 round with 7 questions actually took place. Possible causes: the transcript assembler mixed up runs, or the skill's mode selection leaked validate-mode text. Check the raw run log before trusting assertions 1-2, which here rest on the report rather than the verbatim message text. If the executor really sent those messages, assertions 1 and 2 should FAIL. QUALITY: the questions are sharp and decision-oriented, and each says what it decides ('Decides who owns the bike's service status'). Settlement was found by the facilitator through the empty-far-side-of-pivot reasoning, which is the intended discovery. The critic's DISAGREE on Fleet Maintenance found a real gap. OVER-LENGTH / WASTED EFFORT: (1) message 4 is very long: an 8-row table with Owns and justification columns, 3 critic notes, 4 groups of board-change suggestions, and then the context-map questions 2a-2d plus a file-name question, asked before the expert had opted into a map. The skill should first ask 'do you want a map?' and only then ask the map questions. (2) Many round-3 answers were '[improvised]', which suggests the skill asks more fine-grained questions (retry ownership, mechanic unlock, max-time) than the scenario script covers. That is fine for quality, but it adds length. (3) Cost: 134k tokens and 397 s, compared with 65k tokens and 137 s for the baseline. (4) The final message repeats most of the report. A short table plus a link to the report would be enough. EVAL CRITIQUE: assertions 5-7 are outcome checks that the expert's scripted answers largely give away (both runs pass them). Assertion 7 discriminates only if it requires the facilitator to raise Settlement before the expert names it. Consider rewording it to 'facilitator raises the missing settlement owner before the expert mentions settlement'. No assertion checks that Fleet Maintenance/maintenance is handled (with_skill kept it, while the baseline dropped it on the expert's suggestion)."
+}

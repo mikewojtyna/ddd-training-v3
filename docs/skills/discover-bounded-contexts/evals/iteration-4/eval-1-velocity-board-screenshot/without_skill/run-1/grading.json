@@ -1,0 +1,91 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": false,
+      "evidence": "1243 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": false,
+      "evidence": "Message 1 only lists the lane names ('7 swimlanes (User Registration And Account Setup, Bike Rental, ...)') and goes straight to questions. There is no event-level read-back for the expert to correct. No heuristic is applied at any point either, so the ordering this assertion checks never happens."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": false,
+      "evidence": "There is no mention of pivotal events, swimlanes as a heuristic, or single responsibility as an ordered method. The run goes from questions to a draft split ('Draft bounded contexts:') without a heuristic trail."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": false,
+      "evidence": "Message 1 has a numbered list (1-8) and message 2 a lettered one (A-C). Message 4's questions are unnumbered prose ('Tell me what \"settling a rental\" means for you. Is it: ...? Does it have its own rules...?'). That makes at most two enumerated rounds before the first final list in message 3."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": false,
+      "evidence": "No critic agent was used. Nothing in the transcript or outputs is a critic verdict."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": false,
+      "evidence": "Two contexts decide blocks: Rider Accounts blocks for an invalid card ('Account Blocked Due To Invalid Card' moved to Rider Accounts), while Debt Recovery 'Owns the recovery actions ... block the account ... and lift the block'. The 'account just records' line makes Accounts store the status, but the blocking decision has two owners."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Context 5 'Payments: Runs charges through the external processor and knows no business rules' and context 6 'Debt Recovery: Starts at an unsettled rental. Owns the recovery actions and their schedule' are separate."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "Final list context 4: '**Settlement** | Settles an ended rental ... records the rental as settled or unsettled.' It was added only after the expert's challenge."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers (in the presentation to the expert or the report)",
+      "passed": false,
+      "evidence": "The contexts are described by what they own ('Registration steps, account activation...') and not by a single business question. No context gets a question it answers."
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": false,
+      "evidence": "Message 1 Q2 asks 'Who charges the card?' (payment execution), but message 3 gives the 'final list' with settlement quietly inside Rental: 'Rental ends the session, asks Pricing for the final amount, asks Payments to charge'. The expert then had to fire the scripted challenge 'So, who actually makes the settlement here?', and the run admits 'Good catch: in my list nobody owns it; I quietly let Rental do it.'"
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "Context 8: '**Fleet Maintenance** | Taking broken bikes out of service, repairing them, putting them back into circulation'."
+    },
+    {
+      "text": "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+      "passed": false,
+      "evidence": "After the expert said 'no context map for now', the final message still has '## Relationships (first sketch, upstream -> downstream)' with 10 edges and OHS/PL/ACL patterns. Message 5 had also offered 'Next I could turn this into a Context Mapper context map'."
+    },
+    {
+      "text": "No facilitator round asks more than 5 questions",
+      "passed": false,
+      "evidence": "Round 1 asks 8 numbered questions (1-8), and several of them hold multiple sub-questions."
+    },
+    {
+      "text": "Later critic rounds re-run only contexts that disagreed or whose ownership changed (if there are no critics at all, this fails)",
+      "passed": false,
+      "evidence": "No critics, so this fails by definition."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 12,
+    "total": 16,
+    "pass_rate": 0.25
+  },
+  "notes": "Baseline without the skill: the domain outcome is reasonable but the process is wrong. It does find Settlement, but only after the scripted expert challenge, which is the main discriminating behaviour (A9). It also adds a speculative ninth context, 'City Network (tentative)', from an improvised answer, and keeps Payments as a context. That is acceptable here because Debt Recovery is clearly separate. Blocking is split between Accounts (card) and Debt Recovery (debt decides the block, Accounts records it), which shows the lack of an H3 single-owner check. It ignores the expert declining the map and sketches 10 relationships with OHS/ACL patterns. The final message is 1243 words, with no report file. It was cheaper: 74.4k tokens, 247s, against 136.8k tokens, 430s with the skill. Eval critique: A3 could say whether lettered lists count as 'numbered'; I counted them, and the run fails anyway. The baseline's message 1 does probe the post-ride gap ('what happens after it is known? Who charges the card?'), so A9 stays discriminating only because it requires the facilitator to identify an *owner*. Consider rewording A9 to 'identifies that no context owns settlement'."
+}

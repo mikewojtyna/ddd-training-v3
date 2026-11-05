@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Discovery report written under docs/context-discovery/velocity/",
+      "passed": false,
+      "evidence": "no report"
+    },
+    {
+      "text": "No CML and no canvases created (the expert declined both)",
+      "passed": true,
+      "evidence": "cml=[] canvases=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": false,
+      "evidence": "957 words"
+    },
+    {
+      "text": "Reads the board back to the expert before applying any heuristic",
+      "passed": false,
+      "evidence": "First message only lists lane names ('It has seven swimlanes: ...') and immediately proposes 'first-pass candidates are Accounts, Rentals, ...'. No sticky-level readback for the expert to correct before boundaries were drawn."
+    },
+    {
+      "text": "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+      "passed": false,
+      "evidence": "No explicit heuristic sequence. Candidates are proposed straight from swimlanes in message 1; pivotal events are mentioned only post hoc in the final table ('Its pivotal events are *Bike Reserved*...'). No pivot-first, then swimlane, then SRP progression."
+    },
+    {
+      "text": "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+      "passed": false,
+      "evidence": "Only two rounds of numbered questions (6 questions, then 2 follow-ups) before the final list."
+    },
+    {
+      "text": "An independent critic reviewed the contexts and its verdicts are logged",
+      "passed": false,
+      "evidence": "No critic agent was used; no verdicts logged anywhere."
+    },
+    {
+      "text": "Account blocking ends up owned by exactly one context",
+      "passed": true,
+      "evidence": "Final table: Accounts owns 'the account's *blocked/active* status'; 'Debt Recovery doesn't decide who may rent, because that stays in Accounts.' Follow-up Q2 explicitly settled this."
+    },
+    {
+      "text": "Debt Recovery is a separate context from Payments",
+      "passed": true,
+      "evidence": "Separate rows '5 | **Payments** | Moving money ... with no business rules' and '6 | **Debt Recovery** | The recovery process and its actions and schedule'."
+    },
+    {
+      "text": "Settlement is identified as its own context",
+      "passed": true,
+      "evidence": "'4 | **Settlement** | Turning a known fee into a charge: when to charge, retrying failed charges, declaring a payment *unsettled*'."
+    },
+    {
+      "text": "Each final context is stated with the single business question it answers",
+      "passed": false,
+      "evidence": "Only Accounts gets a question ('It owns the one question \"may this user rent?\"'). Other contexts are described by 'Owns' and 'Why it stands alone' columns, not by a single business question."
+    },
+    {
+      "text": "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+      "passed": true,
+      "evidence": "Round 1 Q1: 'Nothing on the board actually charges the customer... Who takes the money, when (per ride, or batched)...? Who decides that an unpaid amount has become a \"debt\"?' and follow-up Q1 'who owns the charge itself...?' before expert reply 2 says 'Settlement is a separate step'. Caveat: the run read velocity/CLAUDE.md, which names the reference contexts, so this gap-spotting may be leak-assisted."
+    },
+    {
+      "text": "Fleet Maintenance is kept as its own context",
+      "passed": true,
+      "evidence": "'8 | **Fleet Maintenance** | Repairing bikes ... It is a separate crew and a separate process from renting.'"
+    },
+    {
+      "text": "Asks no context-map detail questions before the expert has said yes to a map",
+      "passed": true,
+      "evidence": "No map-detail questions were asked. However, the final message volunteers an unrequested relationship sketch with upstream/OHS/PL patterns ('Pricing is upstream, exposed as an open host service (OHS) with a published language (PL)') and offers a .cml - the assertion passes only because it tests questions, not unprompted map content."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 7,
+    "total": 14,
+    "pass_rate": 0.5
+  },
+  "notes": "Answer-leak caveat: this run read src/main/java/.../velocity/CLAUDE.md, which names the reference contexts, so its correct 8-context outcome (Settlement, Payments, Debt Recovery, Fleet Maintenance) and its early spotting of the missing charge step are partly leak-assisted; outcome assertions 5-7, 9-10 overstate its unaided ability. Process: proposed candidates in the first message straight from swimlanes, no readback, no heuristic ordering, no critic, only two question rounds, no discovery report written (mechanical grading also fails it). Questions themselves were good and targeted (charge gap, block ownership). Final message is 957 words, a large table plus an unrequested context-map sketch with OHS/PL/ACL patterns before the expert agreed to a map, and an offer to generate .cml. Placed Incident Handling as 'Customer Support' and added charge disputes pausing debt recovery (improvised), and invented a 'zone map' external party - plausible but not validated by any critic. Eval critique: assertion 11 lets this run pass despite volunteering map details; consider 'Produces no relationships/map patterns before the expert says yes to a map'."
+}

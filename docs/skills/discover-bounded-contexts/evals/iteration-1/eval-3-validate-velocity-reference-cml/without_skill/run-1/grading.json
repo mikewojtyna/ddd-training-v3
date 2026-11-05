@@ -1,0 +1,56 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "git diff clean"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": true,
+      "evidence": "proposed=['files/src/main/cml/VeloCity-Context-Map-Corrected.cml'] valid=['files/src/main/cml/VeloCity-Context-Map-Corrected.cml']"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Message 1: \"Accounts -> Rentals -> Settlement -> Accounts forms a three-context upstream/downstream loop\". Final: \"**Cycle through three contexts: Accounts -> Rentals -> Settlement -> Accounts.** I checked each arrow, and each one is a real dependency ... the 'No cycles' claim ... is wrong.\""
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": true,
+      "evidence": "Message 2, Q2 'CF justifications' evaluates each CF: City -> Pricing becomes ACL (\"not a well-established standard\"), the 4 internal CFs become ACL, and the Payments CFs stay CF with a justification. It asks \"Do you agree, or should those be ACL too?\" Review table row 3: \"CF without justification on City->Pricing, Rentals->Settlement, ...\""
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": true,
+      "evidence": "Final: \"**Two relationships have no patterns on either side:** Accounts -> Rentals and CustomerSupport -> FleetMaintenance. Every downstream must state ACL or CF.\" Review row 2 corrects them to `Accounts [U,OHS]->[D,ACL] Rentals` and `CustomerSupport [S,PL]->[C,ACL] FleetMaintenance`."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "Message 1: \"CustomerSupport -> FleetMaintenance is named FleetIssueIncident_Unconfirmed and is marked as not confirmed with you.\" Final finding 4: \"An unconfirmed relationship is marked through its name (`FleetIssueIncident_Unconfirmed`).\" The run never asked the expert to confirm the route. It only fixed how the assumption is marked, and the route stays unconfirmed in the corrected CML."
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": true,
+      "evidence": "velocity-context-map-review.md '## Process walk-through (corrected map)' walks all 4 processes step by step. For example, process 3: \"Settlement consumes *Rental Session Ended* and asks Pricing for the price ... charges through Payments, with retries ... calls Accounts' block service and Debt Recovery starts ... When the debt is cleared, Settlement calls Accounts to lift the block.\" The expert's reply 1 asked for this explicitly. The final chat message only says \"I walked all four processes\"."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": true,
+      "evidence": "The review.md findings table has a 'Rule' column on every row, e.g. \"No U/D cycles, direct or through several contexts\", \"Every downstream states ACL or CF\", \"ACL is the default. CF only towards a well-established language, with a written justification\", \"Internal U/D relationships are Customer/Supplier by default\". The rules came from the expert after the run asked for them; it did not fall back on generic DDD advice."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": false,
+      "evidence": "No critic or subagent review appears in the transcript or outputs. The run reviewed the map itself and reported only its own conclusions (\"Every hand-off has a relationship, and it has no cycles\")."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  },
+  "notes": "Strong baseline. Without the rules, the run correctly stopped and asked the expert for them. Its first message already listed the cycle, the two pattern-less relationships, the City CF and the _Unconfirmed naming, the same findings the skill run got from its validator. It checked the cycle arrow by arrow for real model dependency, which is a nice touch the expert asked for. It caught the Payments<->Accounts trap in the fix, and it produced a findings table with a rule column, a corrected CML (parses, original untouched) and step-by-step process walkthroughs.\n\nWeaknesses compared with the skill run:\n(a) No independent critic, so assertion 7 fails.\n(b) It never asked whether CustomerSupport -> FleetMaintenance is confirmed. It only moved the 'unconfirmed' marker from the name into a comment.\n(c) It added a new unconfirmed relationship, DebtRecovery -> CustomerSupport (RecoveryPause). This expert asked for it, but it adds an assumption to a reference solution.\n(d) It did not ask whether Rentals translates the account status. It assumed ACL.\n(e) Customer/Supplier is applied only where CML allows it, which is reasonable, and it is explained.\n\nCost: 154k tokens and 488s, more than the with-skill run (87.9k and 279s, possibly without subagent tokens).\n\nEval critique: the baseline passes 6 of the 7 judgment assertions, so the eval barely separates skill from no skill. The only differentiator is the process-level critic assertion. To measure skill value, add assertions such as: 'asks the expert to confirm or reject the unconfirmed relationship rather than just re-labelling it'; 'does not introduce new unconfirmed relationships into the reference map'; 'raises the missing Customer/Supplier flavour without being told about team structure'. The baseline only learned the team structure because its expert volunteered it. The simulated expert also gave materially different guidance across the two runs (add vs don't add the billing-dispute relationship), so pin its answers for comparability."
+}

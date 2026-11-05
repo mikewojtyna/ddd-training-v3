@@ -1,0 +1,131 @@
+{
+  "skill_name": "discover-bounded-contexts",
+  "evals": [
+    {
+      "id": 1,
+      "name": "velocity-board-screenshot",
+      "prompt": "Here's our VeloCity event storming board: velocity/velocity-processes.jpg. Find the bounded contexts on it. I'm the trainer, by the way, so you can't spoil anything for me.",
+      "expert_facts": "evals/files/velocity-expert-facts.md",
+      "expected_output": "Reads the board back first; H1 pivots then H2 lanes then H3 single responsibility, each round ending in numbered questions; per-context critic verdicts; finds the account-blocking duplication, splits Debt Recovery from Payments, finds the settlement gap (ideally before the expert asks); ~8 contexts each with one question; report file written; no CML, no canvases (expert declined).",
+      "files": [
+        "velocity/velocity-processes.jpg"
+      ],
+      "assertions": [
+        "Discovery report written under docs/context-discovery/velocity/",
+        "No CML and no canvases created (the expert declined both)",
+        "Final message is under 400 words",
+        "Reads the board back to the expert before applying any heuristic",
+        "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+        "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+        "An independent critic reviewed the contexts and its verdicts are logged",
+        "Account blocking ends up owned by exactly one context",
+        "Debt Recovery is a separate context from Payments",
+        "Settlement is identified as its own context",
+        "Each final context is stated with the single business question it answers",
+        "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+        "Fleet Maintenance is kept as its own context",
+        "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+        "No facilitator round asks more than 5 questions",
+        "Later critic rounds re-run only contexts that disagreed or whose ownership changed"
+      ],
+      "judgment_assertions": [
+        "Reads the board back to the expert before applying any heuristic",
+        "Applies the heuristics in order: pivotal events first, then swimlanes, then single responsibility",
+        "Asks the expert numbered clarifying questions in at least 3 separate rounds before the final list",
+        "An independent critic reviewed the contexts and its verdicts are logged",
+        "Account blocking ends up owned by exactly one context",
+        "Debt Recovery is a separate context from Payments",
+        "Settlement is identified as its own context",
+        "Each final context is stated with the single business question it answers",
+        "Raises the missing settlement owner (who settles after the ride ends) before the expert names settlement",
+        "Fleet Maintenance is kept as its own context",
+        "Neither asks about nor sketches context-map relationships before the expert has said yes to a map",
+        "No facilitator round asks more than 5 questions",
+        "Later critic rounds re-run only contexts that disagreed or whose ownership changed"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "tutorhub-narrative-to-cml",
+      "prompt": "I typed up the stickies from our TutorHub event storming in evals/files/tutorhub-narrative.md (path relative to the skill folder). Can you figure out where the bounded context boundaries are and then draw me a context map I can open in Context Mapper?",
+      "expert_facts": "evals/files/tutorhub-expert-facts.md",
+      "expected_output": "Interactive heuristic rounds; the double 'Tutor Suspended' resolved to one owner (Trust & Safety / tutor accounts); Pricing separate (independent commission rules, reused by quote, fee, charge); Payouts separate lane (weekly clock); Billing after Lesson Ended pivot; Reviews and Complaints separate lanes; critic per context and per process; valid TutorHub CML (validator exit 0) with no Shared Kernel, no direct U/D cycle, ACL towards the video provider, CF only towards Stripe; report; canvases via bounded-context-scaffolder, canvas-only.",
+      "files": [
+        "evals/files/tutorhub-narrative.md"
+      ],
+      "assertions": [
+        "CML context map written under src/main/cml/",
+        "CML passes validate_cml.sh (exit 0)",
+        "No Shared Kernel in the CML",
+        "No direct upstream/downstream cycle (validator reports no ud-cycle)",
+        "The context downstream of the video provider uses an ACL",
+        "Discovery report written under docs/context-discovery/tutorhub/",
+        "At least 5 canvases created under docs/bounded-contexts/",
+        "Canvas hand-off only: no plan.md and no Java code generated",
+        "No Conformist between internal contexts (CF only towards external Stripe/video provider)",
+        "Final message is under 400 words",
+        "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+        "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+        "Payouts is a separate context from Billing (weekly clock)",
+        "Billing/settlement after Lesson Ended is its own context",
+        "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+        "An independent critic reviewed the contexts and, separately, the context map per business process",
+        "Asks the expert for approval of the contexts before building the map",
+        "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)",
+        "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)",
+        "No facilitator round asks more than 5 questions"
+      ],
+      "judgment_assertions": [
+        "Tutor suspension is resolved to a single owning context (Trust & Safety / tutor accounts), with Complaints only reporting an upheld complaint",
+        "Pricing/commission is its own context, reused by quote, late-cancellation fee and final charge",
+        "Payouts is a separate context from Billing (weekly clock)",
+        "Billing/settlement after Lesson Ended is its own context",
+        "Asks the expert numbered clarifying questions in at least 2 rounds before presenting contexts",
+        "An independent critic reviewed the contexts and, separately, the context map per business process",
+        "Asks the expert for approval of the contexts before building the map",
+        "Every kept indirect cycle was explicitly chosen by the expert after seeing the candidate flips in business terms (no kept cycles also passes)",
+        "No relationship direction contradicts a dependency the expert stated (Trust & Safety upstream of Scheduling for tutor eligibility; Reviews upstream of Pricing for the rating)",
+        "No facilitator round asks more than 5 questions"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "validate-velocity-reference-cml",
+      "prompt": "can you sanity-check the VeloCity context map in src/main/cml/VeloCity-Context-Map.cml? I wrote it as the reference solution for the workshop and I want to know if it breaks any of our context mapping rules before I show it to the group.",
+      "expert_facts": "evals/files/velocity-validate-facts.md",
+      "expected_output": "Validate mode; runs the validator; walks the processes; findings tied to the rules (the Accounts->Rentals->Settlement->Accounts indirect cycle, the many Conformists that need justification, downstreams without ACL, the unconfirmed CustomerSupport relationship); critic in map mode; proposed corrected map as a separate valid CML file; original CML untouched.",
+      "files": [
+        "src/main/cml/VeloCity-Context-Map.cml"
+      ],
+      "assertions": [
+        "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+        "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+        "Final message is under 400 words",
+        "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+        "Flags the Conformist relationships and asks for or evaluates their justification",
+        "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+        "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+        "Walks at least one business process step by step through the map",
+        "Ties each finding to an explicit context-mapping rule rather than generic advice",
+        "An independent critic reviewed the map and its verdict is reported",
+        "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+        "The proposed map adds no new unconfirmed relationships",
+        "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed",
+        "The cycle fix itself is confirmed by the expert, not decided unilaterally"
+      ],
+      "judgment_assertions": [
+        "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+        "Flags the Conformist relationships and asks for or evaluates their justification",
+        "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+        "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+        "Walks at least one business process step by step through the map",
+        "Ties each finding to an explicit context-mapping rule rather than generic advice",
+        "An independent critic reviewed the map and its verdict is reported",
+        "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+        "The proposed map adds no new unconfirmed relationships",
+        "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed",
+        "The cycle fix itself is confirmed by the expert, not decided unilaterally"
+      ]
+    }
+  ]
+}

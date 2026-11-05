@@ -1,0 +1,81 @@
+{
+  "expectations": [
+    {
+      "text": "Original src/main/cml/VeloCity-Context-Map.cml left unmodified",
+      "passed": true,
+      "evidence": "real file: git diff clean; run output uses a separate file"
+    },
+    {
+      "text": "Proposed corrected map delivered as a separate CML file that passes validate_cml.sh",
+      "passed": false,
+      "evidence": "proposed=[] valid=[]"
+    },
+    {
+      "text": "Final message is under 400 words",
+      "passed": false,
+      "evidence": "657 words"
+    },
+    {
+      "text": "Flags the indirect upstream/downstream cycle Accounts -> Rentals -> Settlement -> Accounts",
+      "passed": true,
+      "evidence": "Final: 'Accounts \u2192 Rentals \u2192 Settlement \u2192 Accounts closes a loop' with a table of the three CML lines, flagged as the main rule violation."
+    },
+    {
+      "text": "Flags the Conformist relationships and asks for or evaluates their justification",
+      "passed": false,
+      "evidence": "Only City's CF is evaluated ('conforming to an external party works if the zone map is a stable, simple format ... Have one sentence ready'). The 8 internal Conformists are never flagged for justification; the run even proposes adding more CF ('this should at least be [D,CF]') and lists 'CF appears only on downstream sides' as passing."
+    },
+    {
+      "text": "Flags downstream contexts without an ACL (e.g. Rentals from Accounts, FleetMaintenance from CustomerSupport)",
+      "passed": false,
+      "evidence": "It notes 'Accounts [U]->[D] Rentals has no patterns' and that CS->FM has 'neither patterns nor a confirmed direction', but never frames either as a missing ACL. It recommends CF for Rentals instead. The only ACL suggestion is for City->Pricing, which is not a no-ACL downstream in the sense of the rule."
+    },
+    {
+      "text": "Points out the unconfirmed CustomerSupport -> FleetMaintenance relationship",
+      "passed": true,
+      "evidence": "'CustomerSupport [U]->[D] FleetMaintenance : FleetIssueIncident_Unconfirmed is still an assumption. The expert confirmed that nobody has said how fleet-related incidents reach maintenance.'"
+    },
+    {
+      "text": "Walks at least one business process step by step through the map",
+      "passed": false,
+      "evidence": "No step-by-step process walk. It only gets three one-paragraph domain answers about individual links (account check, debt block, ride end) for the cycle."
+    },
+    {
+      "text": "Ties each finding to an explicit context-mapping rule rather than generic advice",
+      "passed": false,
+      "evidence": "The cycle finding rests on the expert-confirmed cycle rule. All the other findings are explicitly labelled 'Smaller issues (my own conventions; you said the pattern rules are the method's call)', so they are generic advice, not ties to the trainer's rules."
+    },
+    {
+      "text": "An independent critic reviewed the map and its verdict is reported",
+      "passed": false,
+      "evidence": "No critic or subagent was used."
+    },
+    {
+      "text": "The unconfirmed CustomerSupport -> FleetMaintenance relationship is confirmed, changed or removed by the expert, not just relabelled",
+      "passed": false,
+      "evidence": "The expert said only that it is unconfirmed ('nobody on our side has confirmed how fleet-related support incidents get routed'). The run did not follow up and left it as 'label it as an open question ... or drop it'."
+    },
+    {
+      "text": "The proposed map adds no new unconfirmed relationships",
+      "passed": true,
+      "evidence": "No proposed map file was produced. The recommended fix (option 1, 'Accounts [U,OHS,PL]->[D,CF] Settlement : AccountBlocking') flips an existing pair, it doesn't add a new relationship, and it is offered as 'your call'. This passes only weakly, because there is little to check."
+    },
+    {
+      "text": "Critic use is proportionate: no blanket per-context critics when no context was flagged, and at most one map critic pass unless it disagreed (no critic at all = false)",
+      "passed": false,
+      "evidence": "No critic at all, so false by definition."
+    },
+    {
+      "text": "The cycle fix itself is confirmed by the expert, not decided unilaterally (if the run keeps the cycle instead, pass only if keeping it was explicitly confirmed by the expert with the flips shown)",
+      "passed": false,
+      "evidence": "The run offered three fix options and recommended option 1, but left the choice with 'Ways to break it (your call as trainer)' and never asked the expert whether Accounts exposing a block/unblock API matches the business. It didn't decide unilaterally, but it didn't get confirmation either."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 10,
+    "total": 14,
+    "pass_rate": 0.29
+  },
+  "notes": "3/11. Without the rules, the baseline asked the expert for them, got only 'cycles of any length count', and then reasoned soundly about the cycle. Its recommended fix (Accounts upstream with an OHS block/unblock API, Settlement CF downstream) is arguably better than the skill run's decision to keep the cycle, but it was never confirmed with the expert. It missed the Conformist justification, the ACL defaults, process walks and a critic. It was fast and proportionate (1 expert round, 95s). Assertion 9 passes vacuously because no proposed map was produced."
+}
