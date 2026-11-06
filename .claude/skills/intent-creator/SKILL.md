@@ -98,7 +98,7 @@ Fill in the template. Guidance for the parts people get wrong:
 - **Business rules mentioned:** copy the rules the user stated, in their words ("reservations last 15 minutes", "one active reservation per rider"). Don't sharpen them into Given/When/Then and don't invent thresholds. That's the spec's job, and an invented number here would end up in the spec as fact. Where a rule is vague or contradicts the vision, add an open question.
 - **Scope:** *In* and *Out*, where *Out* points to the neighbouring intents (existing or candidate) by name. This makes the boundary between fine-grained intents explicit.
 - **Notes for the spec:** technical hints, constraints or solution ideas the user mentioned. Keep them here, out of every other section.
-- **Status:** new intents are `draft`. The user moves them to `accepted`. Other skills later set `specified` and `delivered`. Use `delivered` only when backfilling intents for behaviour that already exists in code, and say `backfilled` in `## Why`.
+- **Status:** new intents are `draft`. The user moves them to `accepted`. Other skills later set `specified` (`spec-writer`), `planned` and `delivered` (`implementation-planner`). Use `delivered` only when backfilling intents for behaviour that already exists in code, and say `backfilled` in `## Why`.
 - **Date:** today's date (`YYYY-MM-DD`). When backfilling, use the date the behaviour appeared if git history shows it, and otherwise today's date.
 
 **Backfilling** (the user wants intents for what already exists): derive the needs from the vision, the code and the git history. Give them sequence numbers in the order they were delivered, or, when that's unknown, in value-stream order. Mark them `delivered`. Keep the code out of the intent text: the intent describes the business need the code serves, not the code.
@@ -129,4 +129,4 @@ Tell the user:
 - candidate intents you didn't write yet
 - open questions, especially rules you didn't sharpen and contradictions with the vision
 
-Then stop. Intents are product decisions, so the user reviews them and moves them from `draft` to `accepted`. Don't go on to write a spec, a plan or code, even if the request sounded like "build reservations". Mention that the next step is a spec for each accepted intent, which another skill handles.
+Then stop. Intents are product decisions, so the user reviews them and moves them from `draft` to `accepted`. Don't go on to write a spec, a plan or code, even if the request sounded like "build reservations". Mention that the next step is a spec for each accepted intent, written with `spec-writer`. After that, `implementation-planner` turns the intent and its spec into a plan.

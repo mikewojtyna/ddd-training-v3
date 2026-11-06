@@ -1,0 +1,85 @@
+{
+  "skill_name": "implementation-planner",
+  "evals": [
+    {
+      "id": 1,
+      "name": "velocity-reservation-single-context",
+      "prompt": "The reservation spec got approved by the domain expert. Can you plan how we implement it?",
+      "expected_output": "docs/plans/rider-reserves-bike-at-station.md: every rule/command/event placed in Rentals (CML responsibility 'Reserve and unlock'), outcome one existing context, no CML change; translation Rider->Borrower; first step backfills the missing Rentals canvas; rules in tactical runs of <=3; acceptance test step per example; plans.py check passes; status draft - awaiting review; no code, canvas or CML written; asks about the TDD checkpoint loop.",
+      "files": [
+        "evals/files/velocity-reservation/"
+      ],
+      "assertions": [
+        "Plan file at docs/plans/rider-reserves-bike-at-station.md (1:1 with intent and spec)",
+        "Every spec rule is placed in the plan",
+        "Every spec command and event appears in the plan",
+        "Every spec example is traced to a step/acceptance test",
+        "Domain rules are delegated to ddd-tactical-building-blocks (TDD)",
+        "Stopped for review: no code, canvas, CML or discovery files written",
+        "Intent not moved past 'specified' before approval",
+        "Plan passes plans.py check (0 errors)",
+        "All placement rows name Rentals as owner",
+        "Notices Rentals has no canvas and plans to backfill one first",
+        "Translates spec 'Rider' to Rentals' 'Borrower'",
+        "Tactical work split into runs of at most 3 rules",
+        "Final message asks to confirm placement and the TDD checkpoint loop"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "crowdsorcery-withdrawal-existing-code",
+      "prompt": "withdrawal spec for crowdsorcery is approved (we accepted the open questions as open for now). plan the implementation please",
+      "expected_output": "docs/plans/crowdsorcery-investor-withdraws-money.md placing rules in existing CrowdSorcery contexts (deposit owns balance/withdraw; payout via payment through the existing ACL), noticing the existing WithdrawUseCase/DepositAccount.withdraw and planning to change it rather than duplicate; Finance approval placed with a reason; ticket's Kafka/Postgres hints not blindly adopted; open questions carried into risks; plans.py check passes; no code written.",
+      "files": [
+        "evals/files/crowdsorcery-withdrawal/"
+      ],
+      "assertions": [
+        "Plan file at docs/plans/crowdsorcery-investor-withdraws-money.md (1:1 with intent and spec)",
+        "Every spec rule is placed in the plan",
+        "Every spec command and event appears in the plan",
+        "Every spec example is traced to a step/acceptance test",
+        "Domain rules are delegated to ddd-tactical-building-blocks (TDD)",
+        "Stopped for review: no code, canvas, CML or discovery files written",
+        "Intent not moved past 'specified' before approval",
+        "Plan passes plans.py check (0 errors)",
+        "Places withdrawal in the existing deposit context",
+        "Builds on existing withdraw code (WithdrawUseCase / DepositAccount) instead of duplicating it",
+        "Places the Finance approval rule with a reason",
+        "Explains how the ticket's Kafka/Postgres hints are treated",
+        "Accepted open questions carried into risks/open questions"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "draft-spec-gate",
+      "prompt": "Let's start implementing bike reservations in VeloCity, make the implementation plan.",
+      "expected_output": "No plan: the spec is still a draft with open questions (and the intent is accepted, not specified); points back to spec-writer / the domain-expert questions; no files changed.",
+      "files": [
+        "evals/files/draft-spec/"
+      ],
+      "assertions": [
+        "No plan created for a draft spec",
+        "No repository files changed",
+        "Final message says the spec is not approved yet and points back to the spec/its questions"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "velocity-zone-report-new-context",
+      "prompt": "City ops monthly zone usage spec is approved. Where should this live and how do we build it?",
+      "expected_output": "Placement finds no existing context owning usage reporting (Rentals ends sessions, Settlement bills, City is external); proposes a candidate new context (analysis/reporting fed by Rental Session Ended) and hands the decision to discover-bounded-contexts instead of planning code for it; does not edit the reference CML; plan (if written) is draft and marks the new context as pending discovery.",
+      "files": [
+        "evals/files/velocity-zone-report/"
+      ],
+      "assertions": [
+        "No code written for the new context",
+        "Reference CML untouched",
+        "Proposes a candidate new bounded context",
+        "Hands the new-context decision to discover-bounded-contexts (named explicitly)",
+        "No canvas or implementation plan written for the unapproved new context",
+        "Explains why existing contexts don't own it (Rentals and Settlement considered)",
+        "Intent not moved past 'specified' before approval"
+      ]
+    }
+  ]
+}

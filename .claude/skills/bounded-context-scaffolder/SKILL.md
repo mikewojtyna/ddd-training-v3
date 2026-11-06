@@ -130,6 +130,8 @@ Ask them to review the plan. They can reply in the conversation or edit the plan
 
 Why the hard stop: the plan is where the structural decisions become visible (ACLs, boundaries, which rules go to the domain). Reviewing them there costs minutes. Reviewing them later means picking apart generated code. The stop applies even if the request sounded urgent, and even if no one can answer right away. A saved draft waits safely, and generated code built on an unreviewed plan doesn't.
 
+**Invoked from `implementation-planner`.** When the request comes with an approved intent plan (`docs/plans/<intent>.md`, `status: approved` or `in progress`) that lists this context's canvas changes, structural decisions and TDD-loop choice, that approval covers this review gate. Still write or update the context plan, so the traceability stays here. Take the decisions from the intent plan, set `Status: approved`, and add a review note: "approved via docs/plans/<intent>.md on <date>". Don't ask the questions again. **The exception:** if you hit something the intent plan didn't decide, such as a boundary exception or a missing collaborator, stop and ask, and tell the user that the intent plan needs that decision too.
+
 Go on to Step 5 or 6 only when the user explicitly approves *this* plan, in the conversation or by setting `Status: approved` in the file. When you go on, set the status to `approved` and record the approval, the loop choice and any last changes under "Review notes". If they approve without answering the loop question, the loop stays **on**: record that as the default.
 
 ## Step 5 (update mode only): Compare with the existing code before changing it
@@ -143,7 +145,7 @@ Go on to Step 5 or 6 only when the user explicitly approves *this* plan, in the 
 3. Apply additions and changes to the non-domain parts, and keep the style already in the code. **Added or changed business rules go to `ddd-tactical-building-blocks`** through the same hand-off as Step 6a, with the loop choice from the plan. Don't edit domain classes here.
 4. **Never delete existing code on your own.** Hand-written code and workshop stubs (for example `UnsupportedOperationException("implement this")`) can be deliberate. List the proposed removals in the plan and remove them only after the user confirms.
 5. Don't convert existing classes to records unless the user asks. Records are the rule for code you create.
-6. Add a dated entry to the plan's **Changelog**: what changed, which canvas change caused it, and which files it touched. If a plan file already exists, keep it and add to it. Its history is the point.
+6. Add a dated entry to the plan's **Changelog**: what changed, which canvas change caused it (and which intent, when the change came from an implementation plan), and which files it touched. If a plan file already exists, keep it and add to it. Its history is the point.
 
 ## Step 6: Generate the module
 

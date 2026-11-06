@@ -22,7 +22,7 @@ from pathlib import Path
 
 REQUIRED_FIELDS = ["name", "sequence", "title", "system", "actor", "activity",
                    "task", "status", "date", "source"]
-STATUSES = {"draft", "accepted", "specified", "delivered", "superseded", "dropped"}
+STATUSES = {"draft", "accepted", "specified", "planned", "delivered", "superseded", "dropped"}
 SECTIONS = ["Intent", "Why", "Business outcome", "Success signal",
             "Business rules mentioned", "Scope", "Related intents",
             "Open questions", "Notes for the spec"]
