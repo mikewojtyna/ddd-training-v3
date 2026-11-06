@@ -6,7 +6,7 @@ system: velocity                             # top-level system package: velocit
 actor: Rider                                 # a person or business role, never "the system"; reuse names from story-map.md
 activity: Get a bike                         # backbone activity from story-map.md, spelled exactly the same
 task: Reserve a bike                         # user task under the activity
-status: draft                                # draft | accepted | specified | delivered | superseded | dropped
+status: draft                                # draft | accepted | specified | planned | delivered | superseded | dropped
 date: 2026-11-01                             # YYYY-MM-DD the intent was captured (or delivered, when backfilling)
 supersedes:                                  # name of the intent this replaces, or empty
 superseded_by:                               # filled in only on the OLD intent when a new one replaces it

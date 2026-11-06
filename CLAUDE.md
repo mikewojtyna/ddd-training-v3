@@ -16,6 +16,23 @@ Material for a DDD training (v3). It mixes workshop documents with Java example 
 
 `archetypes/` holds business-archetype analyses (Neal Cabage's *Business Model Archetypes*) used in the strategic-design part of the training.
 
+## AI-assisted DDD flow
+
+The training demonstrates this chain. Each step has a skill in `.claude/skills/` and produces artifacts that the next step reads:
+
+| Step | Skill | Produces |
+|---|---|---|
+| 1. Explore the domain (collaborative workshops, done by people) | none | business processes, product vision (e.g. `velocity/`) |
+| 2. Find bounded contexts | `discover-bounded-contexts` (optionally `residuality-analysis`) | discovery report, CML context map, one canvas per context |
+| 3. Capture business needs | `intent-creator` | `docs/intents/<intent>.md` + story map |
+| 4. Specify one intent | `spec-writer` | `docs/specs/<intent>.md`: rules with examples, context-agnostic contract |
+| 5. Plan and build it | `implementation-planner`, which drives `bounded-context-scaffolder` and `ddd-tactical-building-blocks` | `docs/plans/<intent>.md`, canvas updates, code, acceptance tests |
+
+- Intent, spec and plan are 1:1:1 and share the intent's file name.
+- The intent's status tracks progress: `draft → accepted → specified → planned → delivered`.
+- Discovery, spec-writer and the planner each have an independent critic agent review their output before the user sees it.
+- Every step stops for human review. Approval is always the user's decision.
+
 ## Build & test
 
 The stack is Maven wrapper, Spring Boot 4.1, and Java 25 (`java.version`). The only locally installed JDK is 27.

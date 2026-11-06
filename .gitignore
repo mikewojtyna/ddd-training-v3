@@ -36,3 +36,6 @@ build/
 /agenda.odt
 /domain-expert-guide.md
 /.mcp.json
+
+### skill-creator eval workspaces ###
+.claude/skills/*-workspace/

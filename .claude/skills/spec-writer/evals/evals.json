@@ -1,0 +1,95 @@
+{
+  "skill_name": "spec-writer",
+  "evals": [
+    {
+      "id": 1,
+      "name": "velocity-reservation-unknown-duration",
+      "prompt": "The reservation intent for VeloCity got accepted in yesterday's product meeting. Can you write the spec for it so we can go through it with the domain expert on Thursday?",
+      "expected_output": "docs/specs/rider-reserves-bike-at-station.md with 3-6 rules (reserve available bike, one active reservation per rider, reserved bike blocked for others incl. rental, expiry), concrete GWT examples with IDs, contract with Reserve Bike command and both outcome events (Bike Reserved, Reservation Expired), reservation duration left as '?' + open question, no bounded contexts/endpoints, intent stays 'accepted' (not approved by the skill), report lists open questions.",
+      "files": [
+        "evals/files/seed-intents/"
+      ],
+      "assertions": [
+        "Spec file at docs/specs/rider-reserves-bike-at-station.md (1:1 with the intent name)",
+        "Rules are illustrated by at least 3 Given/When/Then examples",
+        "Examples use concrete values (named actors, identifiers or numbers)",
+        "No solution vocabulary outside a technical-notes section",
+        "Every business-outcome event of the intent appears in the spec",
+        "Spec stays lean (at most 1500 words)",
+        "Contract lists commands and events in domain language",
+        "Spec passes specs.py check (0 errors)",
+        "No plan, canvas, context map or code produced",
+        "Reservation duration not invented (no concrete duration outside open questions)",
+        "Reservation duration recorded as an open question",
+        "Spec states that a reserved bike can't be rented by another rider (agrees with the rent intent)",
+        "Intent left 'accepted' (the spec was not self-approved)",
+        "Final message lists open questions for the domain expert"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "crowdsorcery-withdrawal-with-tech-hints",
+      "prompt": "spec out the crowdsorcery withdrawal intent. extra info from finance: anything above 10 000 PLN has to be approved manually by someone from Finance before it's paid out, and there's a 2 PLN fee per withdrawal.",
+      "expected_output": "docs/specs/crowdsorcery-investor-withdraws-money.md; rules for verified bank account, available balance cap, Finance approval above 10 000 PLN (boundary examples around 10 000), 2 PLN fee; events Withdrawal Requested and Money Paid Out; endpoint/Postgres/Kafka hints only under 'Notes for the plan'; no bounded contexts; open question e.g. whether the fee counts against the balance cap or exactly 10 000 needs approval.",
+      "files": [
+        "evals/files/seed-intents/"
+      ],
+      "assertions": [
+        "Spec file at docs/specs/crowdsorcery-investor-withdraws-money.md (1:1 with the intent name)",
+        "Rules are illustrated by at least 3 Given/When/Then examples",
+        "Examples use concrete values (named actors, identifiers or numbers)",
+        "No solution vocabulary outside a technical-notes section",
+        "Every business-outcome event of the intent appears in the spec",
+        "Spec stays lean (at most 1500 words)",
+        "Contract lists commands and events in domain language",
+        "Spec passes specs.py check (0 errors)",
+        "No plan, canvas, context map or code produced",
+        "Technical hints (endpoint/Postgres/Kafka) preserved in a notes-for-plan section",
+        "Finance approval rule has examples on both sides of 10 000 PLN (at/below and above)",
+        "2 PLN fee rule has an example",
+        "Verified bank account and available balance rules each have an example",
+        "Intent left 'accepted' (the spec was not self-approved)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "draft-intent-gate",
+      "prompt": "Write the spec for the faulty bike report intent in VeloCity, I want to start implementing it tomorrow.",
+      "expected_output": "No spec file; explains the intent rider-reports-faulty-bike is still a draft and must be reviewed/accepted first; does not change the intent's status on its own.",
+      "files": [
+        "evals/files/seed-intents/"
+      ],
+      "assertions": [
+        "No spec file created for a draft intent",
+        "Final message explains the intent is still a draft and must be accepted first",
+        "Intent status unchanged (still draft)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "answer-questions-and-approve",
+      "prompt": "Domain expert answers for the reservation spec: Q1 - a reservation lasts 15 minutes. Q2 - the rider must take exactly the bike they reserved. Everything else looks right, so the spec is approved.",
+      "expected_output": "Spec updated: '?' replaced with 15 minutes in examples/data (e.g. 10:00 -> 10:15 boundary), Q1/Q2 removed from open questions, possibly an example for Q2 (Anna can't rent another bike instead / reserved bike only by Anna); specs.py approve run: spec status approved, intent status specified; intents README rebuilt.",
+      "files": [
+        "evals/files/seed-intents/",
+        "evals/files/seed-specs/"
+      ],
+      "assertions": [
+        "Spec file at docs/specs/rider-reserves-bike-at-station.md (1:1 with the intent name)",
+        "Rules are illustrated by at least 3 Given/When/Then examples",
+        "Examples use concrete values (named actors, identifiers or numbers)",
+        "No solution vocabulary outside a technical-notes section",
+        "Every business-outcome event of the intent appears in the spec",
+        "Contract lists commands and events in domain language",
+        "Spec passes specs.py check (0 errors)",
+        "No plan, canvas, context map or code produced",
+        "15 minutes replaces the unknown duration (no '?' left for it)",
+        "Q1 and Q2 no longer open",
+        "Q2 answer reflected in rules/examples (rider must take exactly the reserved bike)",
+        "Spec status approved",
+        "Intent status specified",
+        "Intents index regenerated (docs/intents/README.md)"
+      ]
+    }
+  ]
+}
