@@ -35,7 +35,7 @@ TECH_WORDS = re.compile(
     r"\b(endpoints?|apis?|http|urls?|status codes?|database|tables?|columns?|postgres(?:ql)?|mysql|"
     r"mongo(?:db)?|redis|kafka|rabbitmq|queues?|topics?|cache|caching|microservices?|backend|"
     r"frontend|spring|java|class(?:es)?|aggregates?|entit(?:y|ies)|bounded contexts?|modules?|"
-    r"repositor(?:y|ies)|services?|controllers?|dtos?|schemas?|"
+    r"repositor(?:y|ies)|services?(?!\s+areas?)|controllers?|dtos?|schemas?|"
     r"the system (?:stores|saves|sends|calls|persists)|persist(?:s|ed|ence)?|webhooks?|cron)\b",
     re.IGNORECASE)
 
