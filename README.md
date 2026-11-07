@@ -13,6 +13,7 @@ Material for a Domain-Driven Design training: workshop documents plus runnable J
   - Code: `pl.wojtyna.dddtrainingv3.velocity`.
 - **CrowdSorcery**: a crowdfunding/investment platform, copied from an earlier training as a reference implementation. Vision: `crowdsorcery/CrowdSorcery.md`. Code: `pl.wojtyna.dddtrainingv3.crowdsorcery`.
 - **Orders**: a small practice system for trying the tactical-design skill on a simple aggregate. Code: `pl.wojtyna.dddtrainingv3.orders`.
+  - A recorded Claude Code session shows how its Ordering bounded context was built step by step: canvas, plan review, scaffolding, the TDD checkpoint loop, then persistence. See `docs/bounded-contexts/orders/ordering/conversation.md`, next to that context's `canvas.md` and `plan.md`.
 
 `archetypes/` holds business-archetype analyses (Neal Cabage's *Business Model Archetypes*) used in the strategic-design part.
 
