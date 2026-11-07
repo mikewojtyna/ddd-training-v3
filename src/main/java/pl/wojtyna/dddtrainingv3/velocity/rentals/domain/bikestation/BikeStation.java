@@ -2,13 +2,16 @@ package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation;
 
 import org.jmolecules.ddd.annotation.AggregateRoot;
 import org.jmolecules.ddd.annotation.Entity;
+import org.jmolecules.ddd.annotation.Identity;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.At;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.By;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.ForDuration;
 import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.Version;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,10 +19,30 @@ import java.util.Set;
 public class BikeStation {
 
     private final BikeStationId id;
+    private final Version version;
     private final Set<BikeInStation> bikes = new HashSet<>();
 
     public BikeStation(BikeStationId id) {
+        this(id, Version.initial());
+    }
+
+    private BikeStation(BikeStationId id, Version version) {
         this.id = id;
+        this.version = version;
+    }
+
+    @Identity
+    public BikeStationId id() {
+        return id;
+    }
+
+    /// The version this station was loaded at; the repository compares it on save.
+    public Version version() {
+        return version;
+    }
+
+    public boolean holds(BikeId bike) {
+        return bikes.stream().anyMatch(bikeInStation -> bikeInStation.id().equals(bike));
     }
 
     public void placeNew(Bike bike) {
@@ -73,6 +96,24 @@ public class BikeStation {
         throw new UnsupportedOperationException("Implement this method");
     }
 
+    // ---- persistence support (memento); not used by domain logic ----
+
+    public record Snapshot(BikeStationId id, Version version, List<BikeSnapshot> bikes) {
+    }
+
+    public record BikeSnapshot(BikeId bike, boolean available, Instant reservedAt, Borrower holder) {
+    }
+
+    public Snapshot snapshot() {
+        return new Snapshot(id, version, bikes.stream().map(BikeInStation::snapshot).toList());
+    }
+
+    public static BikeStation restore(Snapshot snapshot) {
+        var station = new BikeStation(snapshot.id(), snapshot.version());
+        snapshot.bikes().forEach(bike -> station.bikes.add(BikeInStation.restore(bike)));
+        return station;
+    }
+
     @Entity
     private static class BikeInStation {
 
@@ -114,6 +155,18 @@ public class BikeStation {
 
         BikeId id() {
             return id;
+        }
+
+        BikeSnapshot snapshot() {
+            return new BikeSnapshot(id, available, reservation == null ? null : reservation.start(), holder);
+        }
+
+        static BikeInStation restore(BikeSnapshot snapshot) {
+            var bike = new BikeInStation(snapshot.bike(), snapshot.available());
+            if (snapshot.reservedAt() != null) {
+                bike.reserveFor(snapshot.holder(), new ReservationWindow(snapshot.reservedAt()));
+            }
+            return bike;
         }
 
         @Override

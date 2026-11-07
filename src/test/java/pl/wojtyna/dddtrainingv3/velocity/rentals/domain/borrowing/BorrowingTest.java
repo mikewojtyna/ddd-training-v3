@@ -7,6 +7,9 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
 
 import java.time.Instant;
 
+import static pl.wojtyna.dddtrainingv3.velocity.rentals.domain.eligibility.Eligibility.ELIGIBLE;
+import static pl.wojtyna.dddtrainingv3.velocity.rentals.domain.eligibility.Eligibility.NOT_ELIGIBLE;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -29,10 +32,10 @@ class BorrowingTest {
     void rejectsASecondActiveReservation() {
         // given
         var anna = new Borrowing(new BorrowerId("anna"));
-        anna.reserve(B17).at(at("10:00"));
+        anna.reserve(B17).as(ELIGIBLE).at(at("10:00"));
 
         // when
-        var exception = catchThrowable(() -> anna.reserve(B22).at(at("10:05")));
+        var exception = catchThrowable(() -> anna.reserve(B22).as(ELIGIBLE).at(at("10:05")));
 
         // then
         assertThat(exception).isInstanceOf(AlreadyHoldsReservationException.class);
@@ -54,7 +57,7 @@ class BorrowingTest {
         anna.rent(new BikeId("B-05")).at(at("09:40"));
 
         // when
-        var exception = catchThrowable(() -> anna.reserve(B17).at(at("10:00")));
+        var exception = catchThrowable(() -> anna.reserve(B17).as(ELIGIBLE).at(at("10:00")));
 
         // then
         assertThat(exception).isInstanceOf(AlreadyRidingException.class);
@@ -73,7 +76,7 @@ class BorrowingTest {
     void aHolderCanRentOnlyTheReservedBike() {
         // given
         var anna = new Borrowing(new BorrowerId("anna"));
-        anna.reserve(B17).at(at("10:00"));
+        anna.reserve(B17).as(ELIGIBLE).at(at("10:00"));
 
         // when
         var exception = catchThrowable(() -> anna.rent(B22).at(at("10:05")));
@@ -81,7 +84,7 @@ class BorrowingTest {
         // then
         assertThat(exception).isInstanceOf(HoldsReservationForAnotherBikeException.class);
         // and B-17 stays reserved for her: she still can't hold a second reservation
-        assertThat(catchThrowable(() -> anna.reserve(B22).at(at("10:06"))))
+        assertThat(catchThrowable(() -> anna.reserve(B22).as(ELIGIBLE).at(at("10:06"))))
             .isInstanceOf(AlreadyHoldsReservationException.class);
     }
 
@@ -98,13 +101,34 @@ class BorrowingTest {
     void aHolderCanRentTheReservedBike() {
         // given
         var anna = new Borrowing(new BorrowerId("anna"));
-        anna.reserve(B17).at(at("10:00"));
+        anna.reserve(B17).as(ELIGIBLE).at(at("10:00"));
 
         // when
         var exception = catchThrowable(() -> anna.rent(B17).at(at("10:10")));
 
         // then
         assertThat(exception).isNull();
+    }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         E6.1: given rider Carl hasn't finished onboarding (no verified payment method),
+         when Carl reserves B-17,
+         then the reservation is rejected
+        """
+    )
+    // @formatter:on
+    @Test
+    void onlyAnEligibleBorrowerCanReserve() {
+        // given
+        var carl = new Borrowing(new BorrowerId("carl"));
+
+        // when
+        var exception = catchThrowable(() -> carl.reserve(B17).as(NOT_ELIGIBLE).at(at("10:00")));
+
+        // then
+        assertThat(exception).isInstanceOf(BorrowerNotEligibleException.class);
     }
 
     private static Instant at(String time) {

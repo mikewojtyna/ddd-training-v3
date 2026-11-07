@@ -163,7 +163,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** one test per example passes; `./mvnw test` green.
 
 ### S7: TDD run 3, eligibility: R6
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (TDD checkpoint loop)
 - **Covers:** R6, E6.1
@@ -236,3 +236,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S4 done: `BikeStation.rent` rents exactly the requested bike; `BikeRented` carries the bike. Test `BikeStationTest#rentsExactlyTheRequestedBike` (scaffolded by Claude on the user's request, confirmed). Suite green.
 - S5 done: R1, R3, R5 + D9 in `BikeStation` (11 tests in `BikeStationTest`); `rent` gained `.at(now)`; `withdraw(bike)` added. Loop off from cycle 4 (user). Suite green.
 - S6 done: R2, R7, R8 via new aggregate `Borrowing` (D3 decided: per-borrower aggregate) plus holder renting in `BikeStation`; `ReservationWindow` value object; `BikeRented.fromReservation`. Suite green.
+- S7 done: R6 in `Borrowing`, eligibility as a command argument (`Eligibility`). Persistence after the domain: `Version`, snapshots, `BorrowingRepository`, in-memory adapters with optimistic-locking tests. Suite green.

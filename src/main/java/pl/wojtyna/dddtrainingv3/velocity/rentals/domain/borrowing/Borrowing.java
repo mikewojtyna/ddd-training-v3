@@ -3,10 +3,13 @@ package pl.wojtyna.dddtrainingv3.velocity.rentals.domain.borrowing;
 import org.jmolecules.ddd.annotation.AggregateRoot;
 import org.jmolecules.ddd.annotation.Identity;
 import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.Version;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BikeId;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.As;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.At;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.ReservationWindow;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.eligibility.Eligibility;
 
 import java.time.Instant;
 
@@ -17,12 +20,23 @@ import java.time.Instant;
 public class Borrowing {
 
     private final BorrowerId borrower;
-    private BikeId reservedBike;
-    private ReservationWindow reservation;
-    private boolean riding;
+    private final Version version;
+    private BikeId reservedBike;             // needed by: R8 (only the reserved bike can be rented)
+    private ReservationWindow reservation;   // needed by: R2 (one active reservation), R8
+    private boolean riding;                  // needed by: R7 (no reserving while riding)
 
     public Borrowing(BorrowerId borrower) {
+        this(borrower, Version.initial());
+    }
+
+    private Borrowing(BorrowerId borrower, Version version) {
         this.borrower = borrower;
+        this.version = version;
+    }
+
+    /// The version this borrowing was loaded at; the repository compares it on save.
+    public Version version() {
+        return version;
     }
 
     @Identity
@@ -30,8 +44,11 @@ public class Borrowing {
         return borrower;
     }
 
-    public At<Instant, DomainEvents> reserve(BikeId bike) {
-        return now -> {
+    public As<Eligibility, At<Instant, DomainEvents>> reserve(BikeId bike) {
+        return eligibility -> now -> {
+            if (eligibility != Eligibility.ELIGIBLE) {
+                throw new BorrowerNotEligibleException("Borrower's account isn't activated");
+            }
             if (riding) {
                 throw new AlreadyRidingException("Borrower is riding a bike");
             }
@@ -52,5 +69,22 @@ public class Borrowing {
             riding = true;
             return DomainEvents.empty();
         };
+    }
+
+    // ---- persistence support (memento); not used by domain logic ----
+
+    public record Snapshot(BorrowerId borrower, Version version, BikeId reservedBike, Instant reservedAt, boolean riding) {
+    }
+
+    public Snapshot snapshot() {
+        return new Snapshot(borrower, version, reservedBike, reservation == null ? null : reservation.start(), riding);
+    }
+
+    public static Borrowing restore(Snapshot snapshot) {
+        var borrowing = new Borrowing(snapshot.borrower(), snapshot.version());
+        borrowing.reservedBike = snapshot.reservedBike();
+        borrowing.reservation = snapshot.reservedAt() == null ? null : new ReservationWindow(snapshot.reservedAt());
+        borrowing.riding = snapshot.riding();
+        return borrowing;
     }
 }

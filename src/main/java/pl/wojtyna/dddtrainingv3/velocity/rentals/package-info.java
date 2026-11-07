@@ -34,7 +34,9 @@
 /// - **R4 Reserved bikes aren't offered to others** [E4.1]: *being built with the `AvailableBikesAtStation` query*.
 /// - **R5 Withdrawn bikes can't be reserved** [E5.1]: given B-31 was withdrawn, when Anna reserves it, then rejected.
 ///   `BikeStation` invariant, see `BikeStationTest#rejectsReservingAWithdrawnBike`.
-/// - **R6 Only eligible borrowers reserve** [E6.1]: *being built with `ddd-tactical-building-blocks`*.
+/// - **R6 Only eligible borrowers reserve** [E6.1]: given Carl hasn't finished onboarding, when he reserves B-17, then
+///   rejected. `Borrowing` invariant; the eligibility is a command argument the use case gets from Rider Accounts through
+///   `BorrowerEligibility`. See `BorrowingTest#onlyAnEligibleBorrowerCanReserve`.
 /// - **R7 No reserving while riding** [E7.1]: given Anna rented B-05 at 09:40, when she reserves B-17 at 10:00, then
 ///   rejected. `Borrowing` invariant, see `BorrowingTest#rejectsReservingWhileRiding`.
 /// - **R8 A holder rents only the reserved bike, and renting it ends the reservation** [E8.1, E8.2]: given Anna holds

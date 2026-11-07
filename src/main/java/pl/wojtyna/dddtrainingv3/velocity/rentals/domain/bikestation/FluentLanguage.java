@@ -19,4 +19,10 @@ public interface FluentLanguage {
 
         R at(S s);
     }
+
+    @FunctionalInterface
+    interface As<S, R> {
+
+        R as(S s);
+    }
 }

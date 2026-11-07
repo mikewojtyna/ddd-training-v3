@@ -4,7 +4,7 @@
 - **Mode**: update
 - **Source canvas**: `docs/bounded-contexts/velocity/rentals/canvas.md`
 - **Last updated**: 2026-11-07
-- **Status**: awaiting tactical blocks
+- **Status**: awaiting tactical blocks (all rules green, 6b next)
 
 <!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
      Invoking the skill again resumes from this file. -->
@@ -64,7 +64,7 @@ Answers "who has which bike, and when?": reservation, unlock, rental sessions, r
 | R2 [E2.1] | green | `Borrowing` invariant (new aggregate) | `BorrowingTest#rejectsASecondActiveReservation` |
 | R7 [E7.1] | green | `Borrowing` invariant | `BorrowingTest#rejectsReservingWhileRiding` |
 | R8 [E8.1, E8.2] | green | `Borrowing` invariant + `BikeStation` invariant | `BorrowingTest#aHolderCanRentOnlyTheReservedBike`, `#aHolderCanRentTheReservedBike`, `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds` |
-| R6 [E6.1] | delegated (S7) | | |
+| R6 [E6.1] | green | `Borrowing` invariant, eligibility passed as a command argument | `BorrowingTest#onlyAnEligibleBorrowerCanReserve` |
 
 The Given/When/Then text of each rule is in the canvas, tagged with its spec example IDs.
 
@@ -129,3 +129,8 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsArchitectureTest.
 - Cycle 4 E8.2 borrower side, `BorrowingTest#aHolderCanRentTheReservedBike`: passed straight away. Ending the reservation inside `Borrowing` isn't forced by any test yet (riding blocks reserving anyway); follow-up once returns exist.
 - Cycle 5 E8.2 station side, `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds`: red seen (BikeNotAvailableException), Claude implemented (holder stored; holder may rent; reservation ends; `BikeRented.fromReservation`), green.
 - Invariant → state as built: `Borrowing`: `reservedBike`, `reservation` (window), `riding`. `BikeInStation`: `available`, `reservation`, `holder`.
+
+### 2026-11-07: tactical run 3 (intent plan S7: R6) and persistence
+- Cycle 1 E6.1, `BorrowingTest#onlyAnEligibleBorrowerCanReserve`: `reserve` became `reserve(bike).as(eligibility).at(now)` (4 calls updated mechanically); red seen, Claude implemented, green. Eligibility is a command argument (Rider Accounts has no code): the use case asks `BorrowerEligibility`.
+- Persistence, after all domain tests were green: `Version` and a `Snapshot` memento on `BikeStation` and `Borrowing`; `BikeStationRepo.loadContaining(bike)`; new port `BorrowingRepository`; `InMemoryBikeStationRepo`, `InMemoryBorrowingRepository` with optimistic locking (`InMemoryRentalsRepositoriesTest`).
+- Hand-back: every rule in this plan has a passing test. Scaffolder 6b (intent plan S8) is next.
