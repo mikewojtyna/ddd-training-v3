@@ -314,6 +314,33 @@ class BikeStationTest {
         assertThat(exception).isInstanceOf(BikeNotAvailableException.class);
     }
 
+    // @formatter:off
+    @DisplayName(
+        """
+         E8.2: given Anna holds a reservation for B-17 until 10:15,
+         when Anna rents B-17 at 10:10,
+         then the rental starts for Anna and her reservation ends (Bike Rented, from reservation)
+        """
+    )
+    // @formatter:on
+    @Test
+    void theHolderRentsTheReservedBikeAndTheReservationEnds() {
+        // given
+        var central = new BikeStation(new BikeStationId("Central"));
+        var b17 = new Bike(new BikeId("B-17"));
+        central.placeNew(b17);
+        var anna = new Borrower(new BorrowerId("anna"));
+        var oneHour = new RentalDuration(Duration.ofHours(1));
+        central.reserve(b17).by(anna).at(at("10:00"));
+
+        // when
+        var events = central.rent(b17).by(anna).forDuration(oneHour).at(at("10:10"));
+
+        // then
+        assertThat(events.hasAtLeastOneEventMatching(
+            event -> event.equals(new BikeRentalEvent.BikeRented(b17.id(), anna, oneHour, true)))).isTrue();
+    }
+
     private static Instant at(String time) {
         return Instant.parse("2026-11-07T" + time + ":00Z");
     }

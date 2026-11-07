@@ -24,7 +24,8 @@
 /// - **R1 Reserve without being at the station** [E1.1, E1.2]: given B-17 is available at Central, when Anna reserves
 ///   it at 10:00, then it's reserved for her until 10:15 (Bike Reserved); a rented bike can't be reserved. `BikeStation`
 ///   invariant, see `BikeStationTest#reservesAnAvailableBikeForFifteenMinutes`, `#rejectsReservingARentedBike`.
-/// - **R2 One active reservation per borrower** [E2.1]: *being built with `ddd-tactical-building-blocks`*.
+/// - **R2 One active reservation per borrower** [E2.1]: given Anna holds B-17 at Central until 10:15, when she reserves
+///   B-22 at Riverside at 10:05, then rejected. `Borrowing` invariant, see `BorrowingTest#rejectsASecondActiveReservation`.
 /// - **R3 A reserved bike is held for its borrower**, up to and including the end of its window [E3.1, E3.2]:
 ///   given B-17 is reserved for Anna until 10:15, when Ben reserves it at 10:05 or rents it at 10:15, then rejected;
 ///   at 10:16 the reservation no longer counts (plan D9). `BikeStation` invariant, see
@@ -34,9 +35,13 @@
 /// - **R5 Withdrawn bikes can't be reserved** [E5.1]: given B-31 was withdrawn, when Anna reserves it, then rejected.
 ///   `BikeStation` invariant, see `BikeStationTest#rejectsReservingAWithdrawnBike`.
 /// - **R6 Only eligible borrowers reserve** [E6.1]: *being built with `ddd-tactical-building-blocks`*.
-/// - **R7 No reserving while riding** [E7.1]: *being built with `ddd-tactical-building-blocks`*.
-/// - **R8 A holder rents only the reserved bike, and renting it ends the reservation** [E8.1, E8.2]:
-///   *being built with `ddd-tactical-building-blocks`*.
+/// - **R7 No reserving while riding** [E7.1]: given Anna rented B-05 at 09:40, when she reserves B-17 at 10:00, then
+///   rejected. `Borrowing` invariant, see `BorrowingTest#rejectsReservingWhileRiding`.
+/// - **R8 A holder rents only the reserved bike, and renting it ends the reservation** [E8.1, E8.2]: given Anna holds
+///   B-17 until 10:15, when she rents B-22 at 10:05, then rejected; when she rents B-17 at 10:10, then the rental starts
+///   from her reservation and the reservation ends. `Borrowing` invariant (R8a) and `BikeStation` invariant (holder
+///   rents), see `BorrowingTest#aHolderCanRentOnlyTheReservedBike`, `#aHolderCanRentTheReservedBike`,
+///   `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds`.
 /// - **A rental can't be longer than 11 hours**: enforced, see `BikeStationTest`.
 @BoundedContext(name = "Rentals")
 @Module

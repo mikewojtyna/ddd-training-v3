@@ -61,9 +61,9 @@ Answers "who has which bike, and when?": reservation, unlock, rental sessions, r
 | R1 [E1.1, E1.2] | green | `BikeStation` invariant | `BikeStationTest#reservesAnAvailableBikeForFifteenMinutes`, `#rejectsReservingARentedBike` |
 | R3 [E3.1, E3.2, plus D9: Ben reserves B-17 at 10:16 → accepted] | green | `BikeStation` invariant | `BikeStationTest#rejectsReservingABikeReservedForSomeoneElse`, `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`, `#aReservationStopsCountingAfterItsWindow` |
 | R5 [E5.1] | green | `BikeStation` invariant (+ `withdraw` command) | `BikeStationTest#rejectsReservingAWithdrawnBike` |
-| R2 [E2.1] | delegated (S6) | | |
-| R7 [E7.1] | delegated (S6) | | |
-| R8 [E8.1, E8.2] | delegated (S6) | | |
+| R2 [E2.1] | green | `Borrowing` invariant (new aggregate) | `BorrowingTest#rejectsASecondActiveReservation` |
+| R7 [E7.1] | green | `Borrowing` invariant | `BorrowingTest#rejectsReservingWhileRiding` |
+| R8 [E8.1, E8.2] | green | `Borrowing` invariant + `BikeStation` invariant | `BorrowingTest#aHolderCanRentOnlyTheReservedBike`, `#aHolderCanRentTheReservedBike`, `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds` |
 | R6 [E6.1] | delegated (S7) | | |
 
 The Given/When/Then text of each rule is in the canvas, tagged with its spec example IDs.
@@ -119,3 +119,13 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsArchitectureTest.
 - Cycle 5 D9, `#aReservationStopsCountingAfterItsWindow`: red seen (BikeNotAvailableException at 10:16), Claude implemented: `BikeInStation.reservedUntil`, availability became `isAvailableAt(now)`; green.
 - Cycle 6 E5.1, `#rejectsReservingAWithdrawnBike`: red seen, Claude implemented `withdraw(bike)` (marks the bike unavailable; no event, the spec defines none); green.
 - Invariant → state as built: per `BikeInStation`: `available` (rented or withdrawn), `reservedUntil`. The holder isn't stored yet: R8 (run 2) needs it.
+
+### 2026-11-07: tactical run 2 (intent plan S6: R2, R7, R8), loop off (user)
+- Decision D3 (for review): the per-borrower rules get their own aggregate `Borrowing` (`domain/borrowing`), what one borrower currently holds across all stations ("one bike at a time"). `BikeStation` can't see other stations. Consequence: Reserve and Rent change two aggregates in one use case (in-memory, same transaction).
+- Shared value object `ReservationWindow` (`domain/bikestation`): 15 minutes including the end time; used by both aggregates (refactor of `BikeStation`'s constant).
+- Cycle 1 E2.1, `BorrowingTest#rejectsASecondActiveReservation`: red seen, Claude implemented, green.
+- Cycle 2 E7.1, `BorrowingTest#rejectsReservingWhileRiding`: red seen, Claude implemented (`riding` flag set by `rent`), green.
+- Cycle 3 E8.1, `BorrowingTest#aHolderCanRentOnlyTheReservedBike`: red seen, Claude implemented (`reservedBike`), green.
+- Cycle 4 E8.2 borrower side, `BorrowingTest#aHolderCanRentTheReservedBike`: passed straight away. Ending the reservation inside `Borrowing` isn't forced by any test yet (riding blocks reserving anyway); follow-up once returns exist.
+- Cycle 5 E8.2 station side, `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds`: red seen (BikeNotAvailableException), Claude implemented (holder stored; holder may rent; reservation ends; `BikeRented.fromReservation`), green.
+- Invariant → state as built: `Borrowing`: `reservedBike`, `reservation` (window), `riding`. `BikeInStation`: `available`, `reservation`, `holder`.

@@ -156,7 +156,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** one test per example passes; `./mvnw test` green.
 
 ### S6: TDD run 2, one bike per rider: R2, R7, R8
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (TDD checkpoint loop; D3 decided here)
 - **Covers:** R2, R7, R8, E2.1, E7.1, E8.1, E8.2
@@ -235,3 +235,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S3 done: scaffolder 6a. `ReserveBike`, `WithdrawBike`, `AvailableBikesAtStation`/`AvailableBikes`, `BorrowerEligibility` port + `rideraccountsctxacl` stub, `RentalsContextConfig`, `RentalsArchitectureTest`; context plan `docs/bounded-contexts/velocity/rentals/plan.md` (approved via this plan). `./mvnw test` green.
 - S4 done: `BikeStation.rent` rents exactly the requested bike; `BikeRented` carries the bike. Test `BikeStationTest#rentsExactlyTheRequestedBike` (scaffolded by Claude on the user's request, confirmed). Suite green.
 - S5 done: R1, R3, R5 + D9 in `BikeStation` (11 tests in `BikeStationTest`); `rent` gained `.at(now)`; `withdraw(bike)` added. Loop off from cycle 4 (user). Suite green.
+- S6 done: R2, R7, R8 via new aggregate `Borrowing` (D3 decided: per-borrower aggregate) plus holder renting in `BikeStation`; `ReservationWindow` value object; `BikeRented.fromReservation`. Suite green.

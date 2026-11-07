@@ -6,7 +6,8 @@ import java.time.Instant;
 
 public sealed interface BikeRentalEvent extends DomainEvent {
 
-    record BikeRented(BikeId bike, Borrower by, RentalDuration forDuration) implements BikeRentalEvent {
+    record BikeRented(BikeId bike, Borrower by, RentalDuration forDuration, boolean fromReservation)
+        implements BikeRentalEvent {
     }
 
     record BikeReturned() implements BikeRentalEvent {

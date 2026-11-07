@@ -7,7 +7,6 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLangua
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.FluentLanguage.ForDuration;
 import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
@@ -15,9 +14,6 @@ import java.util.Set;
 
 @AggregateRoot
 public class BikeStation {
-
-    /// Reservation window: 15 minutes, including its end time (product owner, 2026-11-07).
-    private static final Duration RESERVATION_WINDOW = Duration.ofMinutes(15);
 
     private final BikeStationId id;
     private final Set<BikeInStation> bikes = new HashSet<>();
@@ -40,10 +36,13 @@ public class BikeStation {
             }
             return bikes.stream()
                         .filter(bikeInStation -> bikeInStation.id().equals(bike.id()))
-                        .filter(bikeInStation -> bikeInStation.isAvailableAt(now)).findAny()
+                        .filter(bikeInStation -> bikeInStation.isAvailableTo(borrower, now)).findAny()
                         .map(bikeInStation -> {
+                            var fromReservation = bikeInStation.isReservedBy(borrower, now);
                             bikeInStation.setAvailable(false);
-                            return DomainEvents.of(new BikeRentalEvent.BikeRented(bikeInStation.id(), borrower, rentalDuration));
+                            bikeInStation.endReservation();
+                            return DomainEvents.of(new BikeRentalEvent.BikeRented(
+                                bikeInStation.id(), borrower, rentalDuration, fromReservation));
                         })
                         .orElseThrow(() -> new BikeNotAvailableException("Bike not available"));
         };
@@ -54,9 +53,10 @@ public class BikeStation {
                                       .filter(bikeInStation -> bikeInStation.id().equals(bike.id()))
                                       .filter(bikeInStation -> bikeInStation.isAvailableAt(now)).findAny()
                                       .map(bikeInStation -> {
-                                          bikeInStation.reserveUntil(now.plus(RESERVATION_WINDOW));
+                                          var window = new ReservationWindow(now);
+                                          bikeInStation.reserveFor(borrower, window);
                                           return DomainEvents.of(new BikeRentalEvent.BikeReserved(
-                                              id, bike.id(), borrower, now, now.plus(RESERVATION_WINDOW)));
+                                              id, bike.id(), borrower, window.start(), window.end()));
                                       })
                                       .orElseThrow(() -> new BikeNotAvailableException("Bike not available"));
     }
@@ -78,7 +78,8 @@ public class BikeStation {
 
         private final BikeId id;
         private boolean available;
-        private Instant reservedUntil;
+        private ReservationWindow reservation;
+        private Borrower holder;
 
         private BikeInStation(BikeId id, boolean available) {
             this.id = id;
@@ -86,11 +87,25 @@ public class BikeStation {
         }
 
         boolean isAvailableAt(Instant now) {
-            return available && (reservedUntil == null || now.isAfter(reservedUntil));
+            return available && (reservation == null || !reservation.isOpenAt(now));
         }
 
-        private void reserveUntil(Instant until) {
-            this.reservedUntil = until;
+        boolean isAvailableTo(Borrower borrower, Instant now) {
+            return isAvailableAt(now) || (available && isReservedBy(borrower, now));
+        }
+
+        boolean isReservedBy(Borrower borrower, Instant now) {
+            return reservation != null && reservation.isOpenAt(now) && borrower.equals(holder);
+        }
+
+        private void reserveFor(Borrower borrower, ReservationWindow window) {
+            this.holder = borrower;
+            this.reservation = window;
+        }
+
+        private void endReservation() {
+            this.holder = null;
+            this.reservation = null;
         }
 
         private void setAvailable(boolean available) {
