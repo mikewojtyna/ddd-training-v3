@@ -232,7 +232,8 @@ def check_spec(spec: Doc, intents_dir: Path, rep: Report) -> None:
     body_wo = "\n".join(v for k, v in spec.sections.items() if k != "Open questions")
     for q in sorted(set(re.findall(r"\bQ(\d+)\b", body_wo)) - listed, key=int):
         rep.err(w, f"Q{q} is referenced but not listed under '## Open questions'")
-    still_open = set(re.findall(r"\bQ(\d+)\b", re.sub(r"~~.*?~~", "", spec.sections.get("Open questions", ""))))
+    # an open question is a list item that starts with an un-struck "**Q<n>**"; "~~**Q<n>** …~~ answer" is a decision
+    still_open = set(re.findall(r"(?m)^\s*[-*]\s+\*\*Q(\d+)\*\*", spec.sections.get("Open questions", "")))
     if status == "approved" and still_open:
         rep.warn(w, f"approved with open questions {', '.join('Q' + q for q in sorted(still_open, key=int))}; "
                     f"fine only if the user accepted them as open")

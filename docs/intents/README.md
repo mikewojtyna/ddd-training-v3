@@ -9,7 +9,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 | # | Date | Intent | System | Actor | Activity | Status | Outcome |
 |---|------|--------|--------|-------|----------|--------|---------|
 | 1 | 2026-11-01 | [A rider wants to rent a bike from a bike station](rider-rents-bike-from-station.md) | velocity | Rider | Get a bike | delivered | Bike Rented |
-| 2 | 2026-11-07 | [A rider wants to reserve a bike at a bike station](rider-reserves-bike-at-station.md) | velocity | Rider | Get a bike | planned | Bike Reserved |
+| 2 | 2026-11-07 | [A rider wants to reserve a bike at a bike station](rider-reserves-bike-at-station.md) | velocity | Rider | Get a bike | delivered | Bike Reserved |
 | 3 | 2026-11-07 | [Fleet operations wants unused reservations released](fleet-operations-releases-unused-reservation.md) | velocity | Fleet Operations | Keep the fleet available | draft | Reservation Expired |
 | 4 | 2026-11-07 | [A rider wants to cancel their reservation](rider-cancels-reservation.md) | velocity | Rider | Get a bike | draft | Reservation Cancelled |
 | 5 | 2026-11-07 | [A technician wants to reserve a broken bike before driving to it](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet available | draft | Broken Bike Reserved |
@@ -25,7 +25,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 
 - Find an available bike: *(no intent yet)*
 - Reserve a bike
-  - #2 [A rider wants to reserve a bike at a bike station](rider-reserves-bike-at-station.md) (Rider, planned) → Bike Reserved
+  - #2 [A rider wants to reserve a bike at a bike station](rider-reserves-bike-at-station.md) (Rider, delivered) → Bike Reserved
 - Cancel a reservation
   - #4 [A rider wants to cancel their reservation](rider-cancels-reservation.md) (Rider, draft) → Reservation Cancelled
 - Unlock a bike

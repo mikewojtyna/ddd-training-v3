@@ -3,7 +3,7 @@ name: rider-reserves-bike-at-station
 intent: rider-reserves-bike-at-station
 spec: rider-reserves-bike-at-station
 system: velocity
-status: in progress
+status: done
 date: 2026-11-07
 spec_date: 2026-11-07
 ---
@@ -180,7 +180,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
   - `./mvnw test` green.
 
 ### S9: Acceptance tests for the spec examples
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -188,22 +188,34 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 
 ## Acceptance tests
 
+All in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeAtStationSpecTest.java` (use-case level, in-memory adapters, settable clock, fake eligibility). Passed on first run after the domain; a mutation check (window end made exclusive) was caught by E3.2.
+
 | Example | Test |
 |---|---|
-| E1.1, E1.2, E2.1, E3.1, E3.2, E4.1, E5.1, E6.1, E7.1, E8.1, E8.2 | `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeAtStationSpecTest.java`, one method per example (to be filled in S9) |
+| E1.1 | `#e1_1_reservesAnAvailableBikeRemotely` |
+| E1.2 | `#e1_2_aRentedBikeCantBeReserved` |
+| E2.1 | `#e2_1_oneActiveReservationPerRider` |
+| E3.1 | `#e3_1_nobodyElseCanReserveAReservedBike` |
+| E3.2 | `#e3_2_nobodyElseCanRentAReservedBikeUpToTheEndOfItsWindow` |
+| E4.1 | `#e4_1_aReservedBikeIsNotOfferedToOthers` |
+| E5.1 | `#e5_1_aWithdrawnBikeCantBeReserved` |
+| E6.1 | `#e6_1_onlyAnActivatedAccountCanReserve` |
+| E7.1 | `#e7_1_noReservingWhileRiding` |
+| E8.1 | `#e8_1_aHolderCanRentOnlyTheReservedBike` |
+| E8.2 | `#e8_2_theHolderRentsTheReservedBike` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2 | S5, S9 | |
-| R2 / E2.1 | S6, S9 | |
-| R3 / E3.1, E3.2 | S5, S9 | |
-| R4 / E4.1 | S8, S9 | |
-| R5 / E5.1 | S5, S9 | |
-| R6 / E6.1 | S7, S9 | |
-| R7 / E7.1 | S6, S9 | |
-| R8 / E8.1, E8.2 | S6, S9 | |
+| R1 / E1.1, E1.2 | S5, S9 | `BikeStation#reserve`; `BikeStationTest#reservesAnAvailableBikeForFifteenMinutes`, `#rejectsReservingARentedBike` |
+| R2 / E2.1 | S6, S9 | `Borrowing#reserve`; `BorrowingTest#rejectsASecondActiveReservation` |
+| R3 / E3.1, E3.2 | S5, S9 | `BikeStation`, `ReservationWindow`; `BikeStationTest#rejectsReservingABikeReservedForSomeoneElse`, `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`, `#aReservationStopsCountingAfterItsWindow` (D9) |
+| R4 / E4.1 | S8, S9 | `BikeStation#availableBikesAt`, `AvailableBikesAtStationHandler`, `RiderAppController`; `BikeStationTest#aReservedBikeIsNotOfferedToOthers` |
+| R5 / E5.1 | S5, S9 | `BikeStation#withdraw`, `WithdrawBikeUseCase`; `BikeStationTest#rejectsReservingAWithdrawnBike` |
+| R6 / E6.1 | S7, S9 | `Borrowing#reserve`, `Eligibility`, `BorrowerEligibility` (+ stub `rideraccountsctxacl`); `BorrowingTest#onlyAnEligibleBorrowerCanReserve` |
+| R7 / E7.1 | S6, S9 | `Borrowing`; `BorrowingTest#rejectsReservingWhileRiding` |
+| R8 / E8.1, E8.2 | S6, S9 | `Borrowing#rent`, `BikeStation#rent`; `BorrowingTest#aHolderCanRentOnlyTheReservedBike`, `#aHolderCanRentTheReservedBike`, `BikeStationTest#theHolderRentsTheReservedBikeAndTheReservationEnds` |
 
 ## Risks and open questions
 
@@ -238,3 +250,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S6 done: R2, R7, R8 via new aggregate `Borrowing` (D3 decided: per-borrower aggregate) plus holder renting in `BikeStation`; `ReservationWindow` value object; `BikeRented.fromReservation`. Suite green.
 - S7 done: R6 in `Borrowing`, eligibility as a command argument (`Eligibility`). Persistence after the domain: `Version`, snapshots, `BorrowingRepository`, in-memory adapters with optimistic-locking tests. Suite green.
 - S8 done: R4 via `BikeStation#availableBikesAt` (TDD cycle), use cases, query handler, REST (`RiderAppController`), in-memory repositories, clock, wiring; velocity `CLAUDE.md` updated. Suite green.
+- S9 done: `RiderReservesBikeAtStationSpecTest`, 11 acceptance tests, one per example; mutation check caught by E3.2. Suite green.
+
+### 2026-11-07: delivered
+- All steps done, `./mvnw test` green. Intent `rider-reserves-bike-at-station` delivered.
