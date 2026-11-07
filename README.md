@@ -100,5 +100,5 @@ Conventions:
 ## For the trainer
 
 - `velocity/velocity-context-map.md` and `src/main/cml/VeloCity-Context-Map.cml` are the solution of the context-mapping exercise. Don't show them to participants who are still discovering contexts.
-- The branch `ai-ddd-flow-rehearsal` holds a full run of the flow on VeloCity reservations: ticket `VELO-142` → delivered intent `rider-reserves-bike-at-station`. It has one git tag per checkpoint, so you can show any step live and jump to the next: `demo/2-bounded-contexts`, `demo/3-input-ticket`, `demo/3-intents`, `demo/4-spec`, `demo/5-plan`, `demo/5-delivered`.
+- The branch `ai-ddd-flow-demo` holds a full run of the flow on VeloCity reservations: ticket `VELO-142` → delivered intent `rider-reserves-bike-at-station`. It has one git tag per checkpoint, so you can show any step live and jump to the next: `demo/2-bounded-contexts`, `demo/3-input-ticket`, `demo/3-intents`, `demo/4-spec`, `demo/5-plan`, `demo/5-delivered`.
 - Each build step of that run is its own commit between `demo/5-plan` and `demo/5-delivered`.
