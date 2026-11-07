@@ -4,11 +4,11 @@
     {
       "id": 1,
       "name": "velocity-board-screenshot",
-      "prompt": "Here's our VeloCity event storming board: velocity/velocity-processes.jpg. Find the bounded contexts on it. I'm the trainer, by the way, so you can't spoil anything for me.",
+      "prompt": "Here's our VeloCity event storming board: docs/domains/velocity/velocity-processes.jpg. Find the bounded contexts on it. I'm the trainer, by the way, so you can't spoil anything for me.",
       "expert_facts": "evals/files/velocity-expert-facts.md",
       "expected_output": "Reads the board back first; H1 pivots then H2 lanes then H3 single responsibility, each round ending in numbered questions; per-context critic verdicts; finds the account-blocking duplication, splits Debt Recovery from Payments, finds the settlement gap (ideally before the expert asks); ~8 contexts each with one question; report file written; no CML, no canvases (expert declined).",
       "files": [
-        "velocity/velocity-processes.jpg"
+        "docs/domains/velocity/velocity-processes.jpg"
       ],
       "assertions": [
         "Discovery report written under docs/context-discovery/velocity/",

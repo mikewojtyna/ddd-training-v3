@@ -8,7 +8,7 @@ The script `scripts/residuality_matrix.py` reads this file. Unknown keys are ign
   "scope": "reference context map",
   "date": "2026-11-01",
   "naive_architecture": {
-    "source": "velocity/velocity-context-map.md + src/main/cml/VeloCity-Context-Map.cml",
+    "source": "docs/domains/velocity/velocity-context-map.md + src/main/cml/VeloCity-Context-Map.cml",
     "components": [
       {"id": "ACC", "name": "Accounts", "kind": "context"},
       {"id": "PROC", "name": "Payment Processor", "kind": "external"}

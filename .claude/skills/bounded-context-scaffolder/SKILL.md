@@ -89,7 +89,7 @@ Work through every GWT example by hand, using the ubiquitous-language definition
 
 ### Compare with the reference context map (VeloCity)
 
-`velocity/velocity-context-map.md` and `src/main/cml/VeloCity-*.cml` are the training's reference solution. Compare the canvas with them: the context name, the inbound and outbound relationships, the message names, and terms that mean the same thing ("tariff" against "price list"). Build what the **canvas** says, because it's the user's current thinking. List every difference in the plan under "Differences from the reference context map", and say whether the map's "Accepted Alternatives" section covers it. Don't change the reference map unless the user asks.
+`docs/domains/velocity/velocity-context-map.md` and `src/main/cml/VeloCity-*.cml` are the training's reference solution. Compare the canvas with them: the context name, the inbound and outbound relationships, the message names, and terms that mean the same thing ("tariff" against "price list"). Build what the **canvas** says, because it's the user's current thinking. List every difference in the plan under "Differences from the reference context map", and say whether the map's "Accepted Alternatives" section covers it. Don't change the reference map unless the user asks.
 
 ## Step 3: Make the structural decisions, and push back where the skill says to
 
@@ -216,4 +216,4 @@ Tell the user:
 - where the work stands: at 6a, that the domain is next, with `ddd-tactical-building-blocks`; at 6b, what was generated around the finished domain
 - the open points: rules awaiting GWT (including contradictions found in the canvas), collaborators that don't exist in code yet, open questions from the canvas
 - the differences from the reference context map, if any
-- for VeloCity: whether `src/main/cml/VeloCity-*.cml` and `velocity/velocity-context-map.md` need updating to match. The VeloCity `CLAUDE.md` asks to keep them in sync. Offer to do it, but don't do it unasked, because the context map may be a workshop exercise.
+- for VeloCity: whether `src/main/cml/VeloCity-*.cml` and `docs/domains/velocity/velocity-context-map.md` need updating to match. The VeloCity `CLAUDE.md` asks to keep them in sync. Offer to do it, but don't do it unasked, because the context map may be a workshop exercise.

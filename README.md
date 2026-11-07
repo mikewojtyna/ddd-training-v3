@@ -5,17 +5,17 @@ Material for a Domain-Driven Design training: workshop documents plus runnable J
 ## Case studies
 
 - **VeloCity**: a city bike rental service, the main exercise.
-  - `velocity/`: the docs.
+  - `docs/domains/velocity/`: the docs.
     - `velocity-vision.md` is a domain-expert role-play guide. It's deliberately inconsistent, so participants have to uncover the contradictions.
     - `velocity-context-map.md` is the reference solution of the context-mapping exercise.
     - `bounded-context-discovery-session.md` records a bounded-context discovery session.
   - `src/main/cml/VeloCity-*.cml`: Context Mapper models of the reference map (`VeloCity-Bounded-Contexts.cml`, `VeloCity-Context-Map.cml`).
   - Code: `pl.wojtyna.dddtrainingv3.velocity`.
-- **CrowdSorcery**: a crowdfunding/investment platform, copied from an earlier training as a reference implementation. Vision: `crowdsorcery/CrowdSorcery.md`. Code: `pl.wojtyna.dddtrainingv3.crowdsorcery`.
+- **CrowdSorcery**: a crowdfunding/investment platform, copied from an earlier training as a reference implementation. Vision: `docs/domains/crowdsorcery/CrowdSorcery.md`. Code: `pl.wojtyna.dddtrainingv3.crowdsorcery`.
 - **Orders**: a small practice system for trying the tactical-design skill on a simple aggregate. Code: `pl.wojtyna.dddtrainingv3.orders`.
   - A recorded Claude Code session shows how its Ordering bounded context was built step by step: canvas, plan review, scaffolding, the TDD checkpoint loop, then persistence. See `docs/bounded-contexts/orders/ordering/conversation.md`, next to that context's `canvas.md` and `plan.md`.
 
-`archetypes/` holds business-archetype analyses (Neal Cabage's *Business Model Archetypes*) used in the strategic-design part.
+`docs/archetypes/` holds business-archetype analyses (Neal Cabage's *Business Model Archetypes*) used in the strategic-design part.
 
 ## The AI-assisted DDD flow
 
@@ -23,7 +23,7 @@ Each step has a Claude Code skill in `.claude/skills/` and produces artifacts th
 
 | Step | Skill | Produces |
 |---|---|---|
-| 1. Explore the domain (collaborative workshops, done by people) | none | business processes, product vision (e.g. `velocity/`) |
+| 1. Explore the domain (collaborative workshops, done by people) | none | business processes, product vision (e.g. `docs/domains/velocity/`) |
 | 2. Find bounded contexts | `discover-bounded-contexts` (optionally `residuality-analysis`) | discovery report, CML context map, one canvas per context |
 | 3. Capture business needs | `intent-creator` | `docs/intents/<intent>.md` + story map |
 | 4. Specify one intent | `spec-writer` | `docs/specs/<intent>.md`: rules with concrete examples, context-agnostic contract |
@@ -90,16 +90,16 @@ Conventions:
 
 | Path | What's there |
 |---|---|
-| `velocity/`, `crowdsorcery/` | case-study docs |
-| `archetypes/` | business-archetype analyses |
+| `docs/domains/velocity/`, `docs/domains/crowdsorcery/` | the case studies' inputs: vision, reference context map, discovery session, process board |
+| `docs/archetypes/` | business-archetype analyses |
+| `docs/` (other folders) | the flow's artifacts: canvases, discovery reports, intents, specs, plans; `docs/skills/` holds the skills' design history and evals |
 | `src/main/cml/` | Context Mapper models |
 | `src/main/java/pl/wojtyna/dddtrainingv3/` | the code, one package per system |
-| `docs/` | canvases, discovery reports, intents, specs, plans; `docs/skills/` holds the skills' design history and evals |
 | `.claude/skills/` | the Claude Code skills of the flow |
 
 ## For the trainer
 
-- `velocity/velocity-context-map.md` and `src/main/cml/VeloCity-Context-Map.cml` are the solution of the context-mapping exercise. Don't show them to participants who are still discovering contexts.
-- The branch `ai-ddd-flow-demo` holds a full worked run of the flow, kept off master so participants don't start from the solution. It contains the discovery example (report, `VeloCity-Context-Map-Discovery.cml`, canvases), the fictional ticket `velocity/briefs/VELO-142-reserve-bike-from-app.md`, and the run from that ticket to the delivered intent `rider-reserves-bike-at-station`, with the implemented Rentals code. It has one git tag per checkpoint, so you can show any step live and jump to the next: `demo/2-bounded-contexts`, `demo/3-input-ticket`, `demo/3-intents`, `demo/4-spec`, `demo/5-plan`, `demo/5-delivered`.
+- `docs/domains/velocity/velocity-context-map.md` and `src/main/cml/VeloCity-Context-Map.cml` are the solution of the context-mapping exercise. Don't show them to participants who are still discovering contexts.
+- The branch `ai-ddd-flow-demo` holds a full worked run of the flow, kept off master so participants don't start from the solution. It contains the discovery example (report, `VeloCity-Context-Map-Discovery.cml`, canvases), the fictional ticket `velocity/briefs/VELO-142-reserve-bike-from-app.md` (that branch keeps the old folder layout), and the run from that ticket to the delivered intent `rider-reserves-bike-at-station`, with the implemented Rentals code. It has one git tag per checkpoint, so you can show any step live and jump to the next: `demo/2-bounded-contexts`, `demo/3-input-ticket`, `demo/3-intents`, `demo/4-spec`, `demo/5-plan`, `demo/5-delivered`.
 - Each build step of that run is its own commit between `demo/5-plan` and `demo/5-delivered`.
 - The branch `velocity-discovery-demo` shows step 2 on its own: a bounded-context discovery session for VeloCity run with `discover-bounded-contexts`. It contains the discovery report (`docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md`), the resulting `VeloCity-Context-Map-Discovery.cml` and one canvas per context, on top of the master of that day. The same discovery output is also part of `ai-ddd-flow-demo` (tag `demo/2-bounded-contexts`).

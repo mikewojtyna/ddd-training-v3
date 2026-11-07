@@ -147,7 +147,7 @@ def ranking():
 if name == "velocity-reference-map-full":
     files_created(); validation_ok(); stressor_count(25); categories(); attractors_reused(); verdicts_complete()
     matrix(); hidden_coupling(); changes_traced(); test_set(); ri()
-    git_untouched(["src/main/cml", "velocity/velocity-context-map.md"], "CML and velocity-context-map.md not modified")
+    git_untouched(["src/main/cml", "docs/domains/velocity/velocity-context-map.md"], "CML and velocity-context-map.md not modified")
 elif name == "rentals-single-context-user-stressors":
     files_created(); rentals_components(); user_stressors(); stressor_count(15, 30); matrix(); ri()
     git_untouched(["src"], "No Java source files modified")

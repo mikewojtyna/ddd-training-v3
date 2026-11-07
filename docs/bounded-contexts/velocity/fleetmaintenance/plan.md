@@ -159,7 +159,7 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/
 - `RentalsCirculationAdapter` is a stub (`UnsupportedOperationException("implement this")`): Rentals has no withdraw / make-available use case in its `api` yet. Until then, returning a fixed bike will fail at the adapter when run through Spring. The domain tests use a fake `Circulation`.
 - Inbound listeners not generated: `rentalsctxacl` (Bike Withdrawn, technician Bike Unlocked) — Rentals has no `api/events`; `customersupportctxacl` (Fleet Issue Incident) — Customer Support isn't in code.
 - `CustomerSupportFixNotificationsAdapter` is a stub: Customer Support isn't in code, so its command's name and shape are unknown. The adapter's comment quotes the canvas message *Notify Bike Fixed*.
-- CML / `velocity/velocity-context-map.md`: the CustomerSupport → FleetMaintenance relationship comment would gain "notify bike fixed" (Customer Support possibly `OHS`), possibly `CF` → `ACL` towards Rentals, and the Rentals relationship comment updated after Q1/Q2. Not changed unless you ask.
+- CML / `docs/domains/velocity/velocity-context-map.md`: the CustomerSupport → FleetMaintenance relationship comment would gain "notify bike fixed" (Customer Support possibly `OHS`), possibly `CF` → `ACL` towards Rentals, and the Rentals relationship comment updated after Q1/Q2. Not changed unless you ask.
 - Canvas open questions, copied into the javadoc: unrepairable bikes (retirement), repair priority.
 - Customer Support may need an incident id with *Notify Bike Fixed* to close the right incident, and Fleet Maintenance would have to keep it from the fault report. The canvas doesn't say. Left as a question in the javadoc.
 

@@ -51,7 +51,7 @@ Look for `docs/plans/<intent>.md`. Find the intent by name, or by matching the u
 - **Work the spec examples through once more against each other.** A contradiction is easy to miss when examples are read one at a time and only shows up when you think about time, order or state across them, e.g. a month published at 00:05 that should include a ride ending at 00:20. Don't plan around a contradiction: send the spec back to `spec-writer` with the conflicting example IDs, and say so in the report. Other planning work can still go into the draft.
 - Read existing plans in `docs/plans/` for intents listed under the intent's `## Related intents`. Their placement decisions are precedent: follow them, or say why this case differs.
 
-**VeloCity is a workshop exercise.** The CML and `velocity/velocity-context-map.md` are the reference solution. Use them for placement, but if the user seems to be a participant who is still discovering contexts, ask before leaning on the reference map.
+**VeloCity is a workshop exercise.** The CML and `docs/domains/velocity/velocity-context-map.md` are the reference solution. Use them for placement, but if the user seems to be a participant who is still discovering contexts, ask before leaning on the reference map.
 
 ## Step 2: Place every spec element
 

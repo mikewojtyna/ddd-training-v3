@@ -5,7 +5,7 @@ Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bou
 Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
 Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
 
-PRE-FILLED by Claude from velocity/velocity-vision.md, velocity/velocity-context-map.md and
+PRE-FILLED by Claude from docs/domains/velocity/velocity-vision.md, docs/domains/velocity/velocity-context-map.md and
 src/main/cml/VeloCity-Context-Map.cml, then completed with the user on 2026-11-03.
 -->
 

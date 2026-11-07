@@ -10,7 +10,7 @@ status: delivered
 date: 2026-10-12
 supersedes:
 superseded_by:
-source: velocity/velocity-vision.md "Renting a Bike"
+source: docs/domains/velocity/velocity-vision.md "Renting a Bike"
 ---
 
 # A rider wants to rent a bike from a bike station

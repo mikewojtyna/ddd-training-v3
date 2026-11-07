@@ -64,7 +64,7 @@ docs/intents/
 
 Read these before writing anything, because each intent has to fit the history:
 - `docs/intents/story-map.md`, and the frontmatter of every `docs/intents/*.md`. You need the next `sequence` number (max + 1, shared across all systems), the existing actor and activity names (reuse them word for word, or the value stream fragments), and possible duplicates.
-- The system's vision for its vocabulary and actors: `velocity/velocity-vision.md` or `crowdsorcery/CrowdSorcery.md`, plus the system's `CLAUDE.md`. The VeloCity vision is deliberately inconsistent, so don't resolve its contradictions inside an intent. Record them under `## Open questions`.
+- The system's vision for its vocabulary and actors: `docs/domains/velocity/velocity-vision.md` or `docs/domains/crowdsorcery/CrowdSorcery.md`, plus the system's `CLAUDE.md`. The VeloCity vision is deliberately inconsistent, so don't resolve its contradictions inside an intent. Record them under `## Open questions`.
 - Any story map, notes or document the user points to.
 
 If `docs/intents/` doesn't exist yet, create it with `story-map.md` and generate the index in Step 5.

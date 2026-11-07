@@ -4,7 +4,7 @@
     {
       "id": 1,
       "name": "velocity-reference-map-full",
-      "prompt": "Validate the VeloCity reference context map (velocity/velocity-context-map.md and the CML) with residuality theory. I'm the trainer, not a participant, so the spoiler doesn't matter. Throw lots of different stressors at it and tell me where it breaks and what you'd change.",
+      "prompt": "Validate the VeloCity reference context map (docs/domains/velocity/velocity-context-map.md and the CML) with residuality theory. I'm the trainer, not a participant, so the spoiler doesn't matter. Throw lots of different stressors at it and tell me where it breaks and what you'd change.",
       "expected_output": "analysis.json + analysis.md under docs/residuality/velocity/...; 25-40 concrete stressors across all categories incl. absurd; attractors reused across stressors; incidence matrix from the script with hidden-coupling candidates; augmented architecture traced to attractors; independent test set with Ri computed; CML and map untouched.",
       "files": [],
       "assertions": [

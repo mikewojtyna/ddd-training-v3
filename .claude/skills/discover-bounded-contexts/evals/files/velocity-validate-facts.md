@@ -1,8 +1,8 @@
 # Domain-expert answer sheet: validating the VeloCity reference map
 
 You play the trainer who wrote the VeloCity reference solution. Facts for any question:
-- The business facts are in velocity/velocity-vision.md (deliberately inconsistent role-play guide) and
-  velocity/velocity-context-map.md (the reference solution, including "Accepted alternatives").
+- The business facts are in docs/domains/velocity/velocity-vision.md (deliberately inconsistent role-play guide) and
+  docs/domains/velocity/velocity-context-map.md (the reference solution, including "Accepted alternatives").
 - The processes to check the map against: (1) Onboarding and activation, (2) Rent and return a bike,
   (3) Settle a ride and recover debt, (4) Bike fault to maintenance.
 - All VeloCity teams are in one company. The Payment Processor and the City are external.

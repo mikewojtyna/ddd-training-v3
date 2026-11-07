@@ -1,4 +1,4 @@
-/* VeloCity — Reference Context Map (see velocity/velocity-context-map.md) */
+/* VeloCity — Reference Context Map (see docs/domains/velocity/velocity-context-map.md) */
 ContextMap VeloCityContextMap {
 	type = SYSTEM_LANDSCAPE
 	state = TO_BE

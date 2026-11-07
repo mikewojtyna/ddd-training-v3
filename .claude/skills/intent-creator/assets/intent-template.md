@@ -10,7 +10,7 @@ status: draft                                # draft | accepted | specified | pl
 date: 2026-11-01                             # YYYY-MM-DD the intent was captured (or delivered, when backfilling)
 supersedes:                                  # name of the intent this replaces, or empty
 superseded_by:                               # filled in only on the OLD intent when a new one replaces it
-source: velocity/velocity-vision.md "Renting a Bike"; conversation 2026-11-01
+source: docs/domains/velocity/velocity-vision.md "Renting a Bike"; conversation 2026-11-01
 ---
 
 # A rider wants to reserve a bike at a bike station

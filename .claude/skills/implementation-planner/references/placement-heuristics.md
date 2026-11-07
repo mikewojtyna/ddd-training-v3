@@ -60,4 +60,4 @@ The spec speaks the vision's vocabulary. Each owning context has its own ubiquit
 Change the map only when placement needs a relationship that doesn't exist, or a new context. Then:
 - **Never edit the reference CML in place** (for VeloCity, `src/main/cml/VeloCity-*.cml` is the training's reference solution). Propose the change as a CML snippet in the plan. After approval, write it, to the existing file if the user agrees, otherwise to a new file `src/main/cml/<System>-Context-Map-<intent>.cml`.
 - Validate with `.claude/skills/discover-bounded-contexts/scripts/validate_cml.sh <file.cml>`, and check the rules in `discover-bounded-contexts/references/context-map-rules.md`: no cycles, no shared kernel, ACL downstream, OHS/PL upstream.
-- Keep `velocity/velocity-context-map.md` and the CML in sync if the user accepts the change into the reference.
+- Keep `docs/domains/velocity/velocity-context-map.md` and the CML in sync if the user accepts the change into the reference.

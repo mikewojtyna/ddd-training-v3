@@ -39,7 +39,7 @@ Then pick the mode:
 
 **Hand-off from `implementation-planner`.** The planner may bring a spec (`docs/specs/<intent>.md`) that no existing context owns, plus a candidate context. Run validate mode on the existing map with the candidate added, using the spec's rules, commands and events as the narrative. Judge the candidate with the heuristics, as you would any other context: it may turn out to belong to an existing context after all. If you approve it, update the map (respecting the CML rules below) and have its canvas created. Then hand back to the planner, naming the approved context and its relationships.
 
-**VeloCity is a workshop exercise.** `velocity/velocity-context-map.md`, `src/main/cml/VeloCity-*.cml` and `velocity/bounded-context-discovery-session.md` are the reference solution. If the user seems to be a participant discovering VeloCity, don't lean on them, don't quote them, and don't overwrite them. Their own answers decide the outcome. If you're unsure, ask whether they're the trainer.
+**VeloCity is a workshop exercise.** `docs/domains/velocity/velocity-context-map.md`, `src/main/cml/VeloCity-*.cml` and `docs/domains/velocity/bounded-context-discovery-session.md` are the reference solution. If the user seems to be a participant discovering VeloCity, don't lean on them, don't quote them, and don't overwrite them. Their own answers decide the outcome. If you're unsure, ask whether they're the trainer.
 
 ## Step 1: Get the input
 

@@ -10,7 +10,7 @@ status: specified
 date: 2026-11-02
 supersedes:
 superseded_by:
-source: velocity/velocity-vision.md "Renting a Bike"; product meeting 2026-11-02
+source: docs/domains/velocity/velocity-vision.md "Renting a Bike"; product meeting 2026-11-02
 ---
 
 # A rider wants to reserve a bike at a bike station

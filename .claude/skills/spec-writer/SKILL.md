@@ -54,7 +54,7 @@ Template: `assets/spec-template.md`. Copy its structure and section order exactl
 Read, in this order:
 - The intent `docs/intents/<intent>.md`. Find it by name, or by matching the user's words against intent titles in `docs/intents/README.md`. If several match, ask which one.
 - **Gate on status.** The intent must be `accepted` (or `specified`, when revising its spec). A `draft` intent isn't an agreed problem yet, so stop and say so: the user reviews and accepts it first. If the user explicitly tells you the intent is accepted, set its status to `accepted` and continue. `superseded` or `dropped` intents get no spec; point to the replacing intent.
-- The system's vision (`velocity/velocity-vision.md`, `crowdsorcery/CrowdSorcery.md`, …) for vocabulary and stated rules. The VeloCity vision is deliberately inconsistent: never resolve a contradiction silently; record it as an open question.
+- The system's vision (`docs/domains/velocity/velocity-vision.md`, `docs/domains/crowdsorcery/CrowdSorcery.md`, …) for vocabulary and stated rules. The VeloCity vision is deliberately inconsistent: never resolve a contradiction silently; record it as an open question.
 - Specs of the intents listed under the intent's `## Related intents`, and of intents with the same actor or activity. Their rules constrain this one (a reserved bike can't be rented, so the rental spec and the reservation spec must agree). Reuse their vocabulary and event names word for word.
 - If related behaviour already exists in code (intents with status `delivered`), skim it for rules the code already enforces, so the spec doesn't contradict reality. Describe what you learn in domain words; don't copy class names.
 

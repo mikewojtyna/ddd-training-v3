@@ -15,7 +15,7 @@
  {"query": "rename BikeStationRepo to BikeStations everywhere in the rentals package, including the config", "should_trigger": false},
  {"query": "is Settlement core or supporting domain for VeloCity? argue both sides, I want to use it as a workshop discussion prompt", "should_trigger": false},
  {"query": "RentBikeUseCase still only has comments - implement load, rent, save, publish like MakeDepositUseCase does", "should_trigger": false},
- {"query": "run the pivotal events and swimlanes heuristics over velocity/velocity-vision.md and propose a list of candidate bounded contexts with reasons", "should_trigger": false},
+ {"query": "run the pivotal events and swimlanes heuristics over docs/domains/velocity/velocity-vision.md and propose a list of candidate bounded contexts with reasons", "should_trigger": false},
  {"query": "spring boot fails on startup after I added my new context: 'The bean accountRepository could not be registered, a bean with that name has already been defined'. how do I fix it?", "should_trigger": false},
  {"query": "write an ArchUnit test that fails if any class in velocity/*/domain imports a package from another bounded context", "should_trigger": false},
  {"query": "summarise the bounded context canvas sections (purpose, strategic classification, domain roles...) as a one-page handout for my workshop participants", "should_trigger": false}

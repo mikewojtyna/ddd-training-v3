@@ -1,4 +1,4 @@
-# Domain-expert answer sheet: VeloCity board (velocity/velocity-processes.jpg)
+# Domain-expert answer sheet: VeloCity board (docs/domains/velocity/velocity-processes.jpg)
 
 You play the VeloCity domain expert, who is also the trainer, so spoilers don't matter. Answer the facilitator's
 questions from these facts, briefly (1-3 sentences), the way the expert did in the original session. Don't

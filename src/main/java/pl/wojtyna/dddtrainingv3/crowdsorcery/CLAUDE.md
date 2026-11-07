@@ -1,6 +1,6 @@
 # CrowdSorcery system
 
-CrowdSorcery is a crowdfunding/investment platform. Investors put money into assets or projects, either manually or through automated strategies, and borrowers finance projects and repay loans. The vision is in `crowdsorcery/CrowdSorcery.md` at the repo root. This code was copied from an earlier training as a **reference implementation** of tactical DDD and hexagonal architecture. The repo-root `CLAUDE.md` covers the package conventions.
+CrowdSorcery is a crowdfunding/investment platform. Investors put money into assets or projects, either manually or through automated strategies, and borrowers finance projects and repay loans. The vision is in `docs/domains/crowdsorcery/CrowdSorcery.md`. This code was copied from an earlier training as a **reference implementation** of tactical DDD and hexagonal architecture. The repo-root `CLAUDE.md` covers the package conventions.
 
 ## Bounded contexts
 

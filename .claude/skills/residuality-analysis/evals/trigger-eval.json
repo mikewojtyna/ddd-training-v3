@@ -15,7 +15,7 @@
   {"query": "add a resilience4j circuit breaker around the payment processor client in the deposit context", "should_trigger": false},
   {"query": "explain the difference between an ACL and a conformist relationship with a VeloCity example", "should_trigger": false},
   {"query": "do a risk assessment for the VeloCity launch: list the top 10 risks with probability and impact scores for the steering committee", "should_trigger": false},
-  {"query": "review the CrowdSorcery business archetype analysis in archetypes/crowdfunding-platform-analysis.md and suggest which domains are core", "should_trigger": false},
+  {"query": "review the CrowdSorcery business archetype analysis in docs/archetypes/crowdfunding-platform-analysis.md and suggest which domains are core", "should_trigger": false},
   {"query": "run the BikeStationTest and fix whatever is failing", "should_trigger": false},
   {"query": "update velocity-context-map.md so Pricing reacts to Rental Session Ended instead of being called by Settlement, and keep the CML in sync", "should_trigger": false},
   {"query": "chaos engineering: kill random pods in our k8s staging cluster and report which services recover", "should_trigger": false}

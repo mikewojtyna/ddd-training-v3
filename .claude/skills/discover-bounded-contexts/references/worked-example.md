@@ -1,6 +1,6 @@
 # Worked example: VeloCity discovery session (condensed)
 
-This condenses `velocity/bounded-context-discovery-session.md`, a real session between the trainer (as domain expert) and Claude. Read it to see the **rhythm**:
+This condenses `docs/domains/velocity/bounded-context-discovery-session.md`, a real session between the trainer (as domain expert) and Claude. Read it to see the **rhythm**:
 - echo back how you read the board
 - apply one heuristic
 - ask numbered questions
@@ -10,7 +10,7 @@ This condenses `velocity/bounded-context-discovery-session.md`, a real session b
 Don't use it as an answer key. VeloCity is also a workshop exercise. If a participant is discovering VeloCity, their answers decide the outcome, and leaking these results spoils the exercise.
 
 ## Round 0: input and reading
-The input was Miro screenshots of an event-storming board (`velocity/velocity-processes.jpg`). Before applying anything, Claude summarised its reading of the board:
+The input was Miro screenshots of an event-storming board (`docs/domains/velocity/velocity-processes.jpg`). Before applying anything, Claude summarised its reading of the board:
 - the main timeline, from onboarding through pre-rental checks, reservation and unlock
 - a ride that splits into hourly billing, station return and zone return
 - two disconnected clusters: debt recovery and incident handling
