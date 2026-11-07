@@ -11,7 +11,7 @@ VeloCity is a city bike rental service and the current exercise of the training.
 
 ## Bounded contexts
 
-The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` exists in code so far.** Add the others as new subpackages that follow the root layout.
+The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` and `fleetmaintenance` exist in code so far.** Add the others as new subpackages that follow the root layout.
 
 ## Rentals
 
