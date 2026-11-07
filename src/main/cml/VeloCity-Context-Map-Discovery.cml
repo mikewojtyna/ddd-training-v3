@@ -1,0 +1,122 @@
+/* VeloCity — context map from discover-bounded-contexts, 2026-11-05.
+   Report: docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md
+   All eight contexts are teams in one company (expert), so internal links are Customer/Supplier
+   with a Published Language upstream and an ACL downstream (trainer's default).
+   CML forbids OHS inside Customer/Supplier, so APIs offered by an upstream are noted in comments. */
+ContextMap VeloCityDiscoveryContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains RiderAccounts
+	contains Rental
+	contains Pricing
+	contains Settlement
+	contains Payments
+	contains DebtRecovery
+	contains FleetMaintenance
+	contains IncidentHandling
+	contains PaymentProcessor
+	contains City
+
+	/* External parties */
+
+	// card charges and verification; processor's API, translated by Payments
+	PaymentProcessor [U,OHS,PL]->[D,ACL] Payments : CardProcessing
+
+	// city zone data (drop zones, unauthorized zones); assumption: external, from "Yes" to Q2
+	City [U]->[D,ACL] Rental : ZoneData_Unconfirmed
+
+	/* Payments */
+
+	// Payment Method Verified / Not Verified -> activation, invalid-card block
+	Payments [U,S,PL]->[D,C,ACL] RiderAccounts : PaymentMethodVerification
+
+	// API offered by Payments: charge request; Payment Succeeded / Payment Failed (after Payments' retries); Settlement re-charges up to its maximum
+	Payments [U,S,PL]->[D,C,ACL] Settlement : Charging
+
+	/* Rider Accounts */
+
+	// "can this rider use the service?" before each rental
+	RiderAccounts [U,S,PL]->[D,C,ACL] Rental : RiderEligibility
+
+	// API offered by Rider Accounts: generic block / lift block with a reason (debt); Settlement is the client
+	RiderAccounts [U,S,PL]->[D,C,ACL] Settlement : AccountBlocking
+
+	/* Pricing */
+
+	// Pricing's fee API (one set of rules): live fee estimate during the ride
+	Pricing [U,S,PL]->[D,C,ACL] Rental : FeeEstimate
+
+	// Pricing's fee API (one set of rules): final fee for a finished rental
+	Pricing [U,S,PL]->[D,C,ACL] Settlement : FinalFee
+
+	/* Fleet Maintenance */
+
+	// bike out of service / back in circulation (maintenance decides)
+	FleetMaintenance [U,S,PL]->[D,C,ACL] Rental : BikeAvailability
+
+	// API offered by Fleet Maintenance: maintenance request for a fault incident; Bike Fixed / Back In Circulation flow back
+	FleetMaintenance [U,S,PL]->[D,C,ACL] IncidentHandling : MaintenanceRequest
+
+	/* Rental */
+
+	// Rental Session Ended (start, end, location, zone type, forced end)
+	Rental [U,S,PL]->[D,C,ACL] Settlement : RentalSessionEnded
+
+	// Bike Fault Reported, Bike Locking Failed -> incidents first
+	Rental [U,S,PL]->[D,C,ACL] IncidentHandling : BikeFaults
+
+	/* Settlement */
+
+	// Rental Unsettled (rental id, amount owed) -> start recovery; API offered by Settlement: "confirm rental settled" command from Debt Recovery
+	Settlement [U,S,PL]->[D,C,ACL] DebtRecovery : DebtCollection
+}
+
+BoundedContext RiderAccounts {
+	type = FEATURE
+	domainVisionStatement = "Answers: can this rider use the service? Registration, activation (first payment validation), account status, generic block / lift block with a reason, invalid-card block. Key language: registered, activated, blocked, block reason."
+	responsibilities = "Registration", "Activation", "Account status", "Blocking and lifting blocks"
+}
+BoundedContext Rental {
+	type = FEATURE
+	domainVisionStatement = "Answers: who has which bike, and when? Per-rental location check, reservation window, unlock, rental session, station and zone returns, fault reports on return. Key language: reservation, unlock, rental session, return."
+	responsibilities = "Eligibility check", "Reservation", "Rental sessions", "Returns", "Fault reporting"
+}
+BoundedContext Pricing {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does this ride cost? One set of rules for the live estimate and the final fee: free period, hourly tiers, penalty, zone fees. Key language: free period, hourly fee, penalty, zone fee, fee estimate."
+	responsibilities = "Fee estimate", "Final fee"
+}
+BoundedContext Settlement {
+	type = FEATURE
+	domainVisionStatement = "Answers: what does the rider owe for this rental, and is it settled? Builds the bill, requests charges and re-charges up to a maximum, decides unsettled, asks Rider Accounts to block or lift the block. Key language: bill, settled, unsettled."
+	responsibilities = "Billing a rental", "Re-charge schedule", "Settled / unsettled decision"
+}
+BoundedContext Payments {
+	type = FEATURE
+	domainVisionStatement = "Answers: did the charge go through, after retries? Payment-method verification, charge execution and retries, in front of the external processor. Key language: payment method, charge, retry, payment failed."
+	responsibilities = "Payment method verification", "Charge execution", "Charge retries"
+}
+BoundedContext DebtRecovery {
+	type = FEATURE
+	domainVisionStatement = "Answers: how do we recover what's owed? Recovery process with its own actions and schedule: started, paused, resumed, succeeded, failed. Key language: recovery process, paused, resumed."
+	responsibilities = "Recovery actions", "Recovery schedule"
+}
+BoundedContext FleetMaintenance {
+	type = FEATURE
+	domainVisionStatement = "Answers: is this bike in working order? Decides out of service and back in circulation, runs maintenance and repairs. Key language: out of service, maintenance, fixed, back in circulation."
+	responsibilities = "Bike condition", "Maintenance", "Availability decisions"
+}
+BoundedContext IncidentHandling {
+	type = FEATURE
+	domainVisionStatement = "Answers: what went wrong, and is it resolved? Incidents from riders and from fault reports: type detected, assigned, accepted, rejected, escalated, reopened, resolved. Key language: incident, agent, escalate, reopen."
+	responsibilities = "Incident lifecycle"
+}
+BoundedContext PaymentProcessor {
+	type = SYSTEM
+	domainVisionStatement = "External card payment processor."
+}
+BoundedContext City {
+	type = SYSTEM
+	domainVisionStatement = "External city zone data (assumption)."
+}
