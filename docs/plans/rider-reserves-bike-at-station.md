@@ -135,7 +135,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** canvas moved to `docs/bounded-contexts/velocity/rentals/canvas.md` and updated exactly as in Canvas changes; paths pointing to the old location (canvas header comment, discovery report) updated.
 
 ### S3: Scaffold the Rentals module around the domain (scaffolder 6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, approved via this plan)
 - **Covers:** none
@@ -231,3 +231,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - Built from the spec dated 2026-11-07 (approved).
 - S1 done: discovery CML relationship flipped (`Rental -> FleetMaintenance : BikeAvailability`), validate_cml.sh VALID; reference CML untouched.
 - S2 done: canvas moved to `docs/bounded-contexts/velocity/rentals/canvas.md`, renamed Rentals, R1–R8 decisions added; discovery report path updated.
+- S3 done: scaffolder 6a. `ReserveBike`, `WithdrawBike`, `AvailableBikesAtStation`/`AvailableBikes`, `BorrowerEligibility` port + `rideraccountsctxacl` stub, `RentalsContextConfig`, `RentalsArchitectureTest`; context plan `docs/bounded-contexts/velocity/rentals/plan.md` (approved via this plan). `./mvnw test` green.
