@@ -41,6 +41,11 @@ public class BikeStation {
         return version;
     }
 
+    /// The bikes a borrower can reserve or rent at this station right now (rule R4).
+    public List<BikeId> availableBikesAt(Instant now) {
+        return bikes.stream().filter(bikeInStation -> bikeInStation.isAvailableAt(now)).map(BikeInStation::id).toList();
+    }
+
     public boolean holds(BikeId bike) {
         return bikes.stream().anyMatch(bikeInStation -> bikeInStation.id().equals(bike));
     }

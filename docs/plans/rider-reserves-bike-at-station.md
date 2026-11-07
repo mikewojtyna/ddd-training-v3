@@ -170,7 +170,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** the example's test passes; `./mvnw test` green.
 
 ### S8: Use cases, query, REST and wiring (scaffolder 6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** R4, E4.1
@@ -237,3 +237,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S5 done: R1, R3, R5 + D9 in `BikeStation` (11 tests in `BikeStationTest`); `rent` gained `.at(now)`; `withdraw(bike)` added. Loop off from cycle 4 (user). Suite green.
 - S6 done: R2, R7, R8 via new aggregate `Borrowing` (D3 decided: per-borrower aggregate) plus holder renting in `BikeStation`; `ReservationWindow` value object; `BikeRented.fromReservation`. Suite green.
 - S7 done: R6 in `Borrowing`, eligibility as a command argument (`Eligibility`). Persistence after the domain: `Version`, snapshots, `BorrowingRepository`, in-memory adapters with optimistic-locking tests. Suite green.
+- S8 done: R4 via `BikeStation#availableBikesAt` (TDD cycle), use cases, query handler, REST (`RiderAppController`), in-memory repositories, clock, wiring; velocity `CLAUDE.md` updated. Suite green.

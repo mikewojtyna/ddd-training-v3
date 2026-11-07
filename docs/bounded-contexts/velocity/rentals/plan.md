@@ -4,7 +4,7 @@
 - **Mode**: update
 - **Source canvas**: `docs/bounded-contexts/velocity/rentals/canvas.md`
 - **Last updated**: 2026-11-07
-- **Status**: awaiting tactical blocks (all rules green, 6b next)
+- **Status**: implemented
 
 <!-- Reviewers: edit this plan directly or answer in the conversation, then set Status to "approved" (or say so).
      Invoking the skill again resumes from this file. -->
@@ -134,3 +134,8 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsArchitectureTest.
 - Cycle 1 E6.1, `BorrowingTest#onlyAnEligibleBorrowerCanReserve`: `reserve` became `reserve(bike).as(eligibility).at(now)` (4 calls updated mechanically); red seen, Claude implemented, green. Eligibility is a command argument (Rider Accounts has no code): the use case asks `BorrowerEligibility`.
 - Persistence, after all domain tests were green: `Version` and a `Snapshot` memento on `BikeStation` and `Borrowing`; `BikeStationRepo.loadContaining(bike)`; new port `BorrowingRepository`; `InMemoryBikeStationRepo`, `InMemoryBorrowingRepository` with optimistic locking (`InMemoryRentalsRepositoriesTest`).
 - Hand-back: every rule in this plan has a passing test. Scaffolder 6b (intent plan S8) is next.
+
+### 2026-11-07: updated (6b, intent plan S8)
+- R4 cycle first (domain read): `BikeStation#availableBikesAt(now)`, `BikeStationTest#aReservedBikeIsNotOfferedToOthers`: red seen, Claude implemented, green.
+- Added: `ReserveBikeUseCase`, completed `RentBikeUseCase`, `WithdrawBikeUseCase`, `AvailableBikesAtStationHandler`, `BikeStationNotFoundException`, `RiderAppController` (`POST /rentals/stations/{stationId}/bikes/{bikeId}/reservations`, `.../rentals`, `GET .../available-bikes`; rule rejections → 409, unknown station → 404), `ReservationRequest`, `RentalRequest`; `RentalsContextConfig` completed (repositories, `rentalsClock`, use cases).
+- Not done here: Fleet Maintenance's `RentalsCirculationAdapter.takeOut` → `WithdrawBikeUseCase` (Fleet Maintenance's plan, its Q3).

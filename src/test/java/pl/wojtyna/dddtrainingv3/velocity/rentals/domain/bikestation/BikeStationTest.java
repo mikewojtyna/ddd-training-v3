@@ -341,6 +341,32 @@ class BikeStationTest {
             event -> event.equals(new BikeRentalEvent.BikeRented(b17.id(), anna, oneHour, true)))).isTrue();
     }
 
+    // @formatter:off
+    @DisplayName(
+        """
+         E4.1: given B-17 and B-22 are at Central, B-17 is reserved for Anna and B-22 is available,
+         when Ben asks which bikes are available at Central,
+         then he sees only B-22
+        """
+    )
+    // @formatter:on
+    @Test
+    void aReservedBikeIsNotOfferedToOthers() {
+        // given
+        var central = new BikeStation(new BikeStationId("Central"));
+        var b17 = new Bike(new BikeId("B-17"));
+        var b22 = new Bike(new BikeId("B-22"));
+        central.placeNew(b17);
+        central.placeNew(b22);
+        central.reserve(b17).by(new Borrower(new BorrowerId("anna"))).at(at("10:00"));
+
+        // when
+        var available = central.availableBikesAt(at("10:05"));
+
+        // then
+        org.assertj.core.api.Assertions.assertThat(available).containsExactly(b22.id());
+    }
+
     private static Instant at(String time) {
         return Instant.parse("2026-11-07T" + time + ":00Z");
     }

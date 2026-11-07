@@ -31,7 +31,9 @@
 ///   at 10:16 the reservation no longer counts (plan D9). `BikeStation` invariant, see
 ///   `BikeStationTest#rejectsReservingABikeReservedForSomeoneElse`,
 ///   `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`, `#aReservationStopsCountingAfterItsWindow`.
-/// - **R4 Reserved bikes aren't offered to others** [E4.1]: *being built with the `AvailableBikesAtStation` query*.
+/// - **R4 Reserved bikes aren't offered to others** [E4.1]: given B-17 is reserved for Anna and B-22 is available, when
+///   Ben asks which bikes are available at Central, then he sees only B-22. `BikeStation#availableBikesAt`, served by
+///   `AvailableBikesAtStationHandler`; see `BikeStationTest#aReservedBikeIsNotOfferedToOthers`.
 /// - **R5 Withdrawn bikes can't be reserved** [E5.1]: given B-31 was withdrawn, when Anna reserves it, then rejected.
 ///   `BikeStation` invariant, see `BikeStationTest#rejectsReservingAWithdrawnBike`.
 /// - **R6 Only eligible borrowers reserve** [E6.1]: given Carl hasn't finished onboarding, when he reserves B-17, then
