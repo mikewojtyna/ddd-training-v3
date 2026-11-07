@@ -52,8 +52,11 @@ ContextMap VeloCityDiscoveryContextMap {
 
 	/* Fleet Maintenance */
 
-	// bike out of service / back in circulation (maintenance decides)
-	FleetMaintenance [U,S,PL]->[D,C,ACL] Rental : BikeAvailability
+	// bike out of service / back in circulation: Fleet Maintenance still decides "out of service",
+	// and commands Rental's Withdraw Bike API (Rental upstream). Flipped on 2026-11-07 by
+	// docs/plans/rider-reserves-bike-at-station.md (Q2, option A); the discovery report left the
+	// direction open ("who withdraws a broken bike"), and it first read FleetMaintenance -> Rental.
+	Rental [U,S,PL]->[D,C,ACL] FleetMaintenance : BikeAvailability
 
 	// API offered by Fleet Maintenance: maintenance request for a fault incident; Bike Fixed / Back In Circulation flow back
 	FleetMaintenance [U,S,PL]->[D,C,ACL] IncidentHandling : MaintenanceRequest

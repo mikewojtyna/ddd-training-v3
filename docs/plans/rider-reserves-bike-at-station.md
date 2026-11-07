@@ -3,7 +3,7 @@ name: rider-reserves-bike-at-station
 intent: rider-reserves-bike-at-station
 spec: rider-reserves-bike-at-station
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-07
 spec_date: 2026-11-07
 ---
@@ -121,14 +121,14 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 ## Steps
 
 ### S1: Flip the Fleet Maintenance relationship in the discovery CML
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals, Fleet Maintenance (context map)
 - **Skill:** none (this skill; the change was approved with Q2, option A)
 - **Covers:** none
 - **Done when:** `src/main/cml/VeloCity-Context-Map-Discovery.cml` has `Rental [U,S,PL]->[D,C,ACL] FleetMaintenance : BikeAvailability` instead of the reverse. Its comment says that Fleet Maintenance still decides "out of service" and commands Rentals' *Withdraw Bike* API, and points to this plan and to the discovery report the original direction came from; `validate_cml.sh` passes; the reference CML is untouched.
 
 ### S2: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** none
@@ -229,3 +229,5 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 
 ### 2026-11-07: planned
 - Built from the spec dated 2026-11-07 (approved).
+- S1 done: discovery CML relationship flipped (`Rental -> FleetMaintenance : BikeAvailability`), validate_cml.sh VALID; reference CML untouched.
+- S2 done: canvas moved to `docs/bounded-contexts/velocity/rentals/canvas.md`, renamed Rentals, R1–R8 decisions added; discovery report path updated.

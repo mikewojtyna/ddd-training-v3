@@ -127,7 +127,7 @@ Critics: P1, P2, P3, P4+P5 AGREE round 1; final pass over all processes AGREE ro
 
 ## Next steps
 - Canvases (canvas only, no plan, no code), pre-filled via bounded-context-scaffolder's canvas template:
-  docs/bounded-contexts/velocity/{rideraccounts,rental,pricing,settlement,payments,debtrecovery,incidenthandling}/canvas.md
+  docs/bounded-contexts/velocity/{rideraccounts,rental→rentals (moved 2026-11-07, docs/plans/rider-reserves-bike-at-station.md),pricing,settlement,payments,debtrecovery,incidenthandling}/canvas.md
 - FleetMaintenance: existing canvas (completed 2026-11-03, code exists) left untouched; compare it with this discovery before updating.
 - Name to settle: Rental (discovery) vs Rentals (existing code package and reference CML).
 - Business decisions in the canvases mostly need concrete Given/When/Then values before scaffolding.
