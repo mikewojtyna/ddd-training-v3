@@ -65,7 +65,9 @@ def spec_ids(spec) -> dict:
             rules.add(f"R{m.group(1)}")
             examples |= {f"E{a}.{b}" for a, b in re.findall(r"\*\*E(\d+)\.(\d+)\*\*", text)}
     contract = subsections(spec.sections.get("Contract", ""))
-    names = lambda sub, key: [col(r, key) for r in table(contract.get(sub, "")) if col(r, key)]
+    # a name may carry a remark in parentheses ("Rent Bike (from `x`, gains a rule here)"): match on the name only
+    names = lambda sub, key: [re.sub(r"\s*\(.*\)\s*$", "", col(r, key)).strip()
+                              for r in table(contract.get(sub, "")) if col(r, key)]
     return {"rules": rules, "examples": examples, "commands": names("Commands", "command"),
             "queries": names("Queries", "query"), "events": names("Events", "event")}
 
