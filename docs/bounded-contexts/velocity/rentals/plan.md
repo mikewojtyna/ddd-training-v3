@@ -55,7 +55,7 @@ Answers "who has which bike, and when?": reservation, unlock, rental sessions, r
 ### Business rules → delegated to `ddd-tactical-building-blocks`
 | Rule (GWT) | Status | Building block | Test |
 |---|---|---|---|
-| Rent the requested bike: given B-17 and B-22 available at Central, when George rents B-17, then B-17 is rented and B-22 stays available | delegated (intent plan S4) | | |
+| Rent the requested bike: given B-17 and B-22 available at Central, when George rents B-17, then B-17 is rented and B-22 stays available | green | `BikeStation` invariant (refined) | `BikeStationTest#rentsExactlyTheRequestedBike` |
 | R1 [E1.1, E1.2] | delegated (S5) | | |
 | R3 [E3.1, E3.2, plus D9: Ben reserves B-17 at 10:16 → accepted] | delegated (S5) | | |
 | R5 [E5.1] | delegated (S5) | | |
@@ -105,3 +105,6 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsArchitectureTest.
 - Changed: none in domain code.
 - Proposed removals (not applied): none.
 - Triggered by: canvas update R1–R8 (intent: `docs/plans/rider-reserves-bike-at-station.md`).
+
+### 2026-11-07: tactical run (intent plan S4)
+- Cycle 1: rent exactly the requested bike. `BikeStation` invariant. `BikeStationTest#rentsExactlyTheRequestedBike`. Red seen (event named B-22), implemented by Claude (scaffolded on the user's request: one added filter in `rent`), green seen, confirmed by the user. `BikeRented` gained `BikeId bike`.

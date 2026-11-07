@@ -18,8 +18,9 @@
 ///
 /// ## Business decisions
 /// From `docs/specs/rider-reserves-bike-at-station.md` (spec IDs in brackets):
-/// - **A bike is rented exactly as requested** (fix of the delivered renting behaviour, plan step S4):
-///   *being built with `ddd-tactical-building-blocks`*.
+/// - **A bike is rented exactly as requested**: given B-17 and B-22 are available at Central, when George rents B-17,
+///   then B-17 is rented and B-22 stays available. `BikeStation` invariant, see
+///   `BikeStationTest#rentsExactlyTheRequestedBike`.
 /// - **R1 Reserve without being at the station** [E1.1, E1.2]: *being built with `ddd-tactical-building-blocks`*.
 /// - **R2 One active reservation per borrower** [E2.1]: *being built with `ddd-tactical-building-blocks`*.
 /// - **R3 A reserved bike is held for its borrower**, up to and including the end of its window [E3.1, E3.2]:

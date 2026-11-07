@@ -119,4 +119,41 @@ class BikeStationTest {
         // then
         assertThat(exception).isInstanceOf(MaximumRentalDurationExceededException.class);
     }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         given bikes B-17 and B-22 are available at station Central,
+         when George rents B-17,
+         then B-17 is rented and B-22 stays available
+        """
+    )
+    // @formatter:on
+    @Test
+    void rentsExactlyTheRequestedBike() {
+        // given
+        var central = new BikeStation(new BikeStationId("Central"));
+        var b17 = new Bike(new BikeId("B-17"));
+        var b22 = new Bike(new BikeId("B-22"));
+        central.placeNew(b17);
+        central.placeNew(b22);
+        var george = new Borrower(new BorrowerId("george"));
+        var anna = new Borrower(new BorrowerId("anna"));
+        var ben = new Borrower(new BorrowerId("ben"));
+        var oneHour = new RentalDuration(Duration.ofHours(1));
+
+        // when
+        var events = central.rent(b17).by(george).forDuration(oneHour);
+
+        // then B-17 is rented: the event names it, and nobody else can rent it
+        assertThat(events.hasAtLeastOneEventMatching(
+            event -> event instanceof BikeRentalEvent.BikeRented rented && rented.bike().equals(b17.id()))).isTrue();
+        assertThat(catchThrowable(() -> central.rent(b17).by(anna).forDuration(oneHour)))
+            .isInstanceOf(BikeNotAvailableException.class);
+
+        // and B-22 stays available
+        var benEvents = central.rent(b22).by(ben).forDuration(oneHour);
+        assertThat(benEvents.hasAtLeastOneEventMatching(
+            event -> event instanceof BikeRentalEvent.BikeRented rented && rented.bike().equals(b22.id()))).isTrue();
+    }
 }

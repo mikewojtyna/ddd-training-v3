@@ -142,7 +142,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** `ReserveBike` and `WithdrawBike` records, `AvailableBikesAtStation` query/result records, the Rider Accounts eligibility port + stub ACL adapter, and `RentalsArchitectureTest` exist; `./mvnw test` green.
 
 ### S4: Rent the requested bike (fix of `rider-rents-bike-from-station`, F1)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (refine `BikeStation`, TDD checkpoint loop)
 - **Covers:** none (delivered behaviour; one confirmed scenario: "Given B-17 and B-22 are available at Central, When George rents B-17, Then B-17 is rented and B-22 stays available", and `BikeRented` carries the bike)
@@ -232,3 +232,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S1 done: discovery CML relationship flipped (`Rental -> FleetMaintenance : BikeAvailability`), validate_cml.sh VALID; reference CML untouched.
 - S2 done: canvas moved to `docs/bounded-contexts/velocity/rentals/canvas.md`, renamed Rentals, R1–R8 decisions added; discovery report path updated.
 - S3 done: scaffolder 6a. `ReserveBike`, `WithdrawBike`, `AvailableBikesAtStation`/`AvailableBikes`, `BorrowerEligibility` port + `rideraccountsctxacl` stub, `RentalsContextConfig`, `RentalsArchitectureTest`; context plan `docs/bounded-contexts/velocity/rentals/plan.md` (approved via this plan). `./mvnw test` green.
+- S4 done: `BikeStation.rent` rents exactly the requested bike; `BikeRented` carries the bike. Test `BikeStationTest#rentsExactlyTheRequestedBike` (scaffolded by Claude on the user's request, confirmed). Suite green.

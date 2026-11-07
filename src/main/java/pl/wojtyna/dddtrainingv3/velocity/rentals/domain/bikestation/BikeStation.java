@@ -34,10 +34,11 @@ public class BikeStation {
                 throw new MaximumRentalDurationExceededException("Bike rent too long");
             }
             return bikes.stream()
+                        .filter(bikeInStation -> bikeInStation.id().equals(bike.id()))
                         .filter(BikeInStation::isAvailable).findAny()
                         .map(bikeInStation -> {
                             bikeInStation.setAvailable(false);
-                            return DomainEvents.of(new BikeRentalEvent.BikeRented(borrower, rentalDuration));
+                            return DomainEvents.of(new BikeRentalEvent.BikeRented(bikeInStation.id(), borrower, rentalDuration));
                         })
                         .orElseThrow(() -> new BikeNotAvailableException("Bike not available"));
         };
