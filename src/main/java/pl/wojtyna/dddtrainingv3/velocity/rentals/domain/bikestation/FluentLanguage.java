@@ -13,4 +13,10 @@ public interface FluentLanguage {
 
         R forDuration(S s);
     }
+
+    @FunctionalInterface
+    interface At<S, R> {
+
+        R at(S s);
+    }
 }

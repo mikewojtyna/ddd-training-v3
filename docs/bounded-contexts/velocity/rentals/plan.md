@@ -12,6 +12,8 @@
 ## Review notes
 - 2026-11-07: approved via `docs/plans/rider-reserves-bike-at-station.md` on 2026-11-07 (intent plan approved by the user; structural decisions and the TDD checkpoint loop taken from it). No questions asked again.
 
+- 2026-11-07: TDD checkpoint loop switched **off** by the user for the remaining cycles of intent-plan steps S5–S7 (explicit decision after the cost was explained).
+
 ## Canvas summary
 Answers "who has which bike, and when?": reservation, unlock, rental sessions, returns. Strategic classification and domain roles are still open in the canvas. Upstream: Rider Accounts (eligibility). Downstream: Fleet Maintenance (commands *Withdraw bike*), Settlement and Incident Handling (events, not in code yet).
 
@@ -56,9 +58,9 @@ Answers "who has which bike, and when?": reservation, unlock, rental sessions, r
 | Rule (GWT) | Status | Building block | Test |
 |---|---|---|---|
 | Rent the requested bike: given B-17 and B-22 available at Central, when George rents B-17, then B-17 is rented and B-22 stays available | green | `BikeStation` invariant (refined) | `BikeStationTest#rentsExactlyTheRequestedBike` |
-| R1 [E1.1, E1.2] | delegated (S5) | | |
-| R3 [E3.1, E3.2, plus D9: Ben reserves B-17 at 10:16 → accepted] | delegated (S5) | | |
-| R5 [E5.1] | delegated (S5) | | |
+| R1 [E1.1, E1.2] | green | `BikeStation` invariant | `BikeStationTest#reservesAnAvailableBikeForFifteenMinutes`, `#rejectsReservingARentedBike` |
+| R3 [E3.1, E3.2, plus D9: Ben reserves B-17 at 10:16 → accepted] | green | `BikeStation` invariant | `BikeStationTest#rejectsReservingABikeReservedForSomeoneElse`, `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`, `#aReservationStopsCountingAfterItsWindow` |
+| R5 [E5.1] | green | `BikeStation` invariant (+ `withdraw` command) | `BikeStationTest#rejectsReservingAWithdrawnBike` |
 | R2 [E2.1] | delegated (S6) | | |
 | R7 [E7.1] | delegated (S6) | | |
 | R8 [E8.1, E8.2] | delegated (S6) | | |
@@ -108,3 +110,12 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsArchitectureTest.
 
 ### 2026-11-07: tactical run (intent plan S4)
 - Cycle 1: rent exactly the requested bike. `BikeStation` invariant. `BikeStationTest#rentsExactlyTheRequestedBike`. Red seen (event named B-22), implemented by Claude (scaffolded on the user's request: one added filter in `rent`), green seen, confirmed by the user. `BikeRented` gained `BikeId bike`.
+
+### 2026-11-07: tactical run 1 (intent plan S5: R1, R3, R5)
+- Cycle 1 E1.1, `#reservesAnAvailableBikeForFifteenMinutes`: red seen (no event), Claude scaffolded (on request), green, confirmed.
+- Cycle 2 E1.2, `#rejectsReservingARentedBike`: red seen (no exception), Claude scaffolded (on request), green, confirmed.
+- Cycle 3 E3.1, `#rejectsReservingABikeReservedForSomeoneElse`: red seen, Claude scaffolded (on request), green. Loop switched off by the user after this cycle.
+- Cycle 4 E3.2, `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`: passed straight away; only the signature change `rent(…).forDuration(d).at(now)` (9 existing calls updated mechanically).
+- Cycle 5 D9, `#aReservationStopsCountingAfterItsWindow`: red seen (BikeNotAvailableException at 10:16), Claude implemented: `BikeInStation.reservedUntil`, availability became `isAvailableAt(now)`; green.
+- Cycle 6 E5.1, `#rejectsReservingAWithdrawnBike`: red seen, Claude implemented `withdraw(bike)` (marks the bike unavailable; no event, the spec defines none); green.
+- Invariant → state as built: per `BikeInStation`: `available` (rented or withdrawn), `reservedUntil`. The holder isn't stored yet: R8 (run 2) needs it.

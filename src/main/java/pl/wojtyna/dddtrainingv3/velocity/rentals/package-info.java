@@ -21,12 +21,18 @@
 /// - **A bike is rented exactly as requested**: given B-17 and B-22 are available at Central, when George rents B-17,
 ///   then B-17 is rented and B-22 stays available. `BikeStation` invariant, see
 ///   `BikeStationTest#rentsExactlyTheRequestedBike`.
-/// - **R1 Reserve without being at the station** [E1.1, E1.2]: *being built with `ddd-tactical-building-blocks`*.
+/// - **R1 Reserve without being at the station** [E1.1, E1.2]: given B-17 is available at Central, when Anna reserves
+///   it at 10:00, then it's reserved for her until 10:15 (Bike Reserved); a rented bike can't be reserved. `BikeStation`
+///   invariant, see `BikeStationTest#reservesAnAvailableBikeForFifteenMinutes`, `#rejectsReservingARentedBike`.
 /// - **R2 One active reservation per borrower** [E2.1]: *being built with `ddd-tactical-building-blocks`*.
 /// - **R3 A reserved bike is held for its borrower**, up to and including the end of its window [E3.1, E3.2]:
-///   *being built with `ddd-tactical-building-blocks`*.
+///   given B-17 is reserved for Anna until 10:15, when Ben reserves it at 10:05 or rents it at 10:15, then rejected;
+///   at 10:16 the reservation no longer counts (plan D9). `BikeStation` invariant, see
+///   `BikeStationTest#rejectsReservingABikeReservedForSomeoneElse`,
+///   `#rejectsRentingABikeReservedForSomeoneElseUpToTheEndOfTheWindow`, `#aReservationStopsCountingAfterItsWindow`.
 /// - **R4 Reserved bikes aren't offered to others** [E4.1]: *being built with the `AvailableBikesAtStation` query*.
-/// - **R5 Withdrawn bikes can't be reserved** [E5.1]: *being built with `ddd-tactical-building-blocks`*.
+/// - **R5 Withdrawn bikes can't be reserved** [E5.1]: given B-31 was withdrawn, when Anna reserves it, then rejected.
+///   `BikeStation` invariant, see `BikeStationTest#rejectsReservingAWithdrawnBike`.
 /// - **R6 Only eligible borrowers reserve** [E6.1]: *being built with `ddd-tactical-building-blocks`*.
 /// - **R7 No reserving while riding** [E7.1]: *being built with `ddd-tactical-building-blocks`*.
 /// - **R8 A holder rents only the reserved bike, and renting it ends the reservation** [E8.1, E8.2]:

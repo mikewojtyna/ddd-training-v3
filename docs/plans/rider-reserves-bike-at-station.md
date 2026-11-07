@@ -149,7 +149,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - **Done when:** the scenario's test passes, the existing `BikeStationTest` examples still pass (adjusted only mechanically), `./mvnw test` green.
 
 ### S5: TDD run 1, a bike held at a station: R1, R3, R5
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (TDD checkpoint loop)
 - **Covers:** R1, R3, R5, E1.1, E1.2, E3.1, E3.2, E5.1, plus one scenario for D9 (confirmed 2026-11-07): "Given B-17 was reserved for Anna at 10:00, When Ben reserves B-17 at 10:16, Then the reservation is accepted"
@@ -224,6 +224,7 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - 2026-11-07: user answers: Q1 Rentals, Q2 option A (with consent to flip the discovery CML relationship), Q3 a reservation stops counting after its window, F1 fix confirmed. Added S1 (CML change); steps renumbered.
 - 2026-11-07: critic round 2, AGREE. Notes applied: summary fixed, S1 comment wording, D9 scenario added to S5 for confirmation, Fleet Maintenance `takeOut` stub listed as a risk, withdrawn-bike wording, canvas path updates, D8/D9 order.
 - 2026-11-07: approved by the user. D9 scenario confirmed, TDD checkpoint loop on.
+- 2026-11-07: user switched the TDD checkpoint loop off for the rest of S5–S7 (after cycle 3 of S5), after being told the cost. Work stays test-first; per-cycle log reported at the end of each run.
 
 ## Changelog
 
@@ -233,3 +234,4 @@ Ticket hints from the spec's Notes for the plan, and what this plan does with th
 - S2 done: canvas moved to `docs/bounded-contexts/velocity/rentals/canvas.md`, renamed Rentals, R1–R8 decisions added; discovery report path updated.
 - S3 done: scaffolder 6a. `ReserveBike`, `WithdrawBike`, `AvailableBikesAtStation`/`AvailableBikes`, `BorrowerEligibility` port + `rideraccountsctxacl` stub, `RentalsContextConfig`, `RentalsArchitectureTest`; context plan `docs/bounded-contexts/velocity/rentals/plan.md` (approved via this plan). `./mvnw test` green.
 - S4 done: `BikeStation.rent` rents exactly the requested bike; `BikeRented` carries the bike. Test `BikeStationTest#rentsExactlyTheRequestedBike` (scaffolded by Claude on the user's request, confirmed). Suite green.
+- S5 done: R1, R3, R5 + D9 in `BikeStation` (11 tests in `BikeStationTest`); `rent` gained `.at(now)`; `withdraw(bike)` added. Loop off from cycle 4 (user). Suite green.

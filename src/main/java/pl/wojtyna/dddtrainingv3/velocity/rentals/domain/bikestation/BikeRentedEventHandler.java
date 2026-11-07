@@ -8,6 +8,8 @@ public class BikeRentedEventHandler {
             }
             case BikeRentalEvent.BikeReturned bikeReturned -> {
             }
+            case BikeRentalEvent.BikeReserved bikeReserved -> {
+            }
         }
     }
 }
