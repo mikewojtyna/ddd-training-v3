@@ -39,3 +39,4 @@ build/
 
 ### skill-creator eval workspaces ###
 .claude/skills/*-workspace/
+__pycache__/
