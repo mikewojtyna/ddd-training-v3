@@ -3,7 +3,7 @@ name: finance-prices-free-floating-return-by-zone
 intent: finance-prices-free-floating-return-by-zone
 spec: finance-prices-free-floating-return-by-zone
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -87,42 +87,42 @@ of the contract's zone map (see Risks); its acceptance test waits for the spec f
 ## Steps
 
 ### S1: Update the Pricing canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E1.2, E1.3, E2.1, E2.2, E3.1, E3.2, E4.1, E4.2)
 - **Done when:** canvas carries the UL term, the four tags and the five new decisions. Prerequisite: plan `finance-prices-ride-by-tiered-tariff` S5 done.
 
 ### S2: Zone map port and the City ACL (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** none (structure for R1, R2)
 - **Done when:** port `ZoneMap` (domain, `@SecondaryPort`); adapter in `pricing/infra/adapters/secondary/cityacl` (`@AntiCorruptionLayer`) backed by the configured City zone map with Old Town Square and Riverside Park, time-aware (D6), border inclusive; adapter unit test for inside / outside / withdrawn; `PricingArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Return fee by ending and zone, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E1.3, E2.1, E2.2, E3.1, E3.2
 - **Done when:** one domain test per example, the zone given as a fact (D5); E1.3 written with the corrected position; `./mvnw test` green.
 
 ### S4: Return fee from the tariff at session start, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, E4.1, E4.2
 - **Done when:** one domain test per example; `./mvnw test` green.
 
 ### S5: Zone lookup in the query handler (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Price Ride, Ride Priced
 - **Done when:** `PriceForSessionQueryHandler` asks `ZoneMap` for free-floating endings only (D5) at `endedAt`; `GET /pricing/session-price` returns `returnFee` and `returnFeeKind`; `400` for a free-floating ending without a position; wiring in `pricing/infra/config`; `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -146,11 +146,10 @@ of the contract's zone map (see Risks); its acceptance test waits for the spec f
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2, E1.3 | S2, S3, S5, S6 | |
-| R2 / E2.1, E2.2 | S2, S3, S5, S6 | |
-| R3 / E3.1, E3.2 | S3, S6 | |
-| R4 / E4.1, E4.2 | S4, S6 | |
-
+| R1 / E1.1, E1.2, E1.3 | S2, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/cityacl/SimulatedCityZoneMap.java`, `CityZoneMapAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/PriceForSessionQueryHandler.java`; tests `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/ReturnFeeTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/cityacl/CityZoneMapAdapterTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/FinancePricesFreeFloatingReturnByZoneSpecTest.java` |
+| R2 / E2.1, E2.2 | S2, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/secondary/cityacl/SimulatedCityZoneMap.java`, `CityZoneMapAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/PriceForSessionQueryHandler.java`; tests `ReturnFeeTest`, `CityZoneMapAdapterTest`, `FinancePricesFreeFloatingReturnByZoneSpecTest` |
+| R3 / E3.1, E3.2 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/queries/PriceForSessionQueryHandler.java` (no zone lookup for a lock failure); tests `ReturnFeeTest`, `FinancePricesFreeFloatingReturnByZoneSpecTest` |
+| R4 / E4.1, E4.2 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `ReturnFeeTest`, `FinancePricesFreeFloatingReturnByZoneSpecTest` |
 ## Risks and open questions
 
 - **Spec problem, E1.3 (back to `spec-writer`):** (52.2311, 21.0122) is about **155.7 m** north of the Old Town Square centre (52.2297, 21.0122): 0.0014° of latitude × 111.195 km/°. With the 150 m radius of the contract's zone map (integration-contracts.md "Pricing") and of the Pricing canvas, that position is *outside* the drop zone, so E1.3 as written would yield the unauthorized zone fee. Fix options: the spec uses a position exactly 150 m from the centre (e.g. latitude 52.231049, 21.0122, ≈150.0 m), or the example states the zone's border position abstractly and the test builds a zone whose border passes through the point. An exact floating-point border also needs a stated tolerance. **Resolved 2026-11-08 by the orchestrator:** the spec now uses (52.23104, 21.0122), 149.0 m from the centre (haversine, R = 6371 km), just inside the border; an exact floating-point border isn't tested.
@@ -163,7 +162,14 @@ of the contract's zone map (see Risks); its acceptance test waits for the spec f
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE with one spec finding. Placement in Pricing follows the CML vision; City → Pricing via ACL as in the map; every example covered and tested; E1.3's geometric inconsistency is sent back to the spec rather than planned around (its acceptance test disabled until fixed).
 
+- 2026-11-08 (build): `ZoneMap` port (`domain/zone`, `zoneAt(Position, Instant)`), adapter `CityZoneMapAdapter` over `SimulatedCityZoneMap` (City language: approved drop-off areas, withdrawals for a window; haversine R = 6371 km, border inside) in `infra/adapters/secondary/cityacl`; beans `pricingSimulatedCityZoneMap`, `pricingZoneMap`. The query handler looks up the zone at `endedAt` for `FREE_FLOATING` only (D5); `400` for a free-floating ending without a position.
+- 2026-11-08 (build): E4.1 asserts the launch prices and that T-2 doesn't apply rather than the id `LAUNCH` (shared context, D8).
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built and delivered (autonomous run, stage 4)
+- Every step done through its skill (D1: TDD checkpoint loop off; one example per cycle, red seen before green, implemented by Claude); per-cycle log in `docs/bounded-contexts/velocity/pricing/plan.md`.
+- Acceptance tests and traceability files filled in; full suite `./mvnw test` green.

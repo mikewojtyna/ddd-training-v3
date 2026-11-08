@@ -6,7 +6,7 @@ system: velocity
 actor: Pricing Manager
 activity: Set prices
 task: Publish a tariff
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

@@ -3,7 +3,7 @@ name: pricing-manager-publishes-tariff
 intent: pricing-manager-publishes-tariff
 spec: pricing-manager-publishes-tariff
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -99,49 +99,49 @@ wire); free period is whole minutes on the wire (`freeMinutes`).
 ## Steps
 
 ### S1: Update the Pricing canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E2.1, E2.2, E3.1, E3.2, E4.1, E4.2, E5.1)
 - **Done when:** the canvas contains the UL terms and the eight tagged decisions.
 
 ### S2: Scaffold the Pricing module (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (new context, 6a; whichever Pricing plan runs first scaffolds, the others use update mode)
 - **Covers:** Publish Tariff, Tariffs
 - **Done when:** `pricing/package-info.java` with `@BoundedContext(name = "Pricing")` + `@Module`; `api/usecases/PublishTariff`, `api/queries/TariffsQuery` (+ result) records; `PricingArchitectureTest` (only other contexts' `api` used, domain free of Spring) green; `./mvnw test` green.
 
 ### S3: Publication rules, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim as scenarios, one per cycle)
 - **Covers:** R1, R3, R5, E1.1, E3.1, E3.2, E5.1, Tariff Published
 - **Done when:** one domain test per example (E3.1 here only the rejection); a published tariff yields `TariffPublished`; `./mvnw test` green.
 
 ### S4: Complete prices and the tariff valid at a moment, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, R2, E4.1, E4.2, E2.1, E2.2
 - **Done when:** one domain test per example; E2.1/E2.2 asserted as "the launch tariff / T-2 is the tariff valid at the session start" (the fee itself comes with `finance-prices-ride-by-tiered-tariff`); `./mvnw test` green.
 
 ### S5: Use case, query, REST, launch tariff and persistence (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Publish Tariff, Tariffs, Tariff Published
 - **Done when:** `PublishTariffUseCase` (load schedule, execute with `Instant.now(velocityClock)`, save, publish via `DomainEventPublisher`); `TariffsQueryHandler`; `POST /pricing/tariffs` and `GET /pricing/tariffs` with the 409/400 mapping; launch tariff seeded (D5); in-memory repository with `Version` (D4); wiring in `pricing/infra/config`; `./mvnw test` green.
 
 ### S6: Acceptance tests for publishing
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (implementation-planner)
 - **Covers:** E1.1, E3.2, E4.1, E4.2, E5.1
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingManagerPublishesTariffSpecTest.java`, `@VelocitySpringTest`, REST only, `MutableClock` set to the example's time, tariff dates per D8; one method per example; `./mvnw test` green.
 
 ### S7: Acceptance tests for the tariff a ride is priced with
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (implementation-planner)
 - **Covers:** E2.1, E2.2, E3.1
@@ -164,13 +164,12 @@ wire); free period is whole minutes on the wire (`freeMinutes`).
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6 | |
-| R2 / E2.1, E2.2 | S4, S7 | |
-| R3 / E3.1 | S3, S7 | |
-| R3 / E3.2 | S3, S6 | |
-| R4 / E4.1, E4.2 | S4, S6 | |
-| R5 / E5.1 | S3, S6 | |
-
+| R1 / E1.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/api/usecases/PublishTariffUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/infra/adapters/primary/PricingController.java`; tests `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffScheduleTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/PricingManagerPublishesTariffSpecTest.java` |
+| R2 / E2.1, E2.2 | S4, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java` (`tariffValidAt`), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `TariffScheduleTest`, `PricingManagerPublishesTariffSpecTest` |
+| R3 / E3.1 | S3, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java`; tests `TariffScheduleTest`, `PricingManagerPublishesTariffSpecTest` |
+| R3 / E3.2 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java`; tests `TariffScheduleTest`, `PricingManagerPublishesTariffSpecTest` |
+| R4 / E4.1, E4.2 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/Tariff.java`; tests `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffTest.java`, `PricingManagerPublishesTariffSpecTest` |
+| R5 / E5.1 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java`; tests `TariffScheduleTest`, `PricingManagerPublishesTariffSpecTest` |
 ## Risks and open questions
 
 - Spec **Q4** (must the unauthorized zone return fee be higher than the drop zone fee?) is open. The plan enforces only "every price present, none negative" (R4); if the answer is yes, it becomes a fourth publication rule in S4.
@@ -184,7 +183,17 @@ wire); free period is whole minutes on the wire (`freeMinutes`).
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Placement single-context and matches CML responsibility "Tariffs"; no integration; every example covered and given an acceptance test; tactical runs ≤ 3 rules; step order ends green (S7 waits for the tiered plan's query); building blocks left to the tactical skill (D6 names only a candidate).
 
+- 2026-11-08 (build): Building blocks (tactical skill): `TariffSchedule` state-based aggregate (R1, R3, R5 and "tariff valid at" for R2; one consistency boundary for all tariffs, as D6 suggested), `Tariff` value object (R4: complete, non-negative; rule exceptions `IncompleteTariffException`, `NegativeFeeException`), domain event `TariffEvent.TariffPublished(tariff, publishedBy, publishedAt)`, no `api/events` record.
+- 2026-11-08 (build): Decision taken during the build: a tariff id is unique (spec Data) → `DuplicateTariffIdException`, 409 `DuplicateTariffId`, one extra domain test `TariffScheduleTest#secondTariffWithSameIdIsRejected`.
+- 2026-11-08 (build): Decision taken during the build: `publishedBy` optional in `POST /pricing/tariffs` (CONTRACT GAP addition); absent → `PricingManagerId.unknown()`.
+- 2026-11-08 (build): Decision taken during the build: launch tariff id `LAUNCH` (`LaunchTariff`), seeded by `PricingContextConfig` through `TariffSchedule.startingWith(...)` (D5). `POST /pricing/tariffs` answers `201` with no body; rejections `409 {error: ValidFromNotInFuture|DuplicateValidFrom|DuplicateTariffId|IncompleteTariff|NegativeFee}`, malformed input `400 MalformedRequest`.
+- 2026-11-08 (build): Deviation from D8: E1.1 publishes its own T-2 on test day 2030-04-11 (followed by launch prices from 2030-04-12) so that it observes a successful publication whatever the test order; E2.1, E2.2 and E5.1 share one T-2 valid from 2030-04-01. E2.1 asserts the launch *prices* (PLN 3.00) and that T-2 doesn't apply, not the id `LAUNCH`: in the shared context the tariff valid just before 2030-04-01 may be another test's "launch prices again" tariff.
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built and delivered (autonomous run, stage 4)
+- Every step done through its skill (D1: TDD checkpoint loop off; one example per cycle, red seen before green, implemented by Claude); per-cycle log in `docs/bounded-contexts/velocity/pricing/plan.md`.
+- Acceptance tests and traceability files filled in; full suite `./mvnw test` green.
