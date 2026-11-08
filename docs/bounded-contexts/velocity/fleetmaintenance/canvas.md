@@ -1,22 +1,17 @@
 # Bounded Context Canvas: FleetMaintenance
 
 <!--
-Based on the ddd-crew Bounded Context Canvas v5: https://github.com/ddd-crew/bounded-context-canvas
-Required: Name, Purpose, Ubiquitous Language. Everything else makes the generated module richer.
-Business decisions become aggregates and tests only if you write them as strict Given/When/Then examples with concrete values.
-
-PRE-FILLED by Claude from docs/domains/velocity/velocity-vision.md, docs/domains/velocity/velocity-context-map.md and
-src/main/cml/VeloCity-Context-Map.cml, then completed with the user on 2026-11-03.
+Rewritten by Claude on 2026-11-08 from docs/domains/velocity/velocity-vision.md ("Broken Bikes & Maintenance"),
+docs/domains/velocity/velocity-context-map.md, the CML and the earlier canvas of 2026-11-03, during an autonomous
+run. Values from role-played domain-expert answers (DE-n), see docs/bounded-contexts/velocity/domain-expert-answers.md.
 -->
 
 ## Name
 FleetMaintenance
 
-<!-- Matches `BoundedContext FleetMaintenance` in the CML. -->
-
 ## Purpose
-Keeps the fleet healthy: makes sure a broken bike is fixed as quickly as possible and decides
-when it goes back into circulation.
+Keeps the fleet healthy: knows every broken bike, whatever reported it, lets technicians pick broken bikes up and
+repair them, and decides when a repaired bike goes back into circulation. Maintenance is never billed.
 
 ## Strategic Classification
 - Domain: supporting
@@ -24,78 +19,92 @@ when it goes back into circulation.
 - Evolution: custom built
 
 ## Domain Roles
-<!-- Pick traits from docs/model-traits-worksheet.md -->
-- Enforcer: enables Rentals to offer only working bikes
+- Enforcer: enables Rentals to offer only working bikes.
+- Execution Model: runs each broken bike through maintenance.
 
 ## Inbound Communication
 | Collaborator | Type (Query/Command/Event) | Message | Notes |
 |---|---|---|---|
-| Rentals | Event | Bike Withdrawn (fault detected / lock failed) | Rentals withdraws a faulty bike itself; we learn it's broken |
-| Rentals | Event | Bike Unlocked (by a technician) | We react with *Maintenance Started*; never a rental session |
-| Rentals | Event | Reservation Expired / Unlock Failed (technician) | Bike stays broken and waits for another technician |
-| Customer Support | Event | Fleet Issue Incident Reported | Default assumption in the context map, NOT confirmed |
-| Technician app | Command | Report Fault | A technician reports a bike broken themselves, e.g. during a routine check |
-| Technician app | Command | Return Bike to Circulation | Means "fixed and back": publishes *Bike Fixed* and makes the bike available in Rentals |
+| Rentals | Event | Bike Withdrawn (fault reported at return, lock failed, fault signalled, not returned) | Rentals withdrew it itself; we register it broken |
+| Rentals | Event | Bike Unlocked (by a technician) | We start maintenance |
+| Rentals | Event | Reservation Expired / Unlock Failed (technician) | Bike stays broken and waits for a technician |
+| Customer Support | Event | Fleet Issue Reported | Confirmed (DE-52); we register it broken and ask Rentals to withdraw it |
+| Technician app | Command | Report Fault | DE-62 |
+| Technician app | Command | Reserve Broken Bike | Via Rentals' service reservation |
+| Technician app | Command | Unlock Broken Bike | Via Rentals' service unlock |
+| Technician app | Command | Return Bike to Circulation (station or position) | Means fixed and back (DE-60) |
+| Technician app | Query | Broken Bikes | |
 
 ## Outbound Communication
 | Message | Type (Query/Command/Event) | Collaborator | ACL? (default: yes) |
 |---|---|---|---|
-| Withdraw Bike | Command | Rentals | yes (Rentals speaks *available / withdrawn*, never *broken*) |
-| Make Bike Available (back in circulation) | Command | Rentals | yes |
-| Reserve Bike / Unlock Bike (for a technician) | Command | Rentals | yes |
-| Maintenance Started | Event | none (internal domain event) | n/a for events |
-| Bike Fixed | Event | none (internal domain event) | n/a for events |
-| Notify Bike Fixed | Command | Customer Support (so it can resolve the fleet-issue incident) | yes. Customer Support stays upstream; Fleet Maintenance is downstream and calls its command |
+| Withdraw Bike | Command | Rentals | yes (Rentals speaks *available / withdrawn*, never *broken*; the map now says `[D,ACL]`) |
+| Reserve Bike / Unlock Bike (for service, technician) | Command | Rentals | yes |
+| Make Bike Available | Command | Rentals | yes |
+| Resolve Fleet Issue (incident, bike fixed) | Command | Customer Support | yes (Customer Support's OHS) |
+| Bike Reported Broken, Maintenance Started, Bike Fixed | Event | none outside Fleet Maintenance yet | n/a |
 
 ## Ubiquitous Language
-- **Bike**: a physical vehicle in the VeloCity fleet.
-- **Broken**: a bike that has been reported faulty; riders can't rent it until it's fixed.
-- **Fault Report**: a report that a bike is broken, from a rider at return, from a support incident, from the bike itself, or from a technician.
-- **Technician**: a VeloCity employee who reserves and unlocks bikes in order to repair them.
-- **Maintenance**: the work a technician does on a broken bike after unlocking it; never billed.
-- **Maintenance Started**: the moment a technician unlocks a broken bike.
-- **Bike Fixed**: the moment a technician returns a bike to circulation after maintenance. There is no separate "mark fixed" step: returning it means it is fixed.
-- **Back in Circulation**: the bike is at a station or in a drop zone and available to riders again.
+- **Broken bike**: a bike reported faulty; riders can't rent it until it's fixed.
+- **Fault report**: a report that a bike is broken: from Rentals (it withdrew the bike), from a fleet-issue incident, or from a technician.
+- **Incident link**: a fleet-issue incident about the broken bike, resolved when the bike is fixed.
+- **Technician**: a VeloCity employee who reserves and unlocks broken bikes to repair them.
+- **Maintenance**: the work after a technician's unlock; never billed.
+- **Maintenance started**: the moment a technician's unlock of a broken bike is reported.
+- **Bike fixed / back in circulation**: the technician returned the bike to circulation after maintenance; there is no separate "mark fixed" step.
 
 ## Business Decisions
-<!-- One rule per block. Concrete values, please.
-     The ones below are derived from the vision. Confirm, sharpen or delete them, and add your own.
-     Rules about time or limits need concrete numbers to become code. -->
+
+### A bike withdrawn by Rentals is registered broken
+- **Given** bike B-17 isn't broken
+- **When** Rentals reports B-17 withdrawn with reason *lock failed*
+- **Then** B-17 is broken (Bike Reported Broken)
+
+### A fleet-issue incident makes the bike broken and withdraws it
+- **Given** B-17 isn't broken
+- **When** Customer Support reports fleet issue I-1 for B-17
+- **Then** B-17 is broken, linked to I-1 (Bike Reported Broken), and Rentals is asked to withdraw B-17
+
+### A duplicate fault report changes nothing
+- **Given** B-17 is already broken
+- **When** a second fault report for B-17 arrives from a technician
+- **Then** nothing is recorded (a report from an incident only adds the incident link)
+
+### Only a broken bike can be reserved by a technician
+- **Given** B-22 isn't broken
+- **When** technician Tom reserves B-22
+- **Then** it is rejected; reserving broken B-17 asks Rentals for a service reservation for Tom
+
+### A technician's unlock starts maintenance
+- **Given** B-17 is broken and reserved for Tom
+- **When** Rentals reports B-17 unlocked by technician Tom
+- **Then** maintenance on B-17 started (Maintenance Started)
+
+### An expired reservation leaves the bike broken
+- **Given** B-17 is broken and reserved for Tom
+- **When** Rentals reports Tom's reservation of B-17 expired
+- **Then** B-17 is still broken and can be reserved by any technician
 
 ### A bike returns to circulation only after maintenance has started
-- **Given** bike B-17 is broken and maintenance on it has not started
-- **When** a technician returns B-17 to circulation
-- **Then** the request is rejected and B-17 stays withdrawn
+- **Given** B-17 is broken and maintenance hasn't started
+- **When** Tom returns B-17 to circulation
+- **Then** it is rejected and B-17 stays broken
 
 ### Returning a bike under maintenance fixes it
-- **Given** bike B-17 is broken and maintenance on it has started
-- **When** a technician returns B-17 to circulation
-- **Then** *Bike Fixed* is recorded for B-17 and Rentals is asked to make B-17 available
-
-### Maintenance starts only on a broken bike
-- **Given** bike B-17 is not broken
-- **When** a technician's unlock of B-17 is reported
-- **Then** the unlock is ignored: nothing is recorded and no *Maintenance Started* is published
-
-### A broken bike waits after an expired reservation
-- **Given** bike B-17 is broken and reserved by technician T-1
-- **When** the reservation expires before T-1 unlocks it
-- **Then** B-17 is still broken, is not offered to riders, and can be reserved by any technician
-
-### A duplicate fault report is ignored
-- **Given** bike B-17 is already broken
-- **When** a second fault report for B-17 arrives
-- **Then** nothing changes and nothing is recorded
+- **Given** B-17 is under maintenance by Tom and linked to incident I-1
+- **When** Tom returns B-17 to circulation at station Central
+- **Then** B-17 is fixed (Bike Fixed), Rentals is asked to make B-17 available at Central and Customer Support to resolve I-1
 
 ## Assumptions
-- Fleet-issue incidents from Customer Support reach Fleet Maintenance (unconfirmed in the context map).
-- Faults signalled by the bike itself are received by Rentals, which owns locks and stations (unconfirmed).
+- 🎭 DE-52: fleet-issue incidents reach Fleet Maintenance (the reference map's unconfirmed link is now confirmed).
+- 🎭 DE-21: a bike not returned after the maximum rental time is treated as broken.
 - Rentals owns reserve/unlock; Fleet Maintenance never locks or unlocks bikes itself.
+- A withdrawal that Fleet Maintenance asked for itself (reason *requested*) is not a new fault report.
 
 ## Verification Metrics
 - Time from "reported broken" to "back in circulation".
 - Share of bikes reported broken again within 7 days of returning to circulation.
 
 ## Open Questions
-- Can a bike turn out to be unrepairable (retired from the fleet)? Who decides?
+- Can a bike turn out to be unrepairable (retired from the fleet)? (DE-61: out of scope.)
 - Is there a repair priority (e.g. bikes at busy stations first)?

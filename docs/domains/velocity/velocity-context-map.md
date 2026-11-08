@@ -68,22 +68,22 @@ flowchart LR
     FLT["Fleet Maintenance"]
 
     PROC -->|"U: external, OHS/PL · D: ACL"| PAY
-    CITY -->|"zone map · D: CF"| PRI
+    CITY -->|"zone map · D: ACL"| PRI
 
     PAY -->|"U: OHS/PL · D: CF<br/>verify payment method<br/>Payment Method Invalidated"| ACC
     PAY -->|"U: OHS/PL · D: CF<br/>charge"| SET
 
-    ACC -->|"U / D<br/>is account active?"| REN
+    ACC -->|"U: OHS/PL · D: ACL<br/>may this rider rent?"| REN
     ACC -->|"U: OHS/PL · D: ACL<br/>block / unblock account<br/>(reason: outstanding debt)"| SET
 
     REN -->|"U: PL · D: CF<br/>Rental Session Ended"| SET
-    REN -->|"U: OHS/PL · D: CF<br/>fault detected, lock failed<br/>withdraw / make available<br/>reserve / unlock"| FLT
+    REN -->|"U: OHS/PL · D: ACL<br/>fault detected, lock failed<br/>withdraw / make available<br/>reserve / unlock"| FLT
 
     PRI -->|"U: OHS/PL · D: CF<br/>price for session"| SET
 
     SET -->|"Customer/Supplier · U: S, PL · D: C<br/>Rental Fee Unpaid<br/>attempt collection"| DEB
 
-    SUP -.->|"fleet-issue incident<br/>(default, unconfirmed)"| FLT
+    SUP -->|"U: OHS/PL · D: ACL<br/>Fleet Issue Reported<br/>resolve fleet issue"| FLT
 
     classDef external fill:#eee,stroke:#888,stroke-dasharray: 5 5,color:#333
     class PROC,CITY external
@@ -99,7 +99,6 @@ flowchart LR
 | **CF** | Conformist — downstream adopts the upstream model as-is |
 | **ACL** | Anticorruption Layer — downstream translates the upstream model into its own |
 | **C / S** | Customer / Supplier — the downstream (customer) requirements factor into the upstream (supplier) planning |
-| dashed arrow | Default assumption, not confirmed |
 
 ### Zoom: from a finished ride to money
 
@@ -162,5 +161,11 @@ flowchart LR
 ## Deferred / Open
 
 - **Billing disputes → pausing Debt Recovery** (from Customer Support) — not modeled yet.
-- **Fleet-issue incidents** routed Customer Support → Fleet Maintenance → Rentals (withdraw) — default, unconfirmed.
-- **Faults signaled by the bike itself** received by Rentals (it owns locks and stations) — default, unconfirmed.
+- ~~**Fleet-issue incidents** routed Customer Support → Fleet Maintenance → Rentals (withdraw) — default, unconfirmed.~~ Confirmed on 2026-11-08 by the role-played domain expert (`docs/bounded-contexts/velocity/domain-expert-answers.md`, DE-52): Customer Support publishes *Fleet Issue Reported*; Fleet Maintenance withdraws the bike in Rentals and, once the bike is fixed, calls Customer Support's *Resolve Fleet Issue* (OHS), so Customer Support stays upstream.
+- ~~**Faults signaled by the bike itself** received by Rentals (it owns locks and stations) — default, unconfirmed.~~ Confirmed on 2026-11-08 (DE-25): Rentals receives the signal and withdraws the bike.
+## Changes from the autonomous run of 2026-11-08
+
+While writing the bounded context canvases (`docs/bounded-contexts/velocity/*/canvas.md`) the map changed in four places, all mirrored in `src/main/cml/VeloCity-Context-Map.cml`:
+- **Customer Support → Fleet Maintenance** is confirmed (`[U,OHS,PL]->[D,ACL]`): *Fleet Issue Reported* one way, Fleet Maintenance calls *Resolve Fleet Issue* when the bike is fixed.
+- **Accounts → Rentals** is an Open Host Service with an ACL in Rentals (*may this rider rent?*).
+- **Rentals → Fleet Maintenance** and **City → Pricing** have an ACL downstream instead of a Conformist: Fleet Maintenance translates *withdrawn* into *broken*, and Pricing translates the City's zone map into drop zone / unauthorized zone.

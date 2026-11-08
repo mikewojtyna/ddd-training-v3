@@ -18,7 +18,7 @@ ContextMap VeloCityContextMap {
 
 	PaymentProcessor [U,OHS,PL]->[D,ACL] Payments : PaymentProcessing
 
-	City [U]->[D,CF] Pricing : ZoneMap
+	City [U]->[D,ACL] Pricing : ZoneMap
 
 	/* Payments */
 
@@ -30,8 +30,8 @@ ContextMap VeloCityContextMap {
 
 	/* Accounts */
 
-	// is account active?
-	Accounts [U]->[D] Rentals : AccountStatus
+	// may this rider rent right now? (activated and not blocked)
+	Accounts [U,OHS,PL]->[D,ACL] Rentals : AccountStatus
 
 	// block / unblock account with a reason (outstanding debt); Settlement calls it on
 	// Rental Fee Unpaid / Outstanding Debt Cleared. Accounts knows no Settlement events.
@@ -43,7 +43,7 @@ ContextMap VeloCityContextMap {
 	Rentals [U,PL]->[D,CF] Settlement : RentalSessionEnded
 
 	// fault detected, lock failed; withdraw / make available; reserve / unlock
-	Rentals [U,OHS,PL]->[D,CF] FleetMaintenance : BikeAvailability
+	Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance : BikeAvailability
 
 	/* Pricing */
 
@@ -57,8 +57,9 @@ ContextMap VeloCityContextMap {
 
 	/* Customer Support */
 
-	// fleet-issue incident — default assumption, NOT confirmed with the domain expert
-	CustomerSupport [U]->[D] FleetMaintenance : FleetIssueIncident_Unconfirmed
+	// Fleet Issue Reported; Fleet Maintenance calls Resolve Fleet Issue when the bike is fixed.
+	// Confirmed by the (role-played) domain expert on 2026-11-08, see docs/bounded-contexts/velocity/domain-expert-answers.md DE-52.
+	CustomerSupport [U,OHS,PL]->[D,ACL] FleetMaintenance : FleetIssueIncident
 }
 
 /* Bounded Contexts */
