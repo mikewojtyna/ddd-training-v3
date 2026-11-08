@@ -3,7 +3,7 @@ name: collections-starts-debt-recovery
 intent: collections-starts-debt-recovery
 spec: collections-starts-debt-recovery
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -92,42 +92,42 @@ Missing, add:
 ## Steps
 
 ### S1: Update the DebtRecovery canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E2.2, E3.1, E3.2 (tags for E1.1, E2.1)
 - **Done when:** canvas contains the "Open" term and the two new business decisions, tagged with spec IDs.
 
 ### S2: Scaffold the DebtRecovery module (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (6a), told that this plan settles the structural decisions and D1
 - **Covers:** Start Debt Recovery (api record), Rental Fee Unpaid (listener stub)
 - **Done when:** `debtrecovery/package-info.java` with `@BoundedContext(name = "DebtRecovery")` + `@Module`; `api/usecases/StartDebtRecovery` record; `api/queries/RecoveryProcessQuery`; empty `settlementctxacl` listener package marked `@AntiCorruptionLayer`; `DebtRecoveryArchitectureTest` (only other contexts' `api` used) green; `./mvnw test` green.
 
 ### S3: Start and join rules, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per red-green cycle, examples used verbatim as scenarios)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E2.2, E3.1, E3.2, Recovery Started
 - **Done when:** one domain test per example (names after the IDs), `RecoveryStarted` returned in `DomainEvents`; Givens that need a paused/exhausted/succeeded recovery are built by the tactical skill with the minimal state it needs (the commands that reach them belong to later plans); `./mvnw test` green.
 
 ### S4: Use case, listener, query, REST and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Start Debt Recovery, Rental Fee Unpaid, Recovery Started
 - **Done when:** `StartDebtRecoveryUseCase` (load open recovery by rider or create, execute, save, publish via `DomainEventPublisher`); `RentalFeeUnpaidListener` (`@Async @EventListener`) translating the event; `RecoveryProcessQueryHandler` + `GET /debt-recovery/riders/{riderId}/recovery`; `infra/config/DebtRecoveryConfig` wiring with the `velocityClock`; `./mvnw test` green.
 
 ### S5: Persistence with optimistic locking
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (repository + `Version`)
 - **Covers:** none (D4)
 - **Done when:** in-memory `RecoveryProcesses` adapter rejects stale versions; the listener retries once on a version conflict (two unpaid fees for one rider arriving together); `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -147,11 +147,11 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S4, S6 | |
-| R2 / E2.1 | S1 (tag), S3, S4, S6 | |
-| R2 / E2.2 | S1, S3, S6 | |
-| R3 / E3.1 | S1, S3, S6 | |
-| R3 / E3.2 | S1, S3, S6 | |
+| R1 / E1.1 | S1 (tag), S3, S4, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/StartDebtRecoveryUseCase`; `infra/adapters/primary/settlementctxacl/RentalFeeUnpaidListener`; `CollectionsStartsDebtRecoverySpecTest` |
+| R2 / E2.1 | S1 (tag), S3, S4, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/StartDebtRecoveryUseCase`; `infra/adapters/primary/settlementctxacl/RentalFeeUnpaidListener`; `CollectionsStartsDebtRecoverySpecTest` |
+| R2 / E2.2 | S1, S3, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/StartDebtRecoveryUseCase`; `infra/adapters/primary/settlementctxacl/RentalFeeUnpaidListener`; `CollectionsStartsDebtRecoverySpecTest` |
+| R3 / E3.1 | S1, S3, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/StartDebtRecoveryUseCase`; `infra/adapters/primary/settlementctxacl/RentalFeeUnpaidListener`; `CollectionsStartsDebtRecoverySpecTest` |
+| R3 / E3.2 | S1, S3, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/StartDebtRecoveryUseCase`; `infra/adapters/primary/settlementctxacl/RentalFeeUnpaidListener`; `CollectionsStartsDebtRecoverySpecTest` |
 
 ## Risks and open questions
 
@@ -165,7 +165,12 @@ Missing, add:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (placement follows the canvas and CML; integration follows `Settlement [U,S,PL]->[D,C] DebtRecovery`; all 5 examples covered; at most 3 rules in S3, all guarding the same open-recovery state; S6 dependencies on later plans made explicit).
 
+- 2026-11-08 (DebtRecovery wave, autonomous run): built. Decisions taken: one `RecoveryProcess` aggregate per rider (identity `RiderId`), restarted by a new unpaid fee after success/exhaustion; version conflicts reload and retry up to 3 times (`RecoveryProcessChange`). D6 refined: every example uses REAL Settlement debt (`UnpaidRideFixture`: rider with a `tok_nofunds_*` card, Rentals' `RentalSessionEnded` published by the test, Settlement's retries driven with the `MutableClock`), except E3.1's PLN 7.00 Rental Fee Unpaid, which the launch tariff can't produce and is published as Settlement would. No `@Disabled` tests were needed (all four DebtRecovery plans were built together). The fixture registers riders in Accounts and verifies cards at Payments directly (as `SettlementDriver` does) instead of full onboarding, which Settlement doesn't need.
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: delivered (DebtRecovery wave)
+- S1-S6 done; acceptance tests `CollectionsStartsDebtRecoverySpecTest` (5), domain tests in `RecoveryProcessTest`; per-context plan `docs/bounded-contexts/velocity/debtrecovery/plan.md`.
