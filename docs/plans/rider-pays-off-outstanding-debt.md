@@ -3,7 +3,7 @@ name: rider-pays-off-outstanding-debt
 intent: rider-pays-off-outstanding-debt
 spec: rider-pays-off-outstanding-debt
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -101,7 +101,7 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 ## Steps
 
 ### S1: Update the Settlement canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E1.2, E1.3, E2.1, E2.2, E3.1)
@@ -136,28 +136,28 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 - **Done when:** `UnblockAccountUseCase`; `DELETE /accounts/riders/{riderId}/blocks/OUTSTANDING_DEBT` (`404` unknown rider); Account Status and Rental Eligibility reflect it; `./mvnw test` green.
 
 ### S6: Pay-off command and the unblock call in Settlement (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Pay Off Outstanding Debt, Account Unblocked
 - **Done when:** `settlement/api/usecases/PayOffOutstandingDebt` record (+ result); `AccountBlocks` port and `accountsctxacl` adapter can lift the *outstanding debt* block (adapter test against S5's endpoint); `SettlementArchitectureTest` green; `./mvnw test` green.
 
 ### S7: Collecting the whole outstanding debt, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E1.3, E2.1, E2.2, E3.1, Outstanding Debt Cleared
 - **Done when:** one domain test per example: the amount to charge is the whole debt from unpaid rides only (E1.3: a ride in retries isn't included); success clears the debt with Outstanding Debt Cleared and empties the unpaid rides; failure (declined or no current card) leaves debt and events unchanged; PLN 0.00 debt is rejected; `./mvnw test` green.
 
 ### S8: Pay-off use case, REST, publishing and persistence (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Pay Off Outstanding Debt, Rider's Outstanding Debt, Outstanding Debt Cleared, Account Unblocked
 - **Done when:** `PayOffOutstandingDebtUseCase` in the D6 order; `POST /settlement/riders/{riderId}/debt-payment` with `409 NoOutstandingDebt`; `api/events/OutstandingDebtCleared` published; Rider Balance shows the cleared debt; rider-debt repository with `Version`; wiring in `settlement/infra/config`; `./mvnw test` green.
 
 ### S9: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement (with real Accounts, Payments, Pricing beans)
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -167,21 +167,21 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 
 | Example | Test |
 |---|---|
-| E1.1 | `RiderPaysOffOutstandingDebtSpecTest#e1_1_rider_pays_off_debt_and_debt_block_is_lifted` |
-| E1.2 | `RiderPaysOffOutstandingDebtSpecTest#e1_2_debt_from_two_rides_paid_in_one_charge` |
-| E1.3 | `RiderPaysOffOutstandingDebtSpecTest#e1_3_ride_still_in_retries_is_not_part_of_payoff` |
-| E2.1 | `RiderPaysOffOutstandingDebtSpecTest#e2_1_declined_payment_leaves_debt_and_block` |
-| E2.2 | `RiderPaysOffOutstandingDebtSpecTest#e2_2_no_current_card_leaves_debt_and_both_blocks` |
-| E3.1 | `RiderPaysOffOutstandingDebtSpecTest#e3_1_rider_without_debt_cannot_pay_off` |
+| E1.1 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e1_1_rider_pays_off_debt_and_debt_block_is_lifted` |
+| E1.2 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e1_2_debt_from_two_rides_paid_in_one_charge` |
+| E1.3 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e1_3_ride_still_in_retries_is_not_part_of_payoff` |
+| E2.1 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e2_1_declined_payment_leaves_debt_and_block` |
+| E2.2 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e2_2_no_current_card_leaves_debt_and_both_blocks` |
+| E3.1 | `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest#e3_1_rider_without_debt_cannot_pay_off` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/UnblockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderPaysOffOutstandingDebtSpecTest.java` (Accounts side) |
-| R1 / E1.2, E1.3 | S7, S8, S9 | |
-| R2 / E2.1, E2.2 | S7, S8, S9 | |
-| R3 / E3.1 | S7, S8, S9 | |
+| R1 / E1.1 | S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/UnblockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderPaysOffOutstandingDebtSpecTest.java` (Accounts side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/PayOffOutstandingDebtUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/OutstandingDebtCollector.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/SettlementController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/RiderPaysOffOutstandingDebtSpecTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/UnblockRiderWhenDebtClearedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/OutstandingDebtPoliciesTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/accountsctxacl/AccountsAccountBlocks.java` |
+| R1 / E1.2, E1.3 | S7, S8, S9 |  `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/PayOffOutstandingDebtUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/OutstandingDebtCollector.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/SettlementController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/RiderPaysOffOutstandingDebtSpecTest.java` |
+| R2 / E2.1, E2.2 | S7, S8, S9 |  `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/PayOffOutstandingDebtUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/OutstandingDebtCollector.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/SettlementController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/RiderPaysOffOutstandingDebtSpecTest.java` |
+| R3 / E3.1 | S7, S8, S9 |  `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/PayOffOutstandingDebtUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/OutstandingDebtCollector.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/SettlementController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/RiderPaysOffOutstandingDebtSpecTest.java` |
 
 ## Risks and open questions
 
@@ -197,6 +197,8 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Debt rules in Settlement, block lifting in Accounts (canvas decision DE-6), no reverse dependency (Settlement calls Accounts' OHS, Accounts knows no Settlement events); upstream Accounts steps before Settlement's; tactical runs ≤ 3 rules; every example covered and tested with Awaitility on the Accounts hand-off.
 - 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Accounts-side Spring tests (Unblock Account over REST): `velocity/accounts/RiderPaysOffOutstandingDebtSpecTest#e1_1_cleared_debt_lifts_debt_block`, `#debt_unblock_does_not_lift_card_block`, `#unblock_contract`. Unblocking a rider without a debt block answers `200` and changes nothing; an unknown rider `404`. Settlement steps stay todo.
 
+- 2026-11-08 (Settlement wave, autonomous run): S1, S6-S9 built. The collection is `RiderDebt#collection()` → `DebtCollection` (the unpaid rides it covers and their sum) → `record(collection).as(outcome).at(now)`; it clears only the rides it charged, so a fee that became unpaid during the charge stays owed. Shared by Pay Off and Collect through `OutstandingDebtCollector` (D5). The unblock is the policy `UnblockRiderWhenDebtClearedPolicy` on Outstanding Debt Cleared. A paid-off ride stays `UNPAID` in Ride Settlement. `OutstandingDebtFixture` became `SettlementDriver#ridesUnpaid` (test). Details: `docs/bounded-contexts/velocity/settlement/plan.md`.
+
 ## Changelog
 
 ### 2026-11-08: planned
@@ -204,3 +206,6 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 
 ### 2026-11-08: Accounts steps done
 - Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.
+
+### 2026-11-08: Settlement steps S1, S6-S9 done (Settlement wave)
+- `PayOffOutstandingDebtUseCase`, `POST /settlement/riders/{riderId}/debt-payment` (`409 NoOutstandingDebt`), `OutstandingDebtCleared` published, Accounts unblock. Acceptance tests `velocity/settlement/RiderPaysOffOutstandingDebtSpecTest` (6, green). TDD log: `docs/bounded-contexts/velocity/settlement/plan.md`.
