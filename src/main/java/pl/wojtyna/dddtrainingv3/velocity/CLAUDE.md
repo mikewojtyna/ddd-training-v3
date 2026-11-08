@@ -9,16 +9,34 @@ VeloCity is a city bike rental service and the current exercise of the training.
 - `docs/domains/velocity/bounded-context-discovery-session.md` records how the bounded contexts were found, using three heuristics: pivotal events, swimlanes, and single responsibility.
 - `src/main/cml/VeloCity-Bounded-Contexts.cml` (contexts only) and `VeloCity-Context-Map.cml` (with relationships) are the Context Mapper models of the reference map. `contextmap/` renders them to PNG. If you change a context or a relationship, keep the CML, `velocity-context-map.md`, and the code in sync.
 
+## Artifacts of the AI-assisted flow
+
+- `docs/bounded-contexts/velocity/<context>/canvas.md` and `plan.md`: canvas and the scaffolder's plan (with the TDD log) per context.
+- `docs/bounded-contexts/velocity/domain-expert-answers.md`: the **role-played** domain-expert answers (DE-n) that filled the vision's gaps during the autonomous run of 2026-11-08. They are decisions made by Claude, not by the trainer; canvases, specs, plans and code cite them.
+- `docs/bounded-contexts/velocity/integration-contracts.md`: the published languages, i.e. every REST resource and integration event between contexts.
+- `docs/bounded-contexts/velocity/conversation.md`: the record of the session that built all of VeloCity.
+- `docs/intents/`, `docs/specs/`, `docs/plans/`: 35 intents, all delivered.
+
 ## Bounded contexts
 
-The reference map has these contexts: Accounts, Rentals, Pricing, Settlement, Payments, DebtRecovery, CustomerSupport and FleetMaintenance. It also has two external parties: the PaymentProcessor and the City, which provides the zone map. **Only `rentals` and `fleetmaintenance` exist in code so far.** Add the others as new subpackages that follow the root layout.
+All eight contexts of the reference map exist in code, each with the root layout (`api`, `domain`, `infra`), an architecture test and Spring acceptance tests per intent (`<IntentCamelCase>SpecTest`). The external parties are simulated inside the context that talks to them: the payment processor in `payments/.../paymentprocessoracl`, the City zone map in `pricing/.../cityacl`, bike locks in `rentals/.../bikelocksacl`, and messaging in Accounts and Debt Recovery.
 
-## Rentals
+| Context | Aggregates (`domain/`) | Talks to |
+|---|---|---|
+| Accounts | `account.Account` (onboarding, blocks, eligibility) | Payments (verify card, REST); listens to Payments' `PaymentMethodInvalidated` |
+| Payments | `paymentmethods.RiderPaymentMethods` | the simulated processor; publishes `PaymentMethodInvalidated` |
+| Rentals | `bike.Bike` (availability, hold, rental session) | Accounts (eligibility, REST); publishes `RentalSessionEnded`, `BikeWithdrawn`, `BikeUnlocked`, `ReservationExpired`, `UnlockFailed` |
+| Pricing | `tariff.TariffSchedule`, domain service `fee.FeeCalculator` | City zone map |
+| Settlement | `ride.RideSettlement`, `debt.RiderDebt` | Pricing, Payments, Accounts (REST); listens to `RentalSessionEnded`; publishes `RentalFeeUnpaid`, `OutstandingDebtCleared` |
+| DebtRecovery | `recovery.RecoveryProcess` | Settlement (collect, REST); listens to Settlement's events |
+| CustomerSupport | `incident.Incident` | publishes `FleetIssueReported`; offers *Resolve Fleet Issue* |
+| FleetMaintenance | `bike.Bike` (broken, maintenance) | Rentals and Customer Support (REST); listens to Rentals' and Customer Support's events |
 
-- `BikeStation` (`domain/bikestation`) is the aggregate root. It holds the bikes as a private inner `@Entity` called `BikeInStation`. `BikeStationRepo` is its `@SecondaryPort`.
-- Commands use a curried fluent API built from the `FluentLanguage` interfaces: `station.rent(bike).by(borrower).forDuration(duration)` returns `DomainEvents`. Follow this style for new commands.
-- Events are the sealed `BikeRentalEvent` hierarchy (`BikeRented`, `BikeReturned`). Handlers such as `BikeRentedEventHandler` use an exhaustive `switch`, so adding an event forces every handler to deal with it.
-- Business rules are enforced with dedicated exceptions: `BikeAlreadyInStation`, `BikeNotAvailableException`, and `MaximumRentalDurationExceededException` (thrown when a rental is longer than 11 hours).
-- Some parts are intentional workshop stubs: `BikeStation.returnBike` throws `UnsupportedOperationException`, and `RentBikeUseCase` only contains the load, execute, save, publish steps as comments.
-- `rentals/package-info.java` declares the context with `@BoundedContext(name = "Rentals")` and `@Module`. The name matches the CML. Give each new VeloCity context the same kind of `package-info.java`, named after its CML `BoundedContext`.
-- Tests (`src/test/.../velocity/rentals/domain/bikestation/BikeStationTest`) are written as given/when/then examples, with the scenario in `@DisplayName`, and live in the same package as the domain.
+## Integration conventions
+
+- **Commands and queries between contexts go over REST**: a secondary port in the caller's language, implemented in `infra/adapters/secondary/<ctx>ctxacl` (`@AntiCorruptionLayer`) with `velocityRestClient` and `VelocityServiceUrls`. The adapter keeps its own request/response records and never imports the upstream's classes.
+- **Integration events go over the in-process Spring bus**: the publisher maps its domain event to an `api/events` record; the consumer listens in `infra/adapters/primary/<ctx>ctxacl` with `@Async @EventListener` and calls its own use case. Listeners are asynchronous on purpose, as with a broker.
+- **Time**: every context reads the shared `velocityClock`. Time-driven use cases (reservation expiry, overdue sessions, charge retries, collection attempts, uncontested rejections) are triggered by `@Scheduled` jobs, which `velocity.scheduling.enabled=false` switches off.
+- **Tests**: `@VelocitySpringTest` starts the whole application with real beans on a random port, with a `MutableClock` and scheduling off. All Spring tests share one cached context, so they use their own ids. Cross-context effects are asserted with Awaitility. End-to-end journeys across contexts are in `src/test/java/.../velocity/journeys`.
+- Rentals' chained commands (`bike.reserveForRide(anna).standingAt(position).given(standing).at(now)`) are the style for multi-argument commands, built from the `FluentLanguage` interfaces. `Bike` and its tests are the reference implementation for the `ddd-tactical-building-blocks` and `tdd` skills.
+- `rentals/package-info.java` declares the context with `@BoundedContext(name = "Rentals")` and `@Module`; every context's `package-info.java` uses its CML `BoundedContext` name and carries the canvas as javadoc, with the business decisions naming their tests.
