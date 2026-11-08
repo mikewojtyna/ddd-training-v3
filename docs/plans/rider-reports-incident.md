@@ -3,7 +3,7 @@ name: rider-reports-incident
 intent: rider-reports-incident
 spec: rider-reports-incident
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -129,7 +129,7 @@ Missing, add:
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/customersupport/RiderReportsIncidentSpecTest.java`, `@VelocitySpringTest`, one method per example over REST; Fleet Issue Reported (E2.1) and its absence (E2.3, E3.2) asserted with the recorder (D7); E1.2's blocked rider is arranged only as a label (CustomerSupport doesn't read blocks, D6); `./mvnw test` green.
 
 ### S6: Cross-context acceptance for fleet issues
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport → FleetMaintenance → Rentals
 - **Skill:** none (implementation-planner)
 - **Covers:** E3.1, E3.3
@@ -173,6 +173,11 @@ Missing, add:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (type detection and the hand-off in CustomerSupport per canvas and DE-50/52; "broken" left to FleetMaintenance per CML, so no Brain Context; integration direction matches `CustomerSupport [U,OHS,PL]->[D,ACL] FleetMaintenance`; all 8 examples covered; cross-context examples isolated in S6 with explicit prerequisites).
 - 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
+- 2026-11-08 (Fleet Maintenance wave, autonomous run): S6 built. The TODOs in `RiderReportsIncidentSpecTest` are
+  resolved: E3.1 adds B-17 to Rentals first, then awaits (Awaitility) `GET /rentals/bikes/{bikeId}` `WITHDRAWN` and
+  checks a rider's reservation is rejected with `409`; E3.3 starts Anna's ride first, then awaits B-17 `WITHDRAWN`
+  while her active rental is still a `SESSION`. The tests were never `@Disabled` (they asserted Customer Support's half
+  until now), so no re-enabling was needed.
 
 ## Changelog
 
@@ -184,3 +189,7 @@ Missing, add:
 - D7 implemented as a test-only `ApplicationListener` added to the shared context by `CustomerSupportTestApi` (no extra test configuration, so the cached context is reused).
 - S6 left todo (needs Fleet Maintenance and Rentals): `e3_1_…` and `e3_3_…` exist and are green on Customer Support's half (Fleet Issue Reported published, asserted with Awaitility); the Rentals assertions are TODOs in the test.
 - Added queries beyond the plan, from integration-contracts.md "Additions": `GET /customer-support/incidents?riderId=`.
+
+### 2026-11-08: Fleet Maintenance wave (autonomous run)
+- S6 done: cross-context acceptance of E3.1/E3.3 (Customer Support → Fleet Maintenance → Rentals) in
+  `src/test/java/pl/wojtyna/dddtrainingv3/velocity/customersupport/RiderReportsIncidentSpecTest.java`; full suite green.

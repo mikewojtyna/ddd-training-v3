@@ -1,14 +1,19 @@
 package pl.wojtyna.dddtrainingv3.velocity.customersupport;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.web.client.RestClient;
 import pl.wojtyna.dddtrainingv3.velocity.common.MutableClock;
 import pl.wojtyna.dddtrainingv3.velocity.common.VelocitySpringTest;
+import pl.wojtyna.dddtrainingv3.velocity.common.infra.VelocityServiceUrls;
 import pl.wojtyna.dddtrainingv3.velocity.customersupport.api.events.FleetIssueReported;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.RentalsDriver;
 
 import java.time.Duration;
 
@@ -31,11 +36,29 @@ class RiderReportsIncidentSpecTest {
     @Autowired
     MutableClock clock;
 
+    @Autowired
+    RestClient restClient;
+
+    @Autowired
+    VelocityServiceUrls urls;
+
+    @Autowired
+    ApplicationEventMulticaster multicaster;
+
     CustomerSupportTestApi api;
+
+    /// Rentals' REST resources (bikes, riders, rides), to arrange and check the cross-context effects of E3.1/E3.3.
+    RentalsDriver rentals;
 
     @BeforeEach
     void setUp() {
         api = new CustomerSupportTestApi(port, context);
+        rentals = new RentalsDriver(restClient, urls, multicaster);
+    }
+
+    @AfterEach
+    void tearDown() {
+        rentals.stop();
     }
 
     @Test
@@ -123,11 +146,12 @@ class RiderReportsIncidentSpecTest {
     }
 
     @Test
-    @DisplayName("E3.1 a broken-bike report for B-17 is a fleet issue handed to Fleet Maintenance")
+    @DisplayName("E3.1 a broken-bike report for B-17 is a fleet issue: B-17 is broken, so no rider can reserve it")
     void e3_1_fleet_issue_makes_bike_broken_and_unreservable() {
-        // given
+        // given: B-17 is available at Central
         var anna = unique("anna");
-        var b17 = unique("B-17");
+        var b17 = rentals.bikeAt(unique("B-17"), RentalsDriver.CENTRAL);
+        var ben = rentals.activatedRider(unique("ben"));
         clock.setTo(warsaw("2026-11-08T10:00"));
 
         // when
@@ -138,9 +162,10 @@ class RiderReportsIncidentSpecTest {
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
             assertThat(api.fleetIssuesReportedFor(incidentId)).singleElement()
                                                               .extracting(FleetIssueReported::bikeId).isEqualTo(b17));
-        // TODO plan step S6 (needs fleet-operations-takes-broken-bike-out-of-circulation, fleet-manager-adds-bike-to-fleet,
-        //  rider-reserves-bike): add B-17 to Rentals first, then await GET /rentals/bikes/{bikeId} WITHDRAWN and a 409
-        //  on a rider's reservation.
+        // then: Fleet Maintenance registers B-17 broken and Rentals withdraws it (plan step S6)
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+            assertThat(rentals.bike(b17).body().availability()).isEqualTo("WITHDRAWN"));
+        assertThat(rentals.reserve(b17, ben, RentalsDriver.CENTRAL.northBy(10)).status()).isEqualTo(409);
     }
 
     @Test
@@ -160,11 +185,13 @@ class RiderReportsIncidentSpecTest {
     }
 
     @Test
-    @DisplayName("E3.3 a broken-bike report during a ride is a fleet issue handed to Fleet Maintenance")
+    @DisplayName("E3.3 a broken-bike report during a ride is a fleet issue: B-17 is broken, but Anna's ride goes on")
     void e3_3_fleet_issue_during_ride_breaks_bike_but_ride_goes_on() {
-        // given
-        var anna = unique("anna");
+        // given: Anna's rental session on B-17 started at 09:40
+        var anna = rentals.activatedRider(unique("anna"));
         var b17 = unique("B-17");
+        clock.setTo(warsaw("2026-11-11T09:40"));
+        rentals.riding(b17, RentalsDriver.CENTRAL, anna);
         clock.setTo(warsaw("2026-11-11T09:55"));
 
         // when
@@ -173,8 +200,9 @@ class RiderReportsIncidentSpecTest {
         // then: Customer Support's part, the hand-over
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
             assertThat(api.fleetIssuesReportedFor(incidentId)).hasSize(1));
-        // TODO plan step S6 (needs Rentals reservation/unlock and Fleet Maintenance's FleetIssueReported listener):
-        //  start Anna's ride on B-17 first, then await B-17 WITHDRAWN while GET /rentals/riders/{riderId}/active-rental
-        //  still shows her SESSION.
+        // then: B-17 is broken in Fleet Maintenance and withdrawn in Rentals, but Anna still rides it (plan step S6)
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+            assertThat(rentals.bike(b17).body().availability()).isEqualTo("WITHDRAWN"));
+        assertThat(rentals.activeRentalOf(anna).body().kind()).isEqualTo("SESSION");
     }
 }

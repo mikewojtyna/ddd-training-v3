@@ -110,8 +110,8 @@ src/test/java/pl/wojtyna/dddtrainingv3/velocity/customersupport/
 
 ## Stubs and follow-ups
 - No stubs. Fleet Maintenance listens to `FleetIssueReported` and calls *Resolve Fleet Issue* (other plans).
-- Cross-context acceptance of rider-reports-incident E3.1/E3.3 (its S6) waits for Fleet Maintenance and Rentals;
-  the tests currently assert Customer Support's half (FleetIssueReported published) and carry a TODO.
+- Cross-context acceptance of rider-reports-incident E3.1/E3.3 (its S6) was completed in the Fleet Maintenance wave
+  (2026-11-08): the tests now also await the bike withdrawn in Rentals (and the ride going on, E3.3).
 - No CML change.
 
 ## Changelog

@@ -3,7 +3,7 @@ name: technician-returns-fixed-bike-to-circulation
 intent: technician-returns-fixed-bike-to-circulation
 spec: technician-returns-fixed-bike-to-circulation
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -101,7 +101,7 @@ Hand-offs:
 ## Steps
 
 ### S1: Canvas updates for FleetMaintenance, Rentals and CustomerSupport
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance, Rentals, CustomerSupport
 - **Skill:** none (apply the "Canvas changes" diff exactly)
 - **Prerequisite:** `technician-starts-maintenance` delivered.
@@ -138,28 +138,28 @@ Hand-offs:
 - **Done when:** `ResolveFleetIssueUseCase`, `POST /customer-support/incidents/{incidentId}/fleet-resolution` (404 unknown incident); REST-level test passes; `./mvnw test` green.
 
 ### S6: FleetMaintenance: ports, adapters, records (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** bounded-context-scaffolder (6a, update mode)
 - **Covers:** none
 - **Done when:** record `ReturnBikeToCirculation`; ports `CirculationReturns` (`rentalsctxacl`) and `FleetIssueResolutions` (`customersupportctxacl`) with adapters; architecture test green; `./mvnw test` green.
 
 ### S7: FleetMaintenance: returning a bike to circulation
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E1.3, E2.1, E2.2, E3.1
 - **Done when:** domain tests: a bike under maintenance returned at a station / position by any technician is fixed (Bike Fixed with its linked incidents); a bike not under maintenance or not broken is rejected; `./mvnw test` green.
 
 ### S8: FleetMaintenance: use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Return Bike to Circulation, Bike Fixed
 - **Done when:** `ReturnBikeToCirculationUseCase` with the hand-off order of D5, `POST /fleet-maintenance/bikes/{bikeId}/return-to-circulation`, `GET /fleet-maintenance/bikes/{bikeId}` reporting `IN_CIRCULATION`; `./mvnw test` green.
 
 ### S9: Acceptance tests for the spec examples
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance, Rentals, CustomerSupport
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -181,11 +181,11 @@ Hand-offs:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2 | S2, S3, S7, S8, S9 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`makeAvailableAt`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/MakeBikeAvailableUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`MakingAvailable`) |
-| R1 / E1.3 | S1, S7, S8, S9 | |
-| R2 / E2.1, E2.2 | S1, S7, S8, S9 | |
-| R3 / E3.1 | S4, S5, S6, S7, S8, S9 | Customer Support: `Incident.resolveFleetIssueOf`, `ResolveFleetIssueUseCase`, `IncidentController`; `IncidentTest.ResolvingFleetIssues`, `ResolveFleetIssueRestTest` |
-| R3 / E3.2 | S4, S5, S9 | Customer Support: as E3.1 (`alreadyResolvedFleetIssueKeepsItsResolution`, `already_resolved_incident_keeps_its_resolution`) |
+| R1 / E1.1, E1.2 | S2, S3, S7, S8, S9 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`makeAvailableAt`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/MakeBikeAvailableUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`MakingAvailable`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`returnToCirculation`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/CirculationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReturnBikeToCirculationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsCirculationReturnsAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/customersupportctxacl/CustomerSupportFleetIssueResolutionsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReturnsFixedBikeToCirculationSpecTest.java` |
+| R1 / E1.3 | S1, S7, S8, S9 | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`returnToCirculation`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/CirculationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReturnBikeToCirculationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsCirculationReturnsAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/customersupportctxacl/CustomerSupportFleetIssueResolutionsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReturnsFixedBikeToCirculationSpecTest.java` |
+| R2 / E2.1, E2.2 | S1, S7, S8, S9 | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`returnToCirculation`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/CirculationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReturnBikeToCirculationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsCirculationReturnsAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/customersupportctxacl/CustomerSupportFleetIssueResolutionsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReturnsFixedBikeToCirculationSpecTest.java` |
+| R3 / E3.1 | S4, S5, S6, S7, S8, S9 | Customer Support: `Incident.resolveFleetIssueOf`, `ResolveFleetIssueUseCase`, `IncidentController`; `IncidentTest.ResolvingFleetIssues`, `ResolveFleetIssueRestTest`; FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`returnToCirculation`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/CirculationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReturnBikeToCirculationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsCirculationReturnsAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/customersupportctxacl/CustomerSupportFleetIssueResolutionsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReturnsFixedBikeToCirculationSpecTest.java` |
+| R3 / E3.2 | S4, S5, S9 | Customer Support: as E3.1 (`alreadyResolvedFleetIssueKeepsItsResolution`, `already_resolved_incident_keeps_its_resolution`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`returnToCirculation`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/CirculationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReturnBikeToCirculationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsCirculationReturnsAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/customersupportctxacl/CustomerSupportFleetIssueResolutionsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReturnsFixedBikeToCirculationSpecTest.java` |
 
 ## Risks and open questions
 
@@ -197,6 +197,9 @@ Hand-offs:
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (FM decides the fix, Rentals the availability, Customer Support the incident state; both calls go to upstream OHS in the CML direction; every example covered; ≤3 rules per tactical step; no building blocks decided).
 - 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 - 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S2/S3 built. `POST /rentals/bikes/{bikeId}/availability` answers `200`; a bike that isn't withdrawn and unlocked for a technician → `409 BikeNotUnlockedForService`; unknown bike `404`; unknown station `409 UnknownStation`. Rentals doesn't call `BikeLocks` here (the technician leaves the bike locked; decision recorded in the Rentals context plan). The Rentals half of S1's canvas diff is applied; S1 stays todo.
+- 2026-11-08 (Fleet Maintenance wave, autonomous run): FleetMaintenance steps built; decisions:
+  - D5 as planned: `Bike.returnToCirculation(...).through(CirculationReturns)` checks R2, calls Rentals and only then records Bike Fixed; the use case then resolves every linked incident (failures logged). Rentals' `BikeNotUnlockedForService` → `409 CirculationReturnRefused`, `UnknownStation` → `409 UnknownStation`. A bike Fleet Maintenance doesn't know → `409 NotBroken` (E2.2).
+  - Incident links are kept per break: a bike that breaks again after its fix starts with no links (`FaultReportTest#fixedBikeCanBreakAgain`).
 
 ## Changelog
 
@@ -210,3 +213,9 @@ Hand-offs:
 
 ### 2026-11-08: Rentals wave (autonomous run)
 - Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.
+
+### 2026-11-08: Fleet Maintenance wave (autonomous run)
+- FleetMaintenance steps built test-first (TDD checkpoint loop off, D1): domain tests `CirculationReturnTest (7)`, red seen before
+  green; per-cycle log in `docs/bounded-contexts/velocity/fleetmaintenance/plan.md`. Canvas diff applied to the
+  FleetMaintenance canvas. One acceptance test per example (Acceptance tests table), every cross-context hand-off
+  asserted with Awaitility; full suite green.
