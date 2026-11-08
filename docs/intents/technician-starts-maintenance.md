@@ -6,7 +6,7 @@ system: velocity
 actor: Technician
 activity: Keep the fleet healthy
 task: Start maintenance
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

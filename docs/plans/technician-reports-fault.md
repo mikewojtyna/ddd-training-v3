@@ -3,7 +3,7 @@ name: technician-reports-fault
 intent: technician-reports-fault
 spec: technician-reports-fault
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -81,7 +81,7 @@ of that plan).
 ## Steps
 
 ### S1: Canvas update for FleetMaintenance
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** none (apply the "Canvas changes" diff exactly)
 - **Prerequisite:** `fleet-operations-takes-broken-bike-out-of-circulation` delivered (FM context, `BikeWithdrawals`, Rentals *Withdraw Bike*).
@@ -89,21 +89,21 @@ of that plan).
 - **Done when:** the FM canvas carries the addition and tag.
 
 ### S2: FleetMaintenance: technician fault reports
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Covers:** R1, R3, E1.1, E3.1
 - **Done when:** one domain test per example (technician report → broken with source *technician* and description, withdrawal asked for; report on an already broken bike → nothing, source stays *lock failed*); `./mvnw test` green.
 
 ### S3: FleetMaintenance: Report Fault use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Report Fault, Bike Reported Broken, Bike Withdrawn
 - **Done when:** `ReportFaultUseCase` + `ReportFault`, `POST /fleet-maintenance/bikes/{bikeId}/fault-reports` (400 blank description, 404 unknown bike, D5), wiring; `./mvnw test` green.
 
 ### S4: Acceptance tests for the spec examples
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance, Rentals
 - **Skill:** none (this skill)
 - **Prerequisite:** `rider-reserves-bike` (E1.2), `rider-unlocks-reserved-bike` (session for E1.3) delivered.
@@ -124,11 +124,11 @@ of that plan).
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S2, S3, S4 | |
-| R1 / E1.2 | S4 (Rentals rule from `rider-reserves-bike`) | |
-| R1 / E1.3 | S4 (Rentals rule from `fleet-operations-takes-broken-bike-out-of-circulation` S3) | |
-| R2 / E2.1 | S4 (Rentals rule from `fleet-operations-takes-broken-bike-out-of-circulation` S3) | |
-| R3 / E3.1 | S1, S2, S4 | |
+| R1 / E1.1 | S1, S2, S3, S4 | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`reportFault`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/FaultReportTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReportFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/FleetMaintenanceController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsBikeWithdrawalsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReportsFaultSpecTest.java` |
+| R1 / E1.2 | S4 (Rentals rule from `rider-reserves-bike`) | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`reportFault`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/FaultReportTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReportFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/FleetMaintenanceController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsBikeWithdrawalsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReportsFaultSpecTest.java` |
+| R1 / E1.3 | S4 (Rentals rule from `fleet-operations-takes-broken-bike-out-of-circulation` S3) | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`reportFault`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/FaultReportTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReportFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/FleetMaintenanceController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsBikeWithdrawalsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReportsFaultSpecTest.java` |
+| R2 / E2.1 | S4 (Rentals rule from `fleet-operations-takes-broken-bike-out-of-circulation` S3) | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`reportFault`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/FaultReportTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReportFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/FleetMaintenanceController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsBikeWithdrawalsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReportsFaultSpecTest.java` |
+| R3 / E3.1 | S1, S2, S4 | FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`reportFault`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/FaultReportTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/ReportFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/FleetMaintenanceController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsBikeWithdrawalsAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianReportsFaultSpecTest.java` |
 
 ## Risks and open questions
 
@@ -139,8 +139,16 @@ of that plan).
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (FM owns the command and the register; withdrawal reuses an existing Rentals command in the map's direction; every example covered; no building blocks decided).
+- 2026-11-08 (Fleet Maintenance wave, autonomous run): FleetMaintenance steps built; decisions:
+  - D5 as planned: `ReportFaultUseCase` asks Rentals to withdraw before saving; Rentals' `404` → `404 UnknownBike`, nothing recorded (REST test `fault_report_on_unknown_bike_is_rejected`). A blank description → `400`. `POST .../fault-reports` answers `200` with an empty body (the contract names no answer).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Fleet Maintenance wave (autonomous run)
+- FleetMaintenance steps built test-first (TDD checkpoint loop off, D1): domain tests `FaultReportTest (7, of which 2 for this spec)`, red seen before
+  green; per-cycle log in `docs/bounded-contexts/velocity/fleetmaintenance/plan.md`. Canvas diff applied to the
+  FleetMaintenance canvas. One acceptance test per example (Acceptance tests table), every cross-context hand-off
+  asserted with Awaitility; full suite green.
