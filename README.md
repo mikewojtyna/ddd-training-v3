@@ -102,4 +102,13 @@ Conventions:
 - `docs/domains/velocity/velocity-context-map.md` and `src/main/cml/VeloCity-Context-Map.cml` are the solution of the context-mapping exercise. Don't show them to participants who are still discovering contexts.
 - The branch `ai-ddd-flow-demo` holds a full worked run of the flow, kept off master so participants don't start from the solution. It contains the discovery example (report, `VeloCity-Context-Map-Discovery.cml`, canvases), the fictional ticket `velocity/briefs/VELO-142-reserve-bike-from-app.md` (that branch keeps the old folder layout), and the run from that ticket to the delivered intent `rider-reserves-bike-at-station`, with the implemented Rentals code. It has one git tag per checkpoint, so you can show any step live and jump to the next: `demo/2-bounded-contexts`, `demo/3-input-ticket`, `demo/3-intents`, `demo/4-spec`, `demo/5-plan`, `demo/5-delivered`.
 - Each build step of that run is its own commit between `demo/5-plan` and `demo/5-delivered`.
+- The branch `velocity-full-implementation` is the best reference for understanding the whole AI-assisted flow at system scale. It's frozen: it won't be updated or removed.
+  - It's an autonomous run of every step for all eight VeloCity contexts, with role-played domain-expert answers.
+  - It has one commit per stage:
+    1. canvases;
+    2. 35 intents and specs;
+    3. 35 plans;
+    4. the implementation, with REST and in-process events between contexts, and domain, Spring and Awaitility tests.
+  - Start with the session record `docs/bounded-contexts/velocity/conversation.md` (prompt, decisions, results), then `domain-expert-answers.md` and `integration-contracts.md` next to it.
+  - `ai-ddd-flow-demo` follows one intent with a checkpoint per step. This branch shows many intents and contexts being integrated.
 - The branch `velocity-discovery-demo` shows step 2 on its own: a bounded-context discovery session for VeloCity run with `discover-bounded-contexts`. It contains the discovery report (`docs/context-discovery/velocity/2026-11-05-bike-rental-processes/discovery.md`), the resulting `VeloCity-Context-Map-Discovery.cml` and one canvas per context, on top of the master of that day. The same discovery output is also part of `ai-ddd-flow-demo` (tag `demo/2-bounded-contexts`).
