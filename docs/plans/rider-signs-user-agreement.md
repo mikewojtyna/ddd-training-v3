@@ -3,7 +3,7 @@ name: rider-signs-user-agreement
 intent: rider-signs-user-agreement
 spec: rider-signs-user-agreement
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -74,35 +74,35 @@ domain rules test-first → use case and REST → acceptance tests. Prerequisite
 ## Steps
 
 ### S1: Tag the Accounts canvas with the signing examples
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3
 - **Done when:** the Canvas changes above are applied.
 
 ### S2: Add Sign User Agreement to the Accounts api
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Sign User Agreement
 - **Done when:** prerequisite `rider-adds-payment-method` S8 done; `api/usecases/SignUserAgreement` record; `AccountsArchitectureTest` green.
 
 ### S3: Signing and activation rules
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E3.1, Account Activated
 - **Done when:** one unit test per example passes; `./mvnw test` green.
 
 ### S4: Use case and REST for signing
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Sign User Agreement, Account Activated
 - **Done when:** `SignUserAgreementUseCase` publishes `AccountActivated`; `POST /accounts/riders/{riderId}/agreement-signature`; Account Status shows `activated: true`, `onboardingStep: NONE`; `./mvnw test` green. This unblocks `rider-adds-payment-method` S10.
 
 ### S5: Acceptance tests for signing
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -120,9 +120,9 @@ domain rules test-first → use case and REST → acceptance tests. Prerequisite
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5 | |
-| R2 / E2.1 | S1, S3, S4, S5 | |
-| R3 / E3.1 | S1, S3, S5 | |
+| R1 / E1.1 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/SignUserAgreementUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderSignsUserAgreementSpecTest.java` |
+| R2 / E2.1 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderSignsUserAgreementSpecTest.java` |
+| R3 / E3.1 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderSignsUserAgreementSpecTest.java` |
 
 ## Risks and open questions
 
@@ -134,8 +134,12 @@ domain rules test-first → use case and REST → acceptance tests. Prerequisite
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (one context; R2 reads Accounts' own state, no reverse call to Payments; D5 keeps E1.3 of the blocking spec consistent).
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Signing twice answers `409 OnboardingStepOutOfOrder` (Q3), tested in `RiderSignsUserAgreementSpecTest#signing_twice_is_rejected`.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`. All steps done, full suite green.

@@ -3,7 +3,7 @@ name: person-registers-with-velocity
 intent: person-registers-with-velocity
 spec: person-registers-with-velocity
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -88,49 +88,49 @@ the email address is required and well-formed (malformed → `400`); uniqueness 
 ## Steps
 
 ### S1: Tag the Accounts canvas with the registration examples
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3, R4
 - **Done when:** the Canvas changes above are in `docs/bounded-contexts/velocity/accounts/canvas.md`.
 
 ### S2: Scaffold the Accounts module
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (new context, 6a), structural decisions taken from this plan
 - **Covers:** Register, Onboarding Progress
 - **Done when:** `accounts/package-info.java` with `@BoundedContext(name = "Accounts")` + `@Module`; `api/usecases/RegisterRider`, `api/queries/AccountStatusQuery` + `AccountStatus` records; `AccountsArchitectureTest` green; context plan `docs/bounded-contexts/velocity/accounts/plan.md` written with "approved via docs/plans/person-registers-with-velocity.md"; `./mvnw test` green.
 
 ### S3: Registration and onboarding state (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1), via bounded-context-scaffolder
 - **Covers:** R1, R2, R3, E1.1, E2.1, E3.1, Account Registered
 - **Done when:** one unit test per example passes; `./mvnw test` green. (E2.2's domain test needs the personal-data step, so it is written in `rider-provides-personal-data` S3, which builds the onboarding-order guard for that step.)
 
 ### S4: One account per email address (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R4, E4.1
 - **Done when:** a test for E4.1 passes; `./mvnw test` green.
 
 ### S5: Use case, query, REST and persistence for registration
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Register, Onboarding Progress, Account Registered
 - **Done when:** `RegisterRiderUseCase` publishes `AccountRegistered`; `AccountStatusQueryHandler`; `AccountsController` with `POST /accounts/riders` and `GET /accounts/riders/{riderId}`, rejections mapped to `ErrorResponse` (`409`/`404`/`400`); in-memory account repository with `Version`; wiring in `accounts/infra/config`; `./mvnw test` green.
 
 ### S6: Acceptance tests for registration
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E2.1, E3.1, E4.1
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java`, `@VelocitySpringTest`, one method per example over REST with `MutableClock` (unique emails per test, the context is shared); `./mvnw test` green.
 
 ### S7: Acceptance test for E2.2
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill)
 - **Covers:** E2.2
@@ -150,11 +150,11 @@ the email address is required and well-formed (malformed → `400`); uniqueness 
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S5, S6 | |
-| R2 / E2.1 | S1, S3, S5, S6 | |
-| R2 / E2.2 | S1, S7 (domain: `rider-provides-personal-data` S3) | |
-| R3 / E3.1 | S1, S3, S6 | |
-| R4 / E4.1 | S1, S4, S5, S6 | |
+| R1 / E1.1 | S1, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/RiderRegistration.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/RiderRegistrationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/RegisterRiderUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java` |
+| R2 / E2.1 | S1, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/queries/AccountStatusQueryHandler.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/InMemoryAccountRepository.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java` |
+| R2 / E2.2 | S1, S7 (domain: `rider-provides-personal-data` S3) | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/ProvidePersonalDataUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java` |
+| R3 / E3.1 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java` |
+| R4 / E4.1 | S1, S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/RiderRegistration.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/RiderRegistrationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/InMemoryAccountRepository.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/PersonRegistersWithVelocitySpecTest.java` |
 
 ## Risks and open questions
 
@@ -167,8 +167,12 @@ the email address is required and well-formed (malformed → `400`); uniqueness 
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (single context, matches canvas and CML; every example covered; E2.2 dependency on a later intent made explicit as S7).
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Email uniqueness: factory `RiderRegistration` with port `RegisteredEmails`; the repository also refuses a second new account with a taken email (race guard).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`. All steps done, full suite green.
