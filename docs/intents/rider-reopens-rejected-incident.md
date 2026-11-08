@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Get help
 task: Reopen a rejected incident
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

@@ -3,7 +3,7 @@ name: support-agent-escalates-incident
 intent: support-agent-escalates-incident
 spec: support-agent-escalates-incident
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -81,42 +81,42 @@ Missing, add:
 ## Steps
 
 ### S1: Update the CustomerSupport canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E2.1, E2.2, E2.3, E3.1, E4.1, E4.2 (tag for E1.1)
 - **Done when:** canvas contains the three new decisions, tagged.
 
 ### S2: Escalate Incident api record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Escalate Incident
 - **Done when:** record `EscalateIncident`; architecture test green; `./mvnw test` green.
 
 ### S3: Escalation rules, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E2.2, E2.3, E3.1, Incident Escalated
 - **Done when:** one domain test per example; `IncidentEscalated` returned in `DomainEvents`; `./mvnw test` green.
 
 ### S4: The three teams, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, E4.2
 - **Done when:** domain test for E4.2 (a team that doesn't match the type is accepted); the team is a closed type, so E4.1 is unrepresentable in the domain (D5); `./mvnw test` green.
 
 ### S5: Use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Escalate Incident, E4.1
 - **Done when:** `EscalateIncidentUseCase`, `POST /customer-support/incidents/{incidentId}/escalation` with the 409/400 mapping, `team` in the Incident query response; `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -138,13 +138,13 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S5, S6 | |
-| R2 / E2.1 | S1, S3, S6 | |
-| R2 / E2.2 | S1, S3, S6 | |
-| R2 / E2.3 | S1, S3, S6 | |
-| R3 / E3.1 | S1, S3, S6 | |
-| R4 / E4.1 | S1, S5 (REST 400), S6 | |
-| R4 / E4.2 | S1, S4, S6 | |
+| R1 / E1.1 | S1 (tag), S3, S5, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R2 / E2.1 | S1, S3, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R2 / E2.2 | S1, S3, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R2 / E2.3 | S1, S3, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R3 / E3.1 | S1, S3, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R4 / E4.1 | S1, S5 (REST 400), S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
+| R4 / E4.2 | S1, S4, S6 | `domain/incident/Incident.java` (`escalateBy`), `Team.java`, `EscalateIncidentUseCase`, `IncidentController` (400 `UnknownTeam`); tests `IncidentTest.Escalating`, `SupportAgentEscalatesIncidentSpecTest` |
 
 ## Risks and open questions
 
@@ -155,8 +155,12 @@ Missing, add:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in CustomerSupport; R4 enforced as a closed type at the edge, recorded in D5; tactical runs of 3 and 1 rules; all 7 examples covered; prerequisite on the decide plan explicit).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built (autonomous run)
+- All steps done; 7 acceptance tests, 6 domain tests (E4.1 is REST-only, D5).

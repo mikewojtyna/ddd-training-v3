@@ -3,7 +3,7 @@ name: rider-reopens-rejected-incident
 intent: rider-reopens-rejected-incident
 spec: rider-reopens-rejected-incident
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -82,35 +82,35 @@ Missing, add:
 ## Steps
 
 ### S1: Update the CustomerSupport canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E2.1, E3.1, E3.2 (tags for E1.1, E1.2)
 - **Done when:** canvas contains "Reopenable until" and the two new decisions, tagged.
 
 ### S2: Reopen Incident api record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Reopen Incident
 - **Done when:** record `ReopenIncident`; architecture test green; `./mvnw test` green.
 
 ### S3: Reopening rules, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E3.1, E3.2, Incident Reopened
 - **Done when:** one domain test per example, the window boundary tested at 23:59 and 00:00 local time (D5); the decide plan's domain tests for E2.3/E4.2 use the real reopening (D6); `./mvnw test` green.
 
 ### S4: Use case, REST, rider's view of the incident (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Reopen Incident, Rider's Incident
 - **Done when:** `ReopenIncidentUseCase`, `POST /customer-support/incidents/{incidentId}/reopening` with the 409 mapping, the extended Incident query, the zone configuration (D5); `./mvnw test` green.
 
 ### S5: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -130,11 +130,11 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S4, S5 | |
-| R1 / E1.2 | S1 (tag), S3, S4, S5 | |
-| R2 / E2.1 | S1, S3, S5 | |
-| R3 / E3.1 | S1, S3, S5 | |
-| R3 / E3.2 | S1, S3, S5 | |
+| R1 / E1.1 | S1 (tag), S3, S4, S5 | `domain/incident/Incident.java` (`reopenBy`), `ReopeningWindow.java`, `ReopenIncidentUseCase`, `IncidentController`, `CustomerSupportContextConfig` (`customerSupportCityZone`); tests `IncidentTest.Reopening`, `ReopeningWindowTest`, `RiderReopensRejectedIncidentSpecTest` |
+| R1 / E1.2 | S1 (tag), S3, S4, S5 | `domain/incident/Incident.java` (`reopenBy`), `ReopeningWindow.java`, `ReopenIncidentUseCase`, `IncidentController`, `CustomerSupportContextConfig` (`customerSupportCityZone`); tests `IncidentTest.Reopening`, `ReopeningWindowTest`, `RiderReopensRejectedIncidentSpecTest` |
+| R2 / E2.1 | S1, S3, S5 | `domain/incident/Incident.java` (`reopenBy`), `ReopeningWindow.java`, `ReopenIncidentUseCase`, `IncidentController`, `CustomerSupportContextConfig` (`customerSupportCityZone`); tests `IncidentTest.Reopening`, `ReopeningWindowTest`, `RiderReopensRejectedIncidentSpecTest` |
+| R3 / E3.1 | S1, S3, S5 | `domain/incident/Incident.java` (`reopenBy`), `ReopeningWindow.java`, `ReopenIncidentUseCase`, `IncidentController`, `CustomerSupportContextConfig` (`customerSupportCityZone`); tests `IncidentTest.Reopening`, `ReopeningWindowTest`, `RiderReopensRejectedIncidentSpecTest` |
+| R3 / E3.2 | S1, S3, S5 | `domain/incident/Incident.java` (`reopenBy`), `ReopeningWindow.java`, `ReopenIncidentUseCase`, `IncidentController`, `CustomerSupportContextConfig` (`customerSupportCityZone`); tests `IncidentTest.Reopening`, `ReopeningWindowTest`, `RiderReopensRejectedIncidentSpecTest` |
 
 ## Risks and open questions
 
@@ -147,8 +147,14 @@ Missing, add:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in CustomerSupport; one tactical run of 3 rules guarding the incident's rejected/reopened state; all 5 examples covered; the open time-zone question is recorded with the steps it affects).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built (autonomous run)
+- All steps done. The window is the value object `ReopeningWindow` (rejected at, closes at = 00:00 Warsaw on the 15th day); `reopenableUntil` in the query is that exclusive end (`2026-11-23T23:00:00Z` for a rejection at 10:00 on 2026-11-09).
+- Rider's view: `GET /customer-support/incidents/{id}?riderId=` answers 404 for another rider (asserted in E2.1).
+- The decide plan's E2.3/E4.2 acceptance tests were never disabled (D6 applied from the start).
