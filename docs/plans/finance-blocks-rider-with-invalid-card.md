@@ -3,7 +3,7 @@ name: finance-blocks-rider-with-invalid-card
 intent: finance-blocks-rider-with-invalid-card
 spec: finance-blocks-rider-with-invalid-card
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -114,28 +114,28 @@ All directions match the CML.
 ## Steps
 
 ### S1: Tag the Payments canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3
 - **Done when:** the Payments canvas changes above are applied.
 
 ### S2: Add Invalidate Payment Method to the Payments api
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Invalidate Payment Method, Payment Method Invalidated
 - **Done when:** prerequisite `rider-adds-payment-method` S4 done; `api/usecases/InvalidatePaymentMethod` record; the existing `api/events/PaymentMethodInvalidated` matches integration-contracts.md; `PaymentsArchitectureTest` green.
 
 ### S3: Card invalidation rules in Payments
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R3, E1.1, E1.3, E2.3, E3.1, Payment Method Invalidated
 - **Done when:** unit tests: the current card's invalidation leaves no current card and raises the event; a second report changes nothing (E2.3); an old card is recorded invalid without the event (E3.1); `./mvnw test` green.
 
 ### S4: Processor notification endpoint and event publishing
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Invalidate Payment Method, Payment Method Invalidated
@@ -185,33 +185,33 @@ All directions match the CML.
 
 ## Acceptance tests
 
-| Example | Test |
-|---|---|
-| E1.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_1_current_card_invalidated_blocks_rider` |
-| E1.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_2_running_ride_continues_after_block` |
-| E1.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_3_onboarding_rider_blocked_and_not_eligible_after_signing` |
-| E2.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_1_rider_gets_one_block_notification` |
-| E2.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_2_second_reason_sends_second_notification` |
-| E2.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_3_repeated_invalidation_changes_nothing` |
-| E3.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e3_1_old_card_invalidated_changes_nothing_else` |
-| E4.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_1_verified_card_lifts_invalid_card_block` |
-| E4.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_2_verified_card_keeps_debt_block` |
-| E4.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_3_declined_card_keeps_block` |
+| Example | Test | Payments-side test (Payments wave, 2026-11-08) |
+|---|---|---|
+| E1.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_1_current_card_invalidated_blocks_rider` | `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest#e1_1_current_card_invalidated_blocks_rider` |
+| E1.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_2_running_ride_continues_after_block` | none (no Payments behaviour) |
+| E1.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e1_3_onboarding_rider_blocked_and_not_eligible_after_signing` | Payments behaves as in E1.1 (covered there) |
+| E2.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_1_rider_gets_one_block_notification` | none (no Payments behaviour) |
+| E2.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_2_second_reason_sends_second_notification` | none (no Payments behaviour) |
+| E2.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e2_3_repeated_invalidation_changes_nothing` | `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest#e2_3_repeated_invalidation_changes_nothing` |
+| E3.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e3_1_old_card_invalidated_changes_nothing_else` | `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest#e3_1_old_card_invalidated_changes_nothing_else` |
+| E4.1 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_1_verified_card_lifts_invalid_card_block` | verification as in `RiderAddsPaymentMethodSpecTest#e3_1_new_verified_card_replaces_current_card` |
+| E4.2 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_2_verified_card_keeps_debt_block` | none (no Payments behaviour) |
+| E4.3 | `FinanceBlocksRiderWithInvalidCardSpecTest#e4_3_declined_card_keeps_block` | verification as in `RiderAddsPaymentMethodSpecTest#e3_2_declined_card_keeps_current_card` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | |
-| R1 / E1.2 | S5, S10 | |
-| R1 / E1.3 | S1, S3, S5, S7, S9 | |
-| R2 / E2.1 | S5, S7, S8, S9 | |
-| R2 / E2.2 | S5, S7, S8, S9 | |
-| R2 / E2.3 | S1, S3, S5, S7, S9 | |
-| R3 / E3.1 | S1, S3, S9 | |
-| R4 / E4.1 | S5, S7, S8, S9 | |
-| R4 / E4.2 | S5, S7, S8, S9 | |
-| R4 / E4.3 | S5, S7, S9 | |
+| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/InvalidatePaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/paymentprocessoracl/ProcessorNotificationsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
+| R1 / E1.2 | S5, S10 |  |
+| R1 / E1.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java` |
+| R2 / E2.1 | S5, S7, S8, S9 |  |
+| R2 / E2.2 | S5, S7, S8, S9 |  |
+| R2 / E2.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
+| R3 / E3.1 | S1, S3, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
+| R4 / E4.1 | S5, S7, S8, S9 |  |
+| R4 / E4.2 | S5, S7, S8, S9 |  |
+| R4 / E4.3 | S5, S7, S9 |  |
 
 ## Risks and open questions
 
@@ -226,8 +226,12 @@ All directions match the CML.
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (placement follows both canvases and the CF relationship; old/duplicate filtering in Payments, blocks in Accounts; Payments before Accounts; Accounts tactical step holds 3 rules; E1.2 deferred to Rentals' delivery; CONTRACT GAPs recorded).
+- 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: the domain distinguishes `PaymentMethodInvalidated` (current card, mapped to `api.events.PaymentMethodInvalidated` by `IntegrationEventsPublisher`, not by the use case) from `FormerPaymentMethodInvalidated` (old card, not published); the processor notification endpoint sits in the primary ACL package `infra/adapters/primary/paymentprocessoracl` (notifications are the processor's language); an unknown `reason` answers `400`; if several riders ever added the same token, each is invalidated. Payments-side Spring tests in `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest`. S5-S10 stay todo for the Accounts (and Rentals) waves.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Payments steps S1-S4 done
+- Canvas tagged; `InvalidatePaymentMethod` command + use case; current-card / old-card / repeated-report rules test-first in `RiderPaymentMethods`; `POST /payments/processor-notifications/card-invalidations`; `PaymentMethodInvalidated` published. TDD log: `docs/bounded-contexts/velocity/payments/plan.md`.

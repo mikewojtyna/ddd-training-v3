@@ -3,7 +3,7 @@ name: rider-adds-payment-method
 intent: rider-adds-payment-method
 spec: rider-adds-payment-method
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -96,28 +96,28 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 ## Steps
 
 ### S1: Tag the Payments canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3
 - **Done when:** the Payments canvas changes above are applied.
 
 ### S2: Scaffold the Payments module with the simulated processor
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** bounded-context-scaffolder (new context, or update mode if `finance-charges-finished-ride` scaffolded it first; 6a)
 - **Covers:** Add Payment Method
 - **Done when:** `payments/package-info.java` `@BoundedContext(name = "Payments")`; `api/usecases/VerifyPaymentMethod`, `api/queries/PaymentMethodsQuery` records; `PaymentProcessor` port + simulated adapter in `infra/adapters/secondary/paymentprocessoracl` (declines `tok_declined*`, records held/released pre-authorizations); the existing `api/events/PaymentMethodInvalidated` kept; `PaymentsArchitectureTest` green.
 
 ### S3: Verification and current card in Payments
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E2.2, E3.1, E3.2, Payment Method Verified, Payment Method Declined
 - **Done when:** Payments-side unit tests per example (pre-authorize PLN 1.00 and release; declined isn't current; newest verified is current; declined keeps the current one) pass; `./mvnw test` green.
 
 ### S4: Verify Payment Method use case, query and REST
-- **Status:** todo
+- **Status:** done
 - **Context:** Payments
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Add Payment Method, Payment Method Verified, Payment Method Declined
@@ -167,25 +167,25 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 
 ## Acceptance tests
 
-| Example | Test |
-|---|---|
-| E1.1 | `RiderAddsPaymentMethodSpecTest#e1_1_card_passes_pre_authorization_and_becomes_current` |
-| E1.2 | `RiderAddsPaymentMethodSpecTest#e1_2_card_rejected_before_personal_data` |
-| E2.1 | `RiderAddsPaymentMethodSpecTest#e2_1_declined_card_keeps_rider_at_payment_step` |
-| E2.2 | `RiderAddsPaymentMethodSpecTest#e2_2_second_card_verified_after_decline` |
-| E3.1 | `RiderAddsPaymentMethodSpecTest#e3_1_new_verified_card_replaces_current_card` |
-| E3.2 | `RiderAddsPaymentMethodSpecTest#e3_2_declined_card_keeps_current_card` |
+| Example | Test | Payments-side test (Payments wave, 2026-11-08) |
+|---|---|---|
+| E1.1 | `RiderAddsPaymentMethodSpecTest#e1_1_card_passes_pre_authorization_and_becomes_current` | `velocity/payments/RiderAddsPaymentMethodSpecTest#e1_1_card_passes_pre_authorization_and_becomes_current` |
+| E1.2 | `RiderAddsPaymentMethodSpecTest#e1_2_card_rejected_before_personal_data` | none (no Payments behaviour) |
+| E2.1 | `RiderAddsPaymentMethodSpecTest#e2_1_declined_card_keeps_rider_at_payment_step` | `velocity/payments/RiderAddsPaymentMethodSpecTest#e2_1_declined_card_keeps_rider_at_payment_step` |
+| E2.2 | `RiderAddsPaymentMethodSpecTest#e2_2_second_card_verified_after_decline` | `velocity/payments/RiderAddsPaymentMethodSpecTest#e2_2_second_card_verified_after_decline` |
+| E3.1 | `RiderAddsPaymentMethodSpecTest#e3_1_new_verified_card_replaces_current_card` | `velocity/payments/RiderAddsPaymentMethodSpecTest#e3_1_new_verified_card_replaces_current_card` |
+| E3.2 | `RiderAddsPaymentMethodSpecTest#e3_2_declined_card_keeps_current_card` | `velocity/payments/RiderAddsPaymentMethodSpecTest#e3_2_declined_card_keeps_current_card` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | |
-| R1 / E1.2 | S5, S7, S8, S9 | |
-| R2 / E2.1 | S1, S3, S5, S7, S9 | |
-| R2 / E2.2 | S1, S3, S5, S7, S9 | |
-| R3 / E3.1 | S1, S3, S7, S10 | |
-| R3 / E3.2 | S1, S3, S7, S10 | |
+| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/VerifyPaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/PaymentsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
+| R1 / E1.2 | S5, S7, S8, S9 |  |
+| R2 / E2.1 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
+| R2 / E2.2 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
+| R3 / E3.1 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
+| R3 / E3.2 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
 
 ## Risks and open questions
 
@@ -199,8 +199,12 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (split follows the canvases and the CF relationship; Accounts can say no only to the onboarding order, Payments owns verified/current; upstream Payments built first; R3 tests deferred to after activation exists; CONTRACT GAP recorded).
+- 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: the query result record is named `RiderPaymentMethodsView` (not `RiderPaymentMethods`) because the aggregate is `RiderPaymentMethods`; the domain event `PaymentMethodReplaced` was added next to Verified/Declined (no published record). The planned acceptance tests live in Accounts (S9, S10, later wave); Payments' own Spring tests with the same method names are in `velocity/payments/RiderAddsPaymentMethodSpecTest` (REST into Payments). S5-S10 stay todo for the Accounts wave.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Payments steps S1-S4 done
+- Canvas tagged; `velocity/payments` scaffolded (package-info, api records, `PaymentProcessor` port, simulated processor in `paymentprocessoracl`, `PaymentsArchitectureTest`); `RiderPaymentMethods` built test-first; `VerifyPaymentMethodUseCase`, `POST /payments/payment-methods`, `GET /payments/riders/{riderId}/payment-methods`, in-memory repository with `Version`. Details and TDD log: `docs/bounded-contexts/velocity/payments/plan.md`.
