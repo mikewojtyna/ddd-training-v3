@@ -67,21 +67,21 @@ flowchart LR
     SUP["Customer Support"]
     FLT["Fleet Maintenance"]
 
-    PROC -->|"U: external · D: ACL"| PAY
+    PROC -->|"U: external, OHS/PL · D: ACL"| PAY
     CITY -->|"zone map · D: CF"| PRI
 
     PAY -->|"U: OHS/PL · D: CF<br/>verify payment method<br/>Payment Method Invalidated"| ACC
     PAY -->|"U: OHS/PL · D: CF<br/>charge"| SET
 
     ACC -->|"U / D<br/>is account active?"| REN
+    ACC -->|"U: OHS/PL · D: ACL<br/>block / unblock account<br/>(reason: outstanding debt)"| SET
 
     REN -->|"U: PL · D: CF<br/>Rental Session Ended"| SET
     REN -->|"U: OHS/PL · D: CF<br/>fault detected, lock failed<br/>withdraw / make available<br/>reserve / unlock"| FLT
 
-    PRI -->|"U: OHS · D: CF<br/>price for session"| SET
+    PRI -->|"U: OHS/PL · D: CF<br/>price for session"| SET
 
-    SET -->|"U: PL · D: CF<br/>Rental Fee Unpaid<br/>Outstanding Debt Cleared"| ACC
-    SET -->|"U: OHS/PL · D: CF<br/>Rental Fee Unpaid<br/>attempt collection"| DEB
+    SET -->|"Customer/Supplier · U: S, PL · D: C<br/>Rental Fee Unpaid<br/>attempt collection"| DEB
 
     SUP -.->|"fleet-issue incident<br/>(default, unconfirmed)"| FLT
 
@@ -98,11 +98,12 @@ flowchart LR
 | **PL** | Published Language — the shared, documented format of that protocol (events, commands) |
 | **CF** | Conformist — downstream adopts the upstream model as-is |
 | **ACL** | Anticorruption Layer — downstream translates the upstream model into its own |
+| **C / S** | Customer / Supplier — the downstream (customer) requirements factor into the upstream (supplier) planning |
 | dashed arrow | Default assumption, not confirmed |
 
 ### Zoom: from a finished ride to money
 
-The ride-to-money flow has the most traffic in both directions, yet no cycles. Settlement *calls* Pricing and Payments, and Debt Recovery *calls* Settlement — the caller is always downstream.
+The ride-to-money flow has the most traffic in both directions, yet no cycles. Settlement *calls* Pricing, Payments and Accounts, and Debt Recovery *calls* Settlement — the caller is always downstream.
 
 ```mermaid
 flowchart LR
@@ -118,9 +119,9 @@ flowchart LR
     PRI -->|"2. Settlement asks for the price"| SET
     PAY -->|"3. Settlement charges<br/>(retries a few times)"| SET
     PROC -->|"ACL"| PAY
-    SET -->|"4a. Rental Fee Unpaid → block"| ACC
+    ACC -->|"4a. Rental Fee Unpaid →<br/>Settlement blocks the account"| SET
     SET -->|"4b. Rental Fee Unpaid → start recovery<br/>Debt Recovery asks Settlement to collect"| DEB
-    SET -->|"5. Outstanding Debt Cleared → unblock"| ACC
+    ACC -->|"5. Outstanding Debt Cleared →<br/>Settlement unblocks the account"| SET
 
     classDef external fill:#eee,stroke:#888,stroke-dasharray: 5 5,color:#333
     class PROC external
@@ -138,8 +139,9 @@ flowchart LR
 - **A locking failure ends the session immediately** with an explanation; the rider is not charged extra and the bike is withdrawn.
 - **Max rental time is detected by Rentals**, which ends the session automatically; Pricing adds the penalty.
 - **Pricing is a pure calculator**, called by Settlement, using the tariff valid at session start.
-- **Settlement is the only context that moves money** (via Payments) and owns the rider's balance. Debt Recovery asks Settlement to collect.
+- **Settlement is the only context that moves money** (via Payments) and owns the rider's balance. Debt Recovery asks Settlement to collect. The two teams work as Customer/Supplier: Debt Recovery's needs shape Settlement's published collection language.
 - **Account blocks have exactly two reasons, each from one source:** invalid card (Payments) and outstanding debt (Settlement). Settlement drives both block and unblock for debt.
+- **Accounts knows no Settlement events.** Accounts offers block / unblock *with a reason* as an Open Host Service. Settlement decides when the debt requires it and calls that service through an ACL. The reason keeps a debt unblock from lifting a card block. Card blocks still come from Payments' *Payment Method Invalidated*: flipping that link too would create a Payments ↔ Accounts cycle, because Accounts calls Payments to verify payment methods.
 - **No cycles.** If two contexts have arrows in both directions, ask whose language the integration uses — if both, it is either a Partnership or a misplaced boundary.
 
 ---
@@ -151,7 +153,8 @@ flowchart LR
 - **Pricing reacting** to *Rental Session Ended* instead of being called by Settlement (orchestration direction is a design choice, not a heuristic outcome).
 - **Fleet Maintenance upstream of Rentals** (Rentals reports faults via Maintenance's OHS) — as long as there is no cycle.
 - The **Payment Processor drawn as external** with ACLs directly in Accounts and Settlement, without a Payments context.
-- **Debt Recovery → Accounts** for unblocking (discuss: *whose fact is "the debt is paid"?*).
+- **Debt Recovery calls Accounts to unblock** (discuss: *whose fact is "the debt is paid"?*).
+- **Settlement upstream of Accounts:** Settlement publishes *Rental Fee Unpaid* / *Outstanding Debt Cleared* and Accounts conforms (`Settlement [U,PL] -> [D,CF] Accounts`). It has no cycle either, but Accounts then has to know Settlement's events.
 - **Settlement and Debt Recovery merged**, if the group can't find a language difference — point them to *reminders, payment plans, pause* vs. *charge, retry, settled*.
 
 ---

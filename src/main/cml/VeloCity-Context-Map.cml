@@ -16,7 +16,7 @@ ContextMap VeloCityContextMap {
 
 	/* External parties */
 
-	PaymentProcessor [U]->[D,ACL] Payments : PaymentProcessing
+	PaymentProcessor [U,OHS,PL]->[D,ACL] Payments : PaymentProcessing
 
 	City [U]->[D,CF] Pricing : ZoneMap
 
@@ -33,6 +33,10 @@ ContextMap VeloCityContextMap {
 	// is account active?
 	Accounts [U]->[D] Rentals : AccountStatus
 
+	// block / unblock account with a reason (outstanding debt); Settlement calls it on
+	// Rental Fee Unpaid / Outstanding Debt Cleared. Accounts knows no Settlement events.
+	Accounts [U,OHS,PL]->[D,ACL] Settlement : AccountBlocking
+
 	/* Rentals */
 
 	// Rental Session Ended (start, end, location, reason)
@@ -44,15 +48,12 @@ ContextMap VeloCityContextMap {
 	/* Pricing */
 
 	// price for session (tariff valid at session start)
-	Pricing [U,OHS]->[D,CF] Settlement : PriceCalculation
+	Pricing [U,OHS,PL]->[D,CF] Settlement : PriceCalculation
 
 	/* Settlement */
 
-	// Rental Fee Unpaid -> block, Outstanding Debt Cleared -> unblock
-	Settlement [U,PL]->[D,CF] Accounts : DebtBlocking
-
 	// Rental Fee Unpaid -> start recovery, attempt collection
-	Settlement [U,OHS,PL]->[D,CF] DebtRecovery : DebtCollection
+	Settlement [U,S,PL]->[D,C] DebtRecovery : DebtCollection
 
 	/* Customer Support */
 
