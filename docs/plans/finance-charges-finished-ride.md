@@ -3,7 +3,7 @@ name: finance-charges-finished-ride
 intent: finance-charges-finished-ride
 spec: finance-charges-finished-ride
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -135,42 +135,42 @@ Session from `finance-prices-ride-by-tiered-tariff` S5 and `finance-prices-free-
 - **Done when:** `ChargeCurrentCardUseCase`; `POST /payments/charges` → `{chargeId, status, failureReason?}`; simulated processor fails `tok_nofunds*` charges and records every charge `{token, amount, reference}` for tests; `./mvnw test` green.
 
 ### S5: Update the Settlement canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E2.1, E3.1, E3.2, E4.1)
 - **Done when:** canvas carries the UL term, the two tags and the three new decisions.
 
 ### S6: Scaffold the Settlement module (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (new context, 6a)
 - **Covers:** Charge Ride, Ride Priced
 - **Done when:** `settlement/package-info.java` with `@BoundedContext(name = "Settlement")` + `@Module`; `api/usecases/ChargeRide`, `api/queries/RideSettlementQuery` (+ result) records; the existing `api/events/RentalFeeUnpaid` and `OutstandingDebtCleared` kept; ports `RideFees`, `RiderCards` with REST adapters in `pricingctxacl`, `paymentsctxacl` (adapter tests against the real endpoints); empty `rentalsctxacl` listener package marked `@AntiCorruptionLayer`; `SettlementArchitectureTest` (only other contexts' `api` used) green; `./mvnw test` green.
 
 ### S7: Charging a finished ride, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E3.1, E3.2, Ride Settled, Charge Attempt Failed
 - **Done when:** one domain test per example: a successful charge settles the ride; a PLN 0.00 fee settles without a charge; a failed first attempt counts 1 of 3 with the next attempt due 5 minutes later and keeps the reason; `./mvnw test` green.
 
 ### S8: At most once, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, E4.1
 - **Done when:** a domain test shows a settled ride ignores a second charge request without events; `./mvnw test` green.
 
 ### S9: Charge Ride use case, listener, query, REST and persistence (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Charge Ride, Ride Priced, Ride Settled, Charge Attempt Failed
 - **Done when:** `ChargeRideUseCase` in the D5 order; `RentalSessionEndedListener` (`@Async @EventListener`) → `ChargeRide`; `RideSettlementQueryHandler` + `GET /settlement/rides/{sessionId}`; in-memory ride repository with `Version` that refuses a second ride with the same session id (D4, D5); wiring in `settlement/infra/config` with the `velocityClock`; `./mvnw test` green.
 
 ### S10: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement (with real Rentals event record, Pricing and Payments beans)
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -180,20 +180,20 @@ Session from `finance-prices-ride-by-tiered-tariff` S5 and `finance-prices-free-
 
 | Example | Test | Payments-side test (Payments wave, 2026-11-08) |
 |---|---|---|
-| E1.1 | `FinanceChargesFinishedRideSpecTest#e1_1_finished_ride_charged_to_current_card_is_settled` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e1_1_finished_ride_charged_to_current_card_is_settled` (charge succeeds) |
-| E2.1 | `FinanceChargesFinishedRideSpecTest#e2_1_free_ride_settled_without_charging` | none (no Payments behaviour) |
-| E3.1 | `FinanceChargesFinishedRideSpecTest#e3_1_declined_first_charge_schedules_next_attempt` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e3_1_declined_first_charge_schedules_next_attempt` (charge fails `DECLINED`) |
-| E3.2 | `FinanceChargesFinishedRideSpecTest#e3_2_no_current_card_fails_first_charge` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e3_2_no_current_card_fails_first_charge` (fails `NO_VALID_PAYMENT_METHOD`, no capture) |
-| E4.1 | `FinanceChargesFinishedRideSpecTest#e4_1_repeated_session_ended_does_not_charge_again` | none (no Payments behaviour) |
+| E1.1 | `velocity/settlement/FinanceChargesFinishedRideSpecTest#e1_1_finished_ride_charged_to_current_card_is_settled` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e1_1_finished_ride_charged_to_current_card_is_settled` (charge succeeds) |
+| E2.1 | `velocity/settlement/FinanceChargesFinishedRideSpecTest#e2_1_free_ride_settled_without_charging` | none (no Payments behaviour) |
+| E3.1 | `velocity/settlement/FinanceChargesFinishedRideSpecTest#e3_1_declined_first_charge_schedules_next_attempt` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e3_1_declined_first_charge_schedules_next_attempt` (charge fails `DECLINED`) |
+| E3.2 | `velocity/settlement/FinanceChargesFinishedRideSpecTest#e3_2_no_current_card_fails_first_charge` | `velocity/payments/FinanceChargesFinishedRideSpecTest#e3_2_no_current_card_fails_first_charge` (fails `NO_VALID_PAYMENT_METHOD`, no capture) |
+| E4.1 | `velocity/settlement/FinanceChargesFinishedRideSpecTest#e4_1_repeated_session_ended_does_not_charge_again` | none (no Payments behaviour) |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S7, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeCurrentCardUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/PaymentsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/paymentprocessoracl/SimulatedPaymentProcessor.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceChargesFinishedRideSpecTest.java` (Payments side) |
-| R2 / E2.1 | S7, S9, S10 |  |
-| R3 / E3.1, E3.2 | S3, S4, S7, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceChargesFinishedRideSpecTest.java` (Payments side) |
-| R4 / E4.1 | S8, S9, S10 |  |
+| R1 / E1.1 | S3, S7, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/ChargeCurrentCardUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/PaymentsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/paymentprocessoracl/SimulatedPaymentProcessor.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceChargesFinishedRideSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/ChargeRideUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/rentalsctxacl/RentalSessionEndedListener.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceChargesFinishedRideSpecTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/pricingctxacl/PricingRideFees.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/paymentsctxacl/PaymentsRiderCards.java` |
+| R2 / E2.1 | S7, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/ChargeRideUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/rentalsctxacl/RentalSessionEndedListener.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceChargesFinishedRideSpecTest.java` |
+| R3 / E3.1, E3.2 | S3, S4, S7, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceChargesFinishedRideSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/ChargeRideUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/rentalsctxacl/RentalSessionEndedListener.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceChargesFinishedRideSpecTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/queries/RideSettlementQueryHandler.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/SettlementController.java` |
+| R4 / E4.1 | S8, S9, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/ChargeRideUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/rentalsctxacl/RentalSessionEndedListener.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceChargesFinishedRideSpecTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/InMemoryRideSettlementRepository.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/InMemorySettlementRepositoriesTest.java` |
 
 ## Risks and open questions
 
@@ -209,6 +209,8 @@ Session from `finance-prices-ride-by-tiered-tariff` S5 and `finance-prices-free-
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Rules split along the canvases (Settlement: when/what/how often; Payments: which card and why it failed); three hand-offs all follow CML directions; upstream Payments before Settlement; tactical runs ≤ 3 rules; every example covered and tested with Awaitility for the async hand-off; no building block chosen (D5 is an ordering/idempotency decision for the use case).
 - 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: Payments keeps no charge history (charging changes no payment method, so `ChargeCurrentCardUseCase` loads, charges and publishes `ChargeSucceeded` / `ChargeFailed` domain events without saving); a rider Payments never heard of fails with `NO_VALID_PAYMENT_METHOD`; a non-positive or sub-grosz amount answers `400`. The simulated processor (`SimulatedPaymentProcessor`) records captures (`capturesFor(reference)`, `capturesOf(cardToken)`) and lets tests script the next answer (`scriptNextCapture`, `scriptNextAuthorization`). Payments-side Spring tests in `velocity/payments/FinanceChargesFinishedRideSpecTest`. S5-S10 stay todo for the Settlement wave.
 
+- 2026-11-08 (Settlement wave, autonomous run): S5-S10 built. Decisions taken in `docs/bounded-contexts/velocity/settlement/plan.md`: a free ride is settled by the factory itself (`RideSettlement.of(..).pricedAt(PLN 0.00)` → Ride Settled, no charge due); only rides with at least one failed attempt are picked up by retries, so a first attempt in flight isn't doubled; a technical failure of the first Payments call leaves the ride pending without a failed attempt (not retried; follow-up). Rentals' event is published by the tests (Rentals is built in parallel).
+
 ## Changelog
 
 ### 2026-11-08: planned
@@ -216,3 +218,7 @@ Session from `finance-prices-ride-by-tiered-tariff` S5 and `finance-prices-free-
 
 ### 2026-11-08: Payments steps S1-S4 done
 - Canvas tagged; `ChargeCurrentCard` command + use case; charge rules test-first in `RiderPaymentMethods`; `POST /payments/charges`; simulated processor fails `tok_nofunds*` and records every capture. TDD log: `docs/bounded-contexts/velocity/payments/plan.md`.
+
+### 2026-11-08: Settlement steps S5-S10 done (Settlement wave)
+- Canvas updated; Settlement module scaffolded (`velocity/settlement`); `RideSettlement` built test-first; `ChargeRideUseCase`, `RentalSessionEndedListener`, Ride Settlement query and `GET /settlement/rides/{sessionId}`, in-memory repository refusing a second new ride. Acceptance tests `velocity/settlement/FinanceChargesFinishedRideSpecTest` (5, green). Decisions and TDD log: `docs/bounded-contexts/velocity/settlement/plan.md`.
+

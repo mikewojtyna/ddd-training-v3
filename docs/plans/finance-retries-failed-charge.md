@@ -3,7 +3,7 @@ name: finance-retries-failed-charge
 intent: finance-retries-failed-charge
 spec: finance-retries-failed-charge
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -103,7 +103,7 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 ## Steps
 
 ### S1: Update the Settlement canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E1.2, E1.3, E2.1, E2.2, E3.1)
@@ -117,35 +117,35 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 - **Done when:** canvas carries the two new decisions. Prerequisite: plan `finance-blocks-rider-with-invalid-card` S8 done (`BlockAccountUseCase`, `POST /accounts/riders/{riderId}/blocks` for both reasons, one notification per newly placed reason).
 
 ### S3: Retry command, balance query and the Accounts ACL (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Retry Failed Charges, Account Blocked
 - **Done when:** `api/usecases/RetryFailedCharges`, `api/queries/RiderBalanceQuery` (+ result) records; port `AccountBlocks` with adapter in `infra/adapters/secondary/accountsctxacl` (adapter test against the real Accounts endpoint); `SettlementArchitectureTest` green; `./mvnw test` green.
 
 ### S4: Retry lifecycle of a ride, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, E1.1, E1.2, E1.3, E2.1, E2.2, Ride Settled, Charge Attempt Failed
 - **Done when:** one domain test per example for the ride's state: due exactly 5 minutes after the failed attempt (10:34 not due, 10:35 due); success settles; attempt 2 fails with next attempt at 10:40; attempt 3 makes the ride unpaid; `./mvnw test` green.
 
 ### S5: Outstanding debt, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R2, R3, E2.2, E3.1, Rental Fee Unpaid
 - **Done when:** one domain test per example for the rider's debt: first unpaid fee → debt PLN 43.00 with Rental Fee Unpaid; second → PLN 46.00 with Rental Fee Unpaid carrying the new total; `./mvnw test` green.
 
 ### S6: Retry use case, scheduled job, balance query, publishing and persistence (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Retry Failed Charges, Ride Settled, Charge Attempt Failed, Rental Fee Unpaid, Account Blocked
 - **Done when:** `RetryFailedChargesUseCase` (load rides due at `now` → per ride: charge through `RiderCards` → record outcome → on unpaid: add to the rider's debt, publish `api/events/RentalFeeUnpaid`, call `AccountBlocks` (D5) → save → publish domain events), per-ride isolation (D7); `FailedChargeRetryJob` (`@Scheduled`); `RiderBalanceQueryHandler` + `GET /settlement/riders/{riderId}/balance`; repositories with `Version` and a "due at" lookup; wiring in `settlement/infra/config`; `./mvnw test` green.
 
 ### S7: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement (with real Accounts, Payments, Pricing beans)
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -155,21 +155,21 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 
 | Example | Test |
 |---|---|
-| E1.1 | `FinanceRetriesFailedChargeSpecTest#e1_1_retry_five_minutes_later_settles_ride` |
-| E1.2 | `FinanceRetriesFailedChargeSpecTest#e1_2_no_retry_before_five_minutes` |
-| E1.3 | `FinanceRetriesFailedChargeSpecTest#e1_3_retry_charges_newly_verified_card` |
-| E2.1 | `FinanceRetriesFailedChargeSpecTest#e2_1_second_failure_schedules_third_attempt_without_debt` |
-| E2.2 | `FinanceRetriesFailedChargeSpecTest#e2_2_third_failure_makes_fee_outstanding_debt_and_blocks_rider` |
-| E3.1 | `FinanceRetriesFailedChargeSpecTest#e3_1_further_unpaid_fee_adds_to_debt_without_new_notification` |
+| E1.1 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e1_1_retry_five_minutes_later_settles_ride` |
+| E1.2 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e1_2_no_retry_before_five_minutes` |
+| E1.3 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e1_3_retry_charges_newly_verified_card` |
+| E2.1 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e2_1_second_failure_schedules_third_attempt_without_debt` |
+| E2.2 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e2_2_third_failure_makes_fee_outstanding_debt_and_blocks_rider` |
+| E3.1 | `velocity/settlement/FinanceRetriesFailedChargeSpecTest#e3_1_further_unpaid_fee_adds_to_debt_without_new_notification` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2, E1.3 | S4, S6, S7 | |
-| R2 / E2.1 | S4, S6, S7 | |
-| R2 / E2.2 | S2, S4, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side) |
-| R3 / E3.1 | S2, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side) |
+| R1 / E1.1, E1.2, E1.3 | S4, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryFailedChargesUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/FailedChargeRetryJob.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceRetriesFailedChargeSpecTest.java` |
+| R2 / E2.1 | S4, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryFailedChargesUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/FailedChargeRetryJob.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceRetriesFailedChargeSpecTest.java` |
+| R2 / E2.2 | S2, S4, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlement.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/ride/RideSettlementTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/usecases/RetryFailedChargesUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/primary/FailedChargeRetryJob.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceRetriesFailedChargeSpecTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/UnpaidRideFeeBecomesOutstandingDebtPolicy.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/BlockRiderWithOutstandingDebtPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/OutstandingDebtPoliciesTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/accountsctxacl/AccountsAccountBlocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/api/queries/RiderBalanceQueryHandler.java` |
+| R3 / E3.1 | S2, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebt.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/RiderDebtTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/UnpaidRideFeeBecomesOutstandingDebtPolicy.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/BlockRiderWithOutstandingDebtPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/domain/debt/OutstandingDebtPoliciesTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/FinanceRetriesFailedChargeSpecTest.java` |
 
 ## Risks and open questions
 
@@ -185,6 +185,8 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Retry and debt rules in Settlement, block and notification in Accounts (already generic in `finance-blocks-rider-with-invalid-card`), so no rule is duplicated; Settlement → Accounts and Settlement → Debt Recovery follow the CML; tactical runs carry 2 rules each, split by the state they guard; every example covered and tested with Awaitility on each hand-off.
 - 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Accounts-side Spring tests (Block Account over REST): `velocity/accounts/FinanceRetriesFailedChargeSpecTest#e2_2_outstanding_debt_blocks_the_account`, `#e3_1_debt_block_already_in_place_sends_no_second_notification`, `#block_contract_rejections`. Settlement reads notifications via `RecordingRiderNotifications#sentTo(riderId)` (bean `accountsRiderNotifications`). Settlement steps stay todo.
 
+- 2026-11-08 (Settlement wave, autonomous run): S1, S3-S7 built. D6 decided as two aggregates, `RideSettlement` (per ride) and `RiderDebt` (per rider), joined by the policy `UnpaidRideFeeBecomesOutstandingDebtPolicy` on the ride's `RideFeeUnpaid`; blocking on every unpaid fee is the policy `BlockRiderWithOutstandingDebtPolicy` (D5); a failing Accounts call is logged by `SettlementLocalEventsHandler` (D7). `RentalFeeUnpaid` is asserted through a test listener on the event bus (`SettlementDriver`) instead of `@RecordApplicationEvents`, because collections run on server threads too. E1.1 uses the simulated processor's scripted capture (`scriptNextCapture`). Details: `docs/bounded-contexts/velocity/settlement/plan.md`.
+
 ## Changelog
 
 ### 2026-11-08: planned
@@ -192,3 +194,6 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 
 ### 2026-11-08: Accounts steps done
 - Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.
+
+### 2026-11-08: Settlement steps S1, S3-S7 done (Settlement wave)
+- Retry use case, scheduled job (`FailedChargeRetryJob`), outstanding debt, Rider Balance query and `GET /settlement/riders/{riderId}/balance`, Accounts ACL. Acceptance tests `velocity/settlement/FinanceRetriesFailedChargeSpecTest` (6, green). TDD log: `docs/bounded-contexts/velocity/settlement/plan.md`.

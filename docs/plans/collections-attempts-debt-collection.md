@@ -3,7 +3,7 @@ name: collections-attempts-debt-collection
 intent: collections-attempts-debt-collection
 spec: collections-attempts-debt-collection
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -114,7 +114,7 @@ Missing, add:
 - **Done when:** canvas contains the new decision tagged with its spec ID.
 
 ### S2: Settlement offers Collect Outstanding Debt over REST
-- **Status:** todo
+- **Status:** done
 - **Context:** Settlement
 - **Skill:** bounded-context-scaffolder (update mode, 6b only: use case + REST); the collection rules themselves come from plan `rider-pays-off-outstanding-debt` (prerequisite: its Settlement domain step for paying the whole outstanding debt) and plan `finance-retries-failed-charge` (outstanding debt, Rental Fee Unpaid)
 - **Covers:** Collect Outstanding Debt (no spec ID; prerequisite for R1-R4)
@@ -196,7 +196,12 @@ Missing, add:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all rules in DebtRecovery per canvas/CML; Settlement supplies the command it already lists as inbound, direction matches `Settlement [U,S,PL]->[D,C] DebtRecovery`; upstream S2 before downstream; tactical runs of 3 and 2 rules grouped by state; all 9 examples covered; ports called from the use case, not the domain).
 
+- 2026-11-08 (Settlement wave, autonomous run): S2 built: `CollectOutstandingDebtUseCase` + `POST /settlement/riders/{riderId}/debt-collections`, reusing the payoff's collection (`OutstandingDebtCollector`). Decision: a rider who owes nothing answers `200 {collected: false, collectedAmount: "0.00", outstandingDebt: "0.00"}` (not `409`), matching this plan's risk note. Settlement Spring test: `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/CollectOutstandingDebtRestTest.java` (success, failure, nothing owed). `UnpaidRideFixture` (D8) can build on `velocity/settlement/SettlementDriver#ridesUnpaid` (package-private, copy or move it). DebtRecovery steps stay todo.
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Settlement step S2 done (Settlement wave)
+- Collect Outstanding Debt over REST; success publishes `OutstandingDebtCleared` and unblocks the rider.

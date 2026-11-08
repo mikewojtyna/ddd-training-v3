@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Pay for the ride
 task: Pay off outstanding debt
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:
