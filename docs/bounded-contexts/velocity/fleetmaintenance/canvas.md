@@ -99,6 +99,8 @@ repair them, and decides when a repaired bike goes back into circulation. Mainte
 - 🎭 DE-52: fleet-issue incidents reach Fleet Maintenance (the reference map's unconfirmed link is now confirmed).
 - 🎭 DE-21: a bike not returned after the maximum rental time is treated as broken.
 - Rentals owns reserve/unlock; Fleet Maintenance never locks or unlocks bikes itself.
+- 🎭 DE-91: any technician may return a bike under maintenance, at the station or position they name.
+- 🎭 DE-92: a technician may hold several reservations; a fault report on a bike in a ride is accepted and the ride goes on.
 - A withdrawal that Fleet Maintenance asked for itself (reason *requested*) is not a new fault report.
 
 ## Verification Metrics

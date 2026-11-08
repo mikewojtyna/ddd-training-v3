@@ -104,7 +104,8 @@ reason. Everyone else asks Accounts one question: *may this rider rent right now
 - 🎭 DE-1: email and phone confirmations are trusted facts from the messaging provider; no codes are checked here.
 - 🎭 DE-4: there is no separate activation step.
 - 🎭 DE-7: one block notification per block placed.
-- Placing a block that is already in place changes nothing and sends no second notification.
+- 🎭 DE-94: placing a block that is already in place changes nothing and sends no second notification; Account Unblocked is recorded each time one block reason is lifted.
+- 🎭 DE-93: a card invalidated during onboarding still places the block.
 
 ## Verification Metrics
 - Share of registrations that reach activation, and the step where riders drop out.

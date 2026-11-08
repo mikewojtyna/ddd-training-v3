@@ -32,6 +32,7 @@ handed straight to the people who fix bikes.
 | Support agent | Command | Resolve Incident (resolution) | |
 | Rider app | Command | Reopen Incident | Within 14 days of rejection (DE-54) |
 | Fleet Maintenance | Command | Resolve Fleet Issue (incident, bike fixed) | OHS; resolves from any open state (DE-55) |
+| Support (clock) | Command | Resolve Uncontested Rejections | When the 14-day window has closed (DE-87) |
 | Rider app, Support agent | Query | Incident | |
 
 ## Outbound Communication
@@ -65,7 +66,7 @@ handed straight to the people who fix bikes.
 ### Only the assigned agent decides
 - **Given** I-1 was picked up by agent Zoe
 - **When** agent Max accepts I-1
-- **Then** it is rejected; when Zoe accepts it, I-1 is accepted (Incident Accepted)
+- **Then** Max's acceptance is refused; when Zoe accepts it, I-1 is accepted (Incident Accepted)
 
 ### An escalated incident is resolved by the team's outcome
 - **Given** I-1 is accepted by Zoe
@@ -80,7 +81,12 @@ handed straight to the people who fix bikes.
 ### A reopened incident can't be rejected again
 - **Given** I-2 is reopened and assigned to Zoe
 - **When** Zoe rejects I-2
-- **Then** it is rejected; Zoe has to resolve it
+- **Then** the rejection is refused; Zoe has to accept or resolve it (DE-97)
+
+### An uncontested rejection is resolved when the window closes
+- **Given** Zoe rejected Anna's incident I-3 on 2026-11-01 and Anna didn't reopen it
+- **When** open incidents are checked on 2026-11-16
+- **Then** I-3 is resolved with "rejection not contested" (Incident Resolved) (DE-87); checked on 2026-11-15 it is still rejected
 
 ### A fixed bike resolves its fleet issue
 - **Given** fleet-issue incident I-1 is accepted

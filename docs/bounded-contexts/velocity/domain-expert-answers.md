@@ -31,7 +31,7 @@
 | DE-15 | Does a failed unlock make the bike broken? | No. The reservation is released and the bike is available again. If the bike really is faulty it signals the fault itself. |
 | DE-16 | Who can reserve a broken bike? | Only a technician. Technicians reserve only broken bikes. |
 | DE-17 | Does a reservation cost anything? | No. Reservations and expired reservations are free. |
-| DE-18 | Where do bikes come from? | A **fleet manager** puts a new bike into service at a station. From then on it is available. |
+| DE-18 | Where do bikes come from? | A **fleet manager** adds a new bike to the fleet at a station. From then on it is available. |
 
 ## Rides and returns
 
@@ -97,3 +97,29 @@
 | DE-71 | Which card is charged? | The rider's current verified card. A rider whose card was invalidated has none until they add a new one, so a charge fails. |
 | DE-73 | An old, replaced card expires. Is the rider blocked? | No. Only invalidating the rider's **current** card leaves them without a way to pay; an old card being invalidated is recorded and changes nothing else. |
 | DE-72 | How do we learn a card became invalid? | The payment processor notifies us (expired, cancelled, reported lost). |
+
+## Second round (questions raised while writing the specs, 2026-11-08)
+
+These refine or extend answers above; where they refine one, the earlier answer should be read together with this one.
+
+| ID | Question | 🎭 Answer |
+|---|---|---|
+| DE-80 | DE-14 lets a rider blocked during their 2-minute reservation start a ride, against the vision's "a blocked account cannot start new rentals". | **Revised: the rider's eligibility is checked again at unlock.** An ineligible rider's unlock is rejected; nothing changes, and the reservation runs out on its own. (Refines DE-14.) |
+| DE-81 | Does a reservation still hold at the exact second its period ends? | **Yes, up to and including its end time.** Reserved at 10:00:00 → unlocking at 10:02:00 works; a check at 10:02:00 finds it still reserved; from 10:02:01 it has expired. The same for technicians (30 minutes). Same reading as DE-20. |
+| DE-82 | An overdue session is noticed late (check at 20:07). When does it end? | **At the 12-hour mark** (started + 12 h), whenever it is noticed. Hourly fees count up to that mark, plus the penalty. (Refines DE-20, DE-33.) |
+| DE-83 | Is "15:01" in DE-31 minutes or seconds? | **Seconds.** Billing time is measured to the second: 15 min 0 s is free, 15 min 1 s starts hour 1. (Refines DE-31.) |
+| DE-84 | Does a quick trip ending free-floating pay the return fee? | **Yes.** "Quick trips cost nothing" is about hourly fees. The return fee depends only on where the ride ends. A 10-minute ride ended in a drop zone costs PLN 2.00. (Refines DE-34.) A position exactly on a zone's border counts as inside. The zone map valid at the end of the ride is used. |
+| DE-85 | A rider reports *can't unlock* for a bike; DE-15 says a failed unlock alone doesn't make it broken. | **A rider's report is taken seriously: it is a fleet issue and the bike is broken** (DE-50/52 stand). A single failed unlock signal is not a report. |
+| DE-86 | Is a ride interrupted when its bike is withdrawn (fleet-issue incident, technician report)? | **No.** No withdrawal interrupts a ride. The bike just isn't available after the return. (Extends DE-25.) |
+| DE-87 | A rejected incident the rider never reopens stays open forever? | **No.** When the 14-day window ends, it is **resolved automatically** with the resolution "rejection not contested". |
+| DE-88 | A new unpaid fee while recovery is *paused*? A new fee after success or exhaustion? | A new unpaid fee **joins any open recovery, running or paused** (it stays paused). After success or exhaustion, a new unpaid fee **starts a new recovery**. (Refines DE-44.) |
+| DE-89 | Pause and resume details? | The three reasons are the closed list. Pausing a paused recovery, or resuming one that isn't paused, is rejected. Any collections agent may pause or resume. A pause has no time limit and never ends on its own. Only a running recovery can be paused. |
+| DE-90 | Is "every 3 days" counted by calendar day? | **72 hours, to the minute.** |
+| DE-91 | A separate "bike fixed" step (vision steps 5 and 6)? Who may return the bike? | **No separate step**: returning the bike to circulation after maintenance is the moment it is fixed. **Any technician** may return a bike under maintenance. The technician names the station or the position where they leave it; it is trusted. |
+| DE-92 | Can a technician hold several reservations? Report a bike a rider is riding? | Yes, a technician may hold several reservations (they drive a van). A technician's fault report on a bike in a ride is accepted; the ride goes on (DE-86). |
+| DE-93 | A card is invalidated while the rider is still onboarding. | The *invalid card* block is placed anyway. An account is eligible only when activated **and** unblocked, so it changes nothing until activation. A newly verified card lifts it. |
+| DE-94 | When is Account Unblocked recorded? Duplicate block or invalidation reports? | **Account Unblocked is recorded every time one block reason is lifted**, naming the reason and whether the rider is now eligible. Placing a block that is already in place, or a second invalidation report for the same card, changes nothing and sends no notification. More debt while already blocked for debt sends no new notification. (Extends DE-6, DE-7.) |
+| DE-95 | Is a ride ever charged twice? Does a debt payoff include rides still being retried? | A ride is settled **at most once**: a repeated "session ended" fact is ignored. A payoff covers only the outstanding debt; rides still in their retries are not part of it. |
+| DE-96 | Tariff details? | A tariff's *valid from* must lie in the future when it is published (no retroactive prices). Two tariffs with the same *valid from* are rejected. Published tariffs aren't withdrawn. Fees can't be negative. |
+| DE-97 | Incident details? | A reopened incident goes back to the agent who rejected it, who may accept it (and then resolve or escalate it) or resolve it directly. An accepted incident is escalated at most once, to any of the three teams; the team need not match the type. Safety concerns are not escalated automatically. Blocked riders can report incidents. A reason is required for a rejection. |
+| DE-98 | Personal data and contact details? | A duplicate email at registration is rejected. The phone number is given at the phone step. Confirming the email twice changes nothing. Personal data can't be changed after it was provided (corrections go through support, out of scope). Someone born on 29 February turns 16 on 1 March in non-leap years. |
