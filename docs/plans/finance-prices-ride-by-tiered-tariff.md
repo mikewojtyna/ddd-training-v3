@@ -3,7 +3,7 @@ name: finance-prices-ride-by-tiered-tariff
 intent: finance-prices-ride-by-tiered-tariff
 spec: finance-prices-ride-by-tiered-tariff
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -94,42 +94,42 @@ tariff valid at the session start.
 ## Steps
 
 ### S1: Update the Pricing canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E1.2, E2.1, E2.2, E2.3, E3.1, E3.2, E4.1, E4.2, E5.1, E5.2)
 - **Done when:** canvas carries the six new decisions and the five tags. Prerequisite: plan `pricing-manager-publishes-tariff` S1-S5 done (module, tariff schedule, launch tariff).
 
 ### S2: Price for Session query records (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Price Ride
 - **Done when:** `pricing/api/queries/PriceForSession` and `SessionPrice` records (ending as `STATION`, `FREE_FLOATING`, `LOCK_FAILURE`, `MAX_RENTAL_TIME`); `PricingArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Free period, billing hours and tiered fees, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E2.2, E2.3, E3.1, E3.2
 - **Done when:** one domain test per example; boundaries 15:00 / 15:01 and 75:00 / 75:01 measured to the second; `./mvnw test` green.
 
 ### S4: Tariff at session start and endings without a return fee, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, R5, E4.1, E4.2, E5.1, E5.2
 - **Done when:** one domain test per example; R4 reuses "tariff valid at" from `pricing-manager-publishes-tariff` S4; a station return and a lock failure get return fee PLN 0.00 and no penalty; `./mvnw test` green.
 
 ### S5: Query handler and REST resource (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Price Ride, Ride Priced
 - **Done when:** `PriceForSessionQueryHandler` and `GET /pricing/session-price` returning `{tariffId, billingHours, hourlyFees, returnFee, returnFeeKind, penalty, total}` (money as decimal strings), `400` for malformed input; wiring in `pricing/infra/config`; `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -155,12 +155,11 @@ tariff valid at the session start.
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2 | S3, S6 | |
-| R2 / E2.1, E2.2, E2.3 | S3, S6 | |
-| R3 / E3.1, E3.2 | S3, S6 | |
-| R4 / E4.1, E4.2 | S4, S6 | |
-| R5 / E5.1, E5.2 | S4, S6 | |
-
+| R1 / E1.1, E1.2 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculatorTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/FinancePricesRideByTieredTariffSpecTest.java` |
+| R2 / E2.1, E2.2, E2.3 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `FeeCalculatorTest`, `FinancePricesRideByTieredTariffSpecTest` |
+| R3 / E3.1, E3.2 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/Tariff.java` (`hourlyFeeOf`); tests `FeeCalculatorTest`, `FinancePricesRideByTieredTariffSpecTest` |
+| R4 / E4.1, E4.2 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/tariff/TariffSchedule.java` (`tariffValidAt`); tests `FeeCalculatorTest`, `FinancePricesRideByTieredTariffSpecTest` |
+| R5 / E5.1, E5.2 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `FeeCalculatorTest`, `FinancePricesRideByTieredTariffSpecTest` |
 ## Risks and open questions
 
 - **CONTRACT GAP:** the Price for Session answer has no `billingHours`, and `hourlyFees` is a single value, while the spec's Ride Priced carries billing hours and one hourly fee per billing hour (E2.1-E3.2 assert "it has N billing hours"). Planned as if the answer carried `billingHours` (integer); `hourlyFees` read as the sum of the hourly fees (decimal string). The per-hour breakdown stays derivable from the tariff and is asserted in the domain tests.
@@ -172,7 +171,14 @@ tariff valid at the session start.
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. All rules sit in Pricing (CML "Total fee calculation"); the only hand-off (Settlement asks Pricing's OHS) follows the CML direction and is built downstream by `finance-charges-finished-ride`; command → query translation recorded as D5; every example covered and tested; tactical runs ≤ 3 rules; no building block chosen in the plan.
 
+- 2026-11-08 (build): Building block (tactical skill): `FeeCalculator` domain service (stateless; value objects `Session`, `Ending`, `SessionFee`; the tariff valid at the session start is picked from the `TariffSchedule` inside the calculation, so R4 lives in the domain). Billing time truncated to whole seconds (DE-83).
+- 2026-11-08 (build): `GET /pricing/session-price` answers `{tariffId, billingHours, hourlyFees, returnFee, returnFeeKind, penalty, total}` (money as decimal strings); `400` when `endedAt` isn't after `startedAt`, the ending is unknown or a time is malformed; `409 NoTariffValid` for a session started before the launch tariff.
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built and delivered (autonomous run, stage 4)
+- Every step done through its skill (D1: TDD checkpoint loop off; one example per cycle, red seen before green, implemented by Claude); per-cycle log in `docs/bounded-contexts/velocity/pricing/plan.md`.
+- Acceptance tests and traceability files filled in; full suite `./mvnw test` green.

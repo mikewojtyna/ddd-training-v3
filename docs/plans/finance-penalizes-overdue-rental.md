@@ -3,7 +3,7 @@ name: finance-penalizes-overdue-rental
 intent: finance-penalizes-overdue-rental
 spec: finance-penalizes-overdue-rental
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -82,28 +82,28 @@ end time; Settlement asks Pricing. No new hand-off is introduced by this plan.
 ## Steps
 
 ### S1: Update the Pricing canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E1.1, E1.2, E2.1, E3.1, E4.1)
 - **Done when:** canvas carries the tag and the four new decisions. Prerequisites: plans `finance-prices-ride-by-tiered-tariff` S5 and `finance-prices-free-floating-return-by-zone` S5 done.
 
 ### S2: Penalty by ending, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; spec examples verbatim, one per cycle)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E3.1
 - **Done when:** one domain test per example; the ending *maximum rental time* adds the tariff's penalty and no return fee even with a position outside every drop zone; 12 h ending at a station has no penalty; `./mvnw test` green. If the domain needs a change to the query records, run the scaffolder in update mode first and note it in the changelog.
 
 ### S3: Penalty from the tariff at session start, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, E4.1
 - **Done when:** one domain test; `./mvnw test` green.
 
 ### S4: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Pricing
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -123,11 +123,10 @@ end time; Settlement asks Pricing. No new hand-off is introduced by this plan.
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2 | S2, S4 | |
-| R2 / E2.1 | S2, S4 | |
-| R3 / E3.1 | S2, S4 | |
-| R4 / E4.1 | S3, S4 | |
-
+| R1 / E1.1, E1.2 | S2, S4 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/PenaltyTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/pricing/FinancePenalizesOverdueRentalSpecTest.java` |
+| R2 / E2.1 | S2, S4 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `PenaltyTest`, `FinancePenalizesOverdueRentalSpecTest` |
+| R3 / E3.1 | S2, S4 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `PenaltyTest`, `FinancePenalizesOverdueRentalSpecTest` |
+| R4 / E4.1 | S3, S4 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/pricing/domain/fee/FeeCalculator.java`; tests `PenaltyTest`, `FinancePenalizesOverdueRentalSpecTest` |
 ## Risks and open questions
 
 - E1.2's point (hourly fees stop at the 12-hour mark although the overrun was noticed at 20:20) is only meaningful end to end. With D5, Pricing's test for E1.2 equals E1.1 in its inputs; the guarantee comes from Rentals ending the session at started + 12 h (plan `fleet-operations-ends-overdue-rental`). Reviewers may want an additional cross-context test (Rentals overdue job at 20:20 → Settlement → ride fee 246.00); it would live with `finance-charges-finished-ride`'s Settlement tests.
@@ -137,7 +136,13 @@ end time; Settlement asks Pricing. No new hand-off is introduced by this plan.
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Price rules in Pricing, end-time rule left with Rentals (D5) so no rule is duplicated; no new hand-off; every example covered and tested; tactical runs ≤ 3 rules; skipping the scaffolder is justified (contract already carries the ending and the penalty).
 
+- 2026-11-08 (build): No structural change: the penalty is a third part of `FeeCalculator` (ending `MAX_RENTAL_TIME` → the tariff's penalty, no return fee). E4.1 asserts the launch prices and that T-2 doesn't apply (shared context, D7).
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built and delivered (autonomous run, stage 4)
+- Every step done through its skill (D1: TDD checkpoint loop off; one example per cycle, red seen before green, implemented by Claude); per-cycle log in `docs/bounded-contexts/velocity/pricing/plan.md`.
+- Acceptance tests and traceability files filled in; full suite `./mvnw test` green.
