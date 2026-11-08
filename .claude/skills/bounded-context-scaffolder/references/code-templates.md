@@ -224,13 +224,13 @@ class PricingArchitectureTest {
                        .and(DescribedPredicate.not(resideInAPackage("pl.wojtyna.dddtrainingv3.velocity.settlement.domain.money.."))));
 ```
 
-Make the exception **exactly as narrow as the recorded decision**. If the decision names one class (for example "share Rentals' `BorrowerId`"), exclude that class only, not its whole package. `JavaClass.Predicates.name` doesn't exist in ArchUnit 1.5.1, so use `HasName.Predicates.name` (`import com.tngtech.archunit.core.domain.properties.HasName;`):
+Make the exception **exactly as narrow as the recorded decision**. If the decision names one class (for example "share Rentals' `BikeId`"), exclude that class only, not its whole package. `JavaClass.Predicates.name` doesn't exist in ArchUnit 1.5.1, so use `HasName.Predicates.name` (`import com.tngtech.archunit.core.domain.properties.HasName;`):
 
 ```java
                    .should().dependOnClassesThat(nonApiClassOfAnotherContext()
-                       // DECISION D1 (2026-11-01): shared kernel on Rentals' BorrowerId, user insisted after challenge.
+                       // DECISION D1 (2026-11-01): shared kernel on Rentals' BikeId, user insisted after challenge.
                        // Deliberately NOT enforced for this one class. Risk: Rentals' internal changes to it break Accounts.
-                       .and(DescribedPredicate.not(HasName.Predicates.name("pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bikestation.BorrowerId"))));
+                       .and(DescribedPredicate.not(HasName.Predicates.name("pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeId"))));
 ```
 
 Also add a comment at the place where the foreign type is used, citing the same D-number:

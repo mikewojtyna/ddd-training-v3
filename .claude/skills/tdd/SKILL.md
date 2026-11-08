@@ -53,7 +53,7 @@ If it's already red, stop and report which tests fail. Starting from red makes i
 
 Write **one** test method for the scenario.
 
-**Where and how.** Put it in the test class for the class under test, in the same package under `src/test/java`. Create the class if it doesn't exist. Follow the style of the existing tests in this repo (see `BikeStationTest`):
+**Where and how.** Put it in the test class for the class under test, in the same package under `src/test/java`. Create the class if it doesn't exist. Follow the style of the existing tests in this repo (see Rentals' `BikeReservationTest`):
 
 ```java
 // @formatter:off
@@ -89,7 +89,7 @@ void returningRentedBikePublishesBikeReturned() {
 **Run just this test and read the failure:**
 
 ```bash
-./mvnw test -Dtest='BikeStationTest#returningRentedBikePublishesBikeReturned' 2>&1 | grep -E "Tests run:|FAIL|ERROR|expected|Expect|Exception|BUILD" | head -30
+./mvnw test -Dtest='BikeReservationTest#eligibleRiderNearbyReservesAvailableBikeForTwoMinutes' 2>&1 | grep -E "Tests run:|FAIL|ERROR|expected|Expect|Exception|BUILD" | head -30
 ```
 
 It has to fail **for the right reason**:

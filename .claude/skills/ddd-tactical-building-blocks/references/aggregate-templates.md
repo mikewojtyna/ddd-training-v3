@@ -77,7 +77,7 @@ public record Price(Money amount) {
 }
 ```
 
-Validate inside a value object's compact constructor, so an invalid value can't exist (e.g. a negative price throws `IllegalArgumentException`). For amounts in a currency use `org.joda.money.Money`, as CrowdSorcery does. An entity that changes inside the aggregate is a private static nested class annotated `@Entity`, with `equals`/`hashCode` on its id (see `BikeStation.BikeInStation`). An entity that never changes may be a record.
+Validate inside a value object's compact constructor, so an invalid value can't exist (e.g. a negative price throws `IllegalArgumentException`). For amounts in a currency use `org.joda.money.Money`, as CrowdSorcery does. An entity that changes inside the aggregate is a private static nested class annotated `@Entity`, with `equals`/`hashCode` on its id. An entity that never changes may be a record.
 
 Name each exception after the rule it protects, not after a technical failure. Use the same two constructors as the reference:
 
@@ -282,7 +282,7 @@ Notes:
 
 ## 7. Tests
 
-The test lives in `src/test/java/<same package>/<Aggregate>Test.java`, in the `BikeStationTest` style, with one test per scenario. Method names describe the rule. Always assert. A bare `events.hasAtLeastOneEventMatching(...)` checks nothing.
+The test lives in `src/test/java/<same package>/<Aggregate>Test.java`, in the style of Rentals' `BikeReservationTest`, with one test per scenario. Method names describe the rule. Always assert. A bare `events.hasAtLeastOneEventMatching(...)` checks nothing.
 
 ```java
 @DisplayName("Order examples")
@@ -342,7 +342,7 @@ The GWT text in `@DisplayName` should be the user's scenario, nearly word for wo
 
 ## 8. Repository port and in-memory adapters
 
-The **port** lives next to the aggregate, as in `AccountRepository` and `BikeStationRepo`:
+The **port** lives next to the aggregate, as in `AccountRepository` and Rentals' `BikeRepository`:
 
 ```java
 @Repository
