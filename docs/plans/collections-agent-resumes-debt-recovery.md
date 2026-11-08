@@ -3,7 +3,7 @@ name: collections-agent-resumes-debt-recovery
 intent: collections-agent-resumes-debt-recovery
 spec: collections-agent-resumes-debt-recovery
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -79,35 +79,35 @@ Missing, add:
 ## Steps
 
 ### S1: Update the DebtRecovery canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E3.1, E3.2 (tags for E1.1, E2.1, E2.2)
 - **Done when:** canvas contains the new decision, tagged.
 
 ### S2: Resume Recovery api record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Resume Recovery
 - **Done when:** record `ResumeRecovery` in `api/usecases`; architecture test green; `./mvnw test` green.
 
 ### S3: Resume rules, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E2.2, E3.1, E3.2, Recovery Resumed
 - **Done when:** one domain test per example; E2.1/E2.2 combine resume with the attempt outcome built by `collections-attempts-debt-collection`; `./mvnw test` green.
 
 ### S4: Use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Resume Recovery, Recovery Resumed
 - **Done when:** `ResumeRecoveryUseCase`, `POST /debt-recovery/riders/{riderId}/recovery/resume` with the 409 mapping; `./mvnw test` green.
 
 ### S5: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -127,11 +127,11 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S4, S5 | |
-| R2 / E2.1 | S1 (tag), S3, S5 | |
-| R2 / E2.2 | S1 (tag), S3, S5 | |
-| R3 / E3.1 | S1, S3, S4, S5 | |
-| R3 / E3.2 | S1, S3, S4, S5 | |
+| R1 / E1.1 | S1 (tag), S3, S4, S5 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/ResumeRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentResumesDebtRecoverySpecTest` |
+| R2 / E2.1 | S1 (tag), S3, S5 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/ResumeRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentResumesDebtRecoverySpecTest` |
+| R2 / E2.2 | S1 (tag), S3, S5 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/ResumeRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentResumesDebtRecoverySpecTest` |
+| R3 / E3.1 | S1, S3, S4, S5 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/ResumeRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentResumesDebtRecoverySpecTest` |
+| R3 / E3.2 | S1, S3, S4, S5 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/ResumeRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentResumesDebtRecoverySpecTest` |
 
 ## Risks and open questions
 
@@ -143,7 +143,12 @@ Missing, add:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in DebtRecovery; one tactical run of 3 rules guarding the same pause/run state; all 5 examples covered; prerequisites on the pause and attempt plans explicit).
 
+- 2026-11-08 (DebtRecovery wave, autonomous run): built. Decisions taken: Resume answers `200` with the Recovery Process view; a rider without a recovery process gets `409 RecoveryNotPaused`.
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: delivered (DebtRecovery wave)
+- S1-S5 done; acceptance tests `CollectionsAgentResumesDebtRecoverySpecTest` (5).
