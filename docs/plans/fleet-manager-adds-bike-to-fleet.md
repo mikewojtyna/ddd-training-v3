@@ -3,7 +3,7 @@ name: fleet-manager-adds-bike-to-fleet
 intent: fleet-manager-adds-bike-to-fleet
 spec: fleet-manager-adds-bike-to-fleet
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -87,49 +87,49 @@ Data shape notes for the tactical skill: new bike = bike id, station id, added a
 ## Steps
 
 ### S1: Remove the old Rentals code and tests
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill)
 - **Covers:** none
 - **Done when:** `rentals/domain/bikestation/**`, `rentals/api/usecases/RentBikeUseCase.java` and `src/test/java/.../velocity/rentals/domain/bikestation/BikeStationTest.java` are deleted; nothing else references them (`grep -r bikestation src`); the "Rentals" section of `velocity/CLAUDE.md` and the `BikeStationTest` example commands in `README.md` are updated to the new module; `rentals/api/events/*` kept; `./mvnw test` green.
 
 ### S2: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E3.1 (canvas decision), tags for E1.1, E2.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S3: Scaffold the fresh Rentals module (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (new context from the canvas, Step 6a), told that this plan settles the structural decisions (D1-D8)
 - **Covers:** Command: Add Bike to Fleet (record), Bike Availability query records
 - **Done when:** `rentals/package-info.java` (`@BoundedContext(name = "Rentals")`, `@Module`), `api/usecases/AddBikeToFleet`, `api/queries/BikeAvailabilityQuery` + `BikeAvailability`, `infra/config/RentalsContextConfig` (empty of domain beans), `RentalsArchitectureTest` and the context plan `docs/bounded-contexts/velocity/rentals/plan.md` (`Status: approved`, "approved via docs/plans/fleet-manager-adds-bike-to-fleet.md") exist; `./mvnw test` green.
 
 ### S4: Domain: adding a bike to the fleet
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder
 - **Covers:** R1, R2, R3, E1.1, E2.1, E3.1
 - **Done when:** one unit test per example (E1.1, E2.1, E3.1) in the domain package passes, each written first; the bike is available and free at its station's position after being added; `./mvnw test` green.
 
 ### S5: Use case, query, REST and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Add Bike to Fleet, Event: Bike Added to Fleet, R1, R2, R3
 - **Done when:** `AddBikeToFleetUseCase` (load/check, execute, save, publish), `BikeAvailabilityQueryHandler`, REST `POST /rentals/bikes` and `GET /rentals/bikes/{bikeId}` with the D8 error mapping, in-memory bike repository with `Version` (D4), Spring wiring in `RentalsContextConfig` using the shared `velocityClock`; `./mvnw test` green.
 
 ### S6: Acceptance tests for E1.1, E2.1, E3.1
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E2.1, E3.1
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetManagerAddsBikeToFleetSpecTest.java` is a `@VelocitySpringTest` with real beans that drives `POST /rentals/bikes` and asserts with `GET /rentals/bikes/{bikeId}` (MutableClock set per test, unique bike ids per test), one test method per example, scenario in `@DisplayName`; `./mvnw test` green.
 
 ### S7: Acceptance test for E1.2 (needs reserving)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill)
 - **Covers:** E1.2
@@ -148,10 +148,10 @@ Data shape notes for the tactical skill: new bike = bike id, station id, added a
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S4, S5, S6 | |
-| R1 / E1.2 | S7 | |
-| R2 / E2.1 | S4, S5, S6 | |
-| R3 / E3.1 | S2, S4, S5, S6 | |
+| R1 / E1.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Fleet.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FleetTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/AddBikeToFleetUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetManagerAddsBikeToFleetSpecTest.java` |
+| R1 / E1.2 | S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Fleet.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FleetTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/AddBikeToFleetUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetManagerAddsBikeToFleetSpecTest.java` |
+| R2 / E2.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Fleet.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FleetTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/AddBikeToFleetUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetManagerAddsBikeToFleetSpecTest.java` |
+| R3 / E3.1 | S2, S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Fleet.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FleetTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/AddBikeToFleetUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetManagerAddsBikeToFleetSpecTest.java` |
 
 ## Risks and open questions
 
@@ -163,8 +163,12 @@ Data shape notes for the tactical skill: new bike = bike id, station id, added a
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Placement single-context and backed by CML + canvas; no new relationship; every example covered (E1.2 deferred to S7 with an explicit prerequisite); tactical step has 3 rules guarding the same bike state; step order canvas → 6a → domain → 6b → acceptance; no building block decided in the plan (D6 is a candidate only).
+- 2026-11-08 (Rentals wave, autonomous run): S1: the old Rentals code and tests were removed in commit 4702217 (prep); this wave updated the README test commands (`BikeReservationTest`). The Rentals section of `velocity/CLAUDE.md` still describes the old BikeStation code: left for the trainer (agents don't edit CLAUDE.md). S3-S5 built the module per the context plan `docs/bounded-contexts/velocity/rentals/plan.md`. Decisions: stations are a domain value `Stations` (reference data, ids = names `Central`, `Old Town`, `Riverside`); `POST /rentals/bikes` answers `201` without a body; the factory `Fleet` checks R2/R3 and the repository rejects a concurrent duplicate (optimistic locking).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

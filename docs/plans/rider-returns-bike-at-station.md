@@ -3,7 +3,7 @@ name: rider-returns-bike-at-station
 intent: rider-returns-bike-at-station
 spec: rider-returns-bike-at-station
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -85,42 +85,42 @@ Maintenance listens) as integration events; the reactions of those contexts belo
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E4.1, E4.2, E5.1, E5.2 (canvas decisions), tags for E1.1, E2.1, E3.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the command record and check the published events (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: Return Bike at Station (record), Event: Rental Session Ended, Event: Bike Withdrawn (integration records, exist)
 - **Done when:** `api/usecases/ReturnBikeAtStation` exists; `BikeLocks` offers closing the lock; `api/events/RentalSessionEnded` and `BikeWithdrawn` match integration-contracts.md; `./mvnw test` green.
 
 ### S3: Domain: ending the session at a named station (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R4, R5, E1.1, E4.1, E4.2, E5.1, E5.2
 - **Done when:** one unit test per example, written first, passes; after a station return the bike is free and available at the station's position; `./mvnw test` green.
 
 ### S4: Domain: lock failure and reported fault withdraw the bike (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R2, R3, E2.1, E3.1
 - **Done when:** one unit test per example passes: a failed lock ends the session with *lock failure* and withdraws with *lock failed*; a reported fault ends with *station return* and withdraws with *fault reported at return*; a withdrawn bike is no longer reservable by riders (the rule `rider-reserves-bike` R5 already expects); `./mvnw test` green.
 
 ### S5: Use case, REST, event publishing and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Return Bike at Station, Event: Rental Session Ended, Event: Bike Withdrawn
 - **Done when:** `ReturnBikeAtStationUseCase` (load, close the lock via `BikeLocks`, execute, save, publish, map both integration events), REST `POST /rentals/bikes/{bikeId}/station-return` with the answer and error mapping above; `GET /rentals/bikes/{bikeId}` shows `availability: "WITHDRAWN"` after a withdrawal; `./mvnw test` green.
 
 ### S6: Acceptance tests for every example
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST for eligible riders)
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -142,13 +142,13 @@ Maintenance listens) as integration events; the reactions of those contexts belo
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6 | |
-| R2 / E2.1 | S4, S5, S6 | |
-| R3 / E3.1 | S4, S5, S6 | |
-| R4 / E4.1 | S1, S3, S6 | |
-| R4 / E4.2 | S1, S3, S6 | |
-| R5 / E5.1 | S1, S3, S6 | |
-| R5 / E5.2 | S1, S3, S6 | |
+| R1 / E1.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R2 / E2.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R3 / E3.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R4 / E4.1 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R4 / E4.2 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R5 / E5.1 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
+| R5 / E5.2 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/StationReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReturnBikeAtStationUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReturnsBikeAtStationSpecTest.java` |
 
 ## Risks and open questions
 
@@ -159,8 +159,12 @@ Maintenance listens) as integration events; the reactions of those contexts belo
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner; both events published only because their listeners exist in the CML; R1/R4/R5 grouped (they guard the running session) and R2/R3 grouped (withdrawal at return); pricing consequences (no extra charge after a lock failure) left out of scope as the spec says.
+- 2026-11-08 (Rentals wave, autonomous run): Decisions: answer `200 {sessionId, bikeId, endReason, endedAt}`; a lock failure at a station return publishes `RentalSessionEnded` with the named station and its position; `BikeWithdrawn` carries the rider's description in the new optional last field `faultDescription` (integration-contracts.md Additions). A bike already withdrawn during the ride (a client's request, DE-86) gets no second Bike Withdrawn at the return.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

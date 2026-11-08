@@ -3,7 +3,7 @@ name: finance-blocks-rider-with-invalid-card
 intent: finance-blocks-rider-with-invalid-card
 spec: finance-blocks-rider-with-invalid-card
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -177,7 +177,7 @@ All directions match the CML.
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java`, `@VelocitySpringTest`; each test onboards its own rider over REST, posts the processor notification to Payments, and asserts the Payments → Accounts hand-off with Awaitility (Account Status `blocks`, Rental Eligibility, recorded notifications, `GET /payments/riders/{riderId}/payment-methods`); E2.3/E3.1 assert that nothing more arrives after a short wait; `./mvnw test` green.
 
 ### S10: Acceptance test for a running ride during a block
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts, Payments, Rentals
 - **Skill:** none (this skill)
 - **Covers:** E1.2
@@ -203,7 +203,7 @@ All directions match the CML.
 | Spec ID | Step | Files |
 |---|---|---|
 | R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/InvalidatePaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/paymentprocessoracl/ProcessorNotificationsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/paymentsctxacl/PaymentMethodInvalidatedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/queries/RentalEligibilityQueryHandler.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
-| R1 / E1.2 | S5, S10 |  |
+| R1 / E1.2 | S5, S10 | `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (`e1_2_running_ride_continues_after_block`); Rentals asks eligibility only at reserve and unlock (`src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `UnlockBikeUseCase.java`) |
 | R1 / E1.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
 | R2 / E2.1 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
 | R2 / E2.2 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
@@ -228,6 +228,7 @@ All directions match the CML.
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (placement follows both canvases and the CF relationship; old/duplicate filtering in Payments, blocks in Accounts; Payments before Accounts; Accounts tactical step holds 3 rules; E1.2 deferred to Rentals' delivery; CONTRACT GAPs recorded).
 - 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: the domain distinguishes `PaymentMethodInvalidated` (current card, mapped to `api.events.PaymentMethodInvalidated` by `IntegrationEventsPublisher`, not by the use case) from `FormerPaymentMethodInvalidated` (old card, not published); the processor notification endpoint sits in the primary ACL package `infra/adapters/primary/paymentprocessoracl` (notifications are the processor's language); an unknown `reason` answers `400`; if several riders ever added the same token, each is invalidated. Payments-side Spring tests in `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest`. S5-S10 stay todo for the Accounts (and Rentals) waves.
 - 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). S10 (E1.2) stays todo until Rentals can start a ride. Eligibility before activation answers `ONBOARDING_INCOMPLETE` even when blocked; after activation `BLOCKED`. The listener ignores (logs) riders Accounts doesn't know and retries an optimistic-locking conflict up to 3 times.
+- 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S10 built: `FinanceBlocksRiderWithInvalidCardSpecTest#e1_2_running_ride_continues_after_block` starts Anna's ride over Rentals' REST API, reports the card lost to Payments, awaits the block in Accounts and asserts the ride is still Anna's active rental (`kind: SESSION`).
 
 ## Changelog
 
@@ -239,3 +240,6 @@ All directions match the CML.
 
 ### 2026-11-08: Accounts steps done
 - Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

@@ -6,7 +6,9 @@ import pl.wojtyna.dddtrainingv3.common.integration.IntegrationEvent;
 import java.time.Instant;
 
 /// Published language: a bike is no longer offered to riders. `reason` is one of `FAULT_REPORTED_AT_RETURN`, `LOCK_FAILED`, `FAULT_SIGNALLED`, `NOT_RETURNED`, `REQUESTED`.
+/// `faultDescription` (optional, may be null) is the rider's description (`FAULT_REPORTED_AT_RETURN`) or the bike's
+/// fault code (`FAULT_SIGNALLED`); added as the last field by the Rentals implementation (integration-contracts.md, "Additions").
 /// See `docs/bounded-contexts/velocity/integration-contracts.md`.
 @ValueObject
-public record BikeWithdrawn(String bikeId, String reason, Instant withdrawnAt) implements IntegrationEvent {
+public record BikeWithdrawn(String bikeId, String reason, Instant withdrawnAt, String faultDescription) implements IntegrationEvent {
 }

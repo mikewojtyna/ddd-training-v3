@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.AccountEvent.AccountUnblocked;
 import pl.wojtyna.dddtrainingv3.velocity.accounts.domain.account.BlockReason;
@@ -19,6 +20,7 @@ import pl.wojtyna.dddtrainingv3.velocity.common.infra.VelocityServiceUrls;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +28,7 @@ import static org.awaitility.Awaitility.await;
 
 /// Acceptance tests of `docs/specs/finance-blocks-rider-with-invalid-card.md`: the processor's notification enters
 /// Payments over REST, Payments publishes Payment Method Invalidated, and Accounts' asynchronous listener blocks the
-/// rider. Every effect of that hand-off is awaited. E1.2 (a running ride continues) needs Rentals and comes later.
+/// rider. Every effect of that hand-off is awaited. E1.2 starts a ride over Rentals' REST API first.
 @VelocitySpringTest
 @DisplayName("Spec finance-blocks-rider-with-invalid-card")
 class FinanceBlocksRiderWithInvalidCardSpecTest {
@@ -87,6 +89,45 @@ class FinanceBlocksRiderWithInvalidCardSpecTest {
             assertThat(accounts.statusOf(anna).blocks()).containsExactly("INVALID_CARD");
             assertThat(accounts.rentalEligibilityOf(anna)).isEqualTo(new AccountsDriver.Eligibility(anna, false, "BLOCKED"));
         });
+    }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         E1.2 given Anna is riding bike B-17 since 07:50 and her current card ends 4242,
+         when at 08:00 the payment processor reports the card ending 4242 reported lost,
+         then Anna is blocked for invalid card and her ride on B-17 continues
+        """
+    )
+    // @formatter:on
+    @Test
+    void e1_2_running_ride_continues_after_block() {
+        // given: Anna's ride on her own bike, started over Rentals' REST API
+        var anna = accounts.activated(annaEmail, visa4242);
+        var b17 = "B-17-" + suffix;
+        clock.setTo("2026-11-20T07:50:00Z");
+        rentalsPost("/rentals/bikes", Map.of("bikeId", b17, "stationId", "Central"));
+        rentalsPost("/rentals/bikes/" + b17 + "/reservations",
+                    Map.of("holderType", "RIDER", "holderId", anna, "latitude", 52.2300, "longitude", 21.0110));
+        rentalsPost("/rentals/bikes/" + b17 + "/unlock", Map.of("holderType", "RIDER", "holderId", anna));
+        clock.setTo("2026-11-20T08:00:00Z");
+
+        // when
+        payments.processorReportsCardInvalidated(visa4242, "REPORTED_LOST");
+
+        // then
+        await().atMost(HAND_OFF).untilAsserted(() -> assertThat(accounts.statusOf(anna).blocks()).containsExactly("INVALID_CARD"));
+        var activeRental = restClient.get().uri(urls.url("/rentals/riders/" + anna + "/active-rental"))
+                                     .retrieve().body(ActiveRental.class);
+        assertThat(activeRental.kind()).isEqualTo("SESSION");
+        assertThat(activeRental.bikeId()).isEqualTo(b17);
+    }
+
+    private record ActiveRental(String bikeId, String kind) {
+    }
+
+    private void rentalsPost(String path, Map<String, Object> body) {
+        restClient.post().uri(urls.url(path)).contentType(MediaType.APPLICATION_JSON).body(body).retrieve().toBodilessEntity();
     }
 
     // @formatter:off

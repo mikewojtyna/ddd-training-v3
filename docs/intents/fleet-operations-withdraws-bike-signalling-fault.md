@@ -6,7 +6,7 @@ system: velocity
 actor: Fleet Operations
 activity: Keep the fleet healthy
 task: Take broken bikes out of circulation
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

@@ -54,8 +54,8 @@ The stack is the Maven wrapper, Spring Boot 4.1 and Java 25 (`java.version`); it
 ```bash
 ./mvnw compile
 ./mvnw test
-./mvnw test -Dtest=BikeStationTest            # single test class
-./mvnw test -Dtest='BikeStationTest#test0'    # single test method
+./mvnw test -Dtest=BikeReservationTest       # single test class
+./mvnw test -Dtest='BikeReservationTest#riderFarAwayIsRejected'    # single test method
 ```
 
 Context maps can be rendered to PNG (into `target/`) by running these as plain `main` classes from the IDE. The CML-based ones need Graphviz `dot` on the PATH.

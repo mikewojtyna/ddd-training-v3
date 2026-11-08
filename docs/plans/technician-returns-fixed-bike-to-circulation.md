@@ -109,14 +109,14 @@ Hand-offs:
 - **Done when:** the canvases carry the tags and additions above.
 
 ### S2: Rentals: make a withdrawn bike available again
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Covers:** R1 (Rentals half), E1.1, E1.2
 - **Done when:** domain tests: a withdrawn bike unlocked for a technician becomes locked, free and available at a station / at a position; rejected while reserved for a technician but not unlocked, or while a rider's session runs; `./mvnw test` green.
 
 ### S3: Rentals: Make Bike Available use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Bike Made Available
@@ -181,7 +181,7 @@ Hand-offs:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1, E1.2 | S2, S3, S7, S8, S9 | |
+| R1 / E1.1, E1.2 | S2, S3, S7, S8, S9 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`makeAvailableAt`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/MakeBikeAvailableUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`MakingAvailable`) |
 | R1 / E1.3 | S1, S7, S8, S9 | |
 | R2 / E2.1, E2.2 | S1, S7, S8, S9 | |
 | R3 / E3.1 | S4, S5, S6, S7, S8, S9 | Customer Support: `Incident.resolveFleetIssueOf`, `ResolveFleetIssueUseCase`, `IncidentController`; `IncidentTest.ResolvingFleetIssues`, `ResolveFleetIssueRestTest` |
@@ -196,6 +196,7 @@ Hand-offs:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (FM decides the fix, Rentals the availability, Customer Support the incident state; both calls go to upstream OHS in the CML direction; every example covered; ≤3 rules per tactical step; no building blocks decided).
 - 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
+- 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S2/S3 built. `POST /rentals/bikes/{bikeId}/availability` answers `200`; a bike that isn't withdrawn and unlocked for a technician → `409 BikeNotUnlockedForService`; unknown bike `404`; unknown station `409 UnknownStation`. Rentals doesn't call `BikeLocks` here (the technician leaves the bike locked; decision recorded in the Rentals context plan). The Rentals half of S1's canvas diff is applied; S1 stays todo.
 
 ## Changelog
 
@@ -206,3 +207,6 @@ Hand-offs:
 - S4 done: `Incident.resolveFleetIssueOf(bike).at(time)`: resolves a fleet issue of that bike with "bike fixed" from any open state; an already resolved incident keeps its resolution and raises nothing (idempotent, D6); an incident that isn't a fleet issue of that bike is refused (`NotAFleetIssueOfBike`). Tests `IncidentTest.ResolvingFleetIssues` (5).
 - S5 done: `ResolveFleetIssueUseCase`, `POST /customer-support/incidents/{incidentId}/fleet-resolution` `{bikeId}` → `200` (also when already resolved), `404 IncidentNotFound`, `409 NotAFleetIssueOfBike`; REST-level test `ResolveFleetIssueRestTest` (3).
 - S1: the CustomerSupport canvas part is applied (tag + "Several and already resolved" variant); FleetMaintenance and Rentals canvas parts are left to their contexts, so S1 stays todo.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

@@ -3,7 +3,7 @@ name: fleet-operations-ends-overdue-rental
 intent: fleet-operations-ends-overdue-rental
 spec: fleet-operations-ends-overdue-rental
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -79,35 +79,35 @@ returned*; `RentalSessionEnded` (Settlement prices the penalty) and `BikeWithdra
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E1.3, E3.1 (canvas decisions), tags for E1.1, E1.2, E2.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the command record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: End Overdue Rental Sessions (record)
 - **Done when:** `api/usecases/EndOverdueRentalSessions` exists; `RentalsArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Domain: overdue sessions end at the 12-hour mark and withdraw the bike
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E1.3, E2.1, E3.1
 - **Done when:** one unit test per example, written first, passes (20:00:00 still running, 20:00:01 ended at 20:00; a late check at 22:15 still ends at 20:00; the bike is withdrawn as *not returned*; an ended session is untouched); `./mvnw test` green.
 
 ### S4: Use case, scheduled job, event publishing and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: End Overdue Rental Sessions, Event: Rental Session Ended, Event: Bike Withdrawn
 - **Done when:** `EndOverdueRentalSessionsUseCase` (find sessions started more than 12 h before now, end each, save, publish, map integration events), `OverdueSessionsJob` (`@Scheduled`, using `velocityClock`), wiring; `./mvnw test` green.
 
 ### S5: Acceptance tests for every example
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST for eligible riders)
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -127,11 +127,11 @@ returned*; `RentalSessionEnded` (Settlement prices the penalty) and `BikeWithdra
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S4, S5 | |
-| R1 / E1.2 | S3, S5 | |
-| R1 / E1.3 | S1, S3, S5 | |
-| R2 / E2.1 | S3, S4, S5 | |
-| R3 / E3.1 | S1, S3, S5 | |
+| R1 / E1.1 | S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/OverdueSessionTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndOverdueRentalSessionsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsEndsOverdueRentalSpecTest.java` |
+| R1 / E1.2 | S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/OverdueSessionTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndOverdueRentalSessionsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsEndsOverdueRentalSpecTest.java` |
+| R1 / E1.3 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/OverdueSessionTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndOverdueRentalSessionsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsEndsOverdueRentalSpecTest.java` |
+| R2 / E2.1 | S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/OverdueSessionTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndOverdueRentalSessionsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsEndsOverdueRentalSpecTest.java` |
+| R3 / E3.1 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/OverdueSessionTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndOverdueRentalSessionsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsEndsOverdueRentalSpecTest.java` |
 
 ## Risks and open questions
 
@@ -142,8 +142,12 @@ returned*; `RentalSessionEnded` (Settlement prices the penalty) and `BikeWithdra
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner; the penalty stays out (Pricing/Settlement); three rules in one tactical run guarding the running session; E3.1 relies on the station return delivered earlier (D5).
+- 2026-11-08 (Rentals wave, autonomous run): Decisions: the repository lists bikes with a session started before now and each bike decides whether it is overdue (the 12 hours live only in `Bike`); an overdue end clears the bike's position (unknown, DE-21), so `GET /rentals/bikes/{bikeId}` answers `latitude`/`longitude` null; Bike Withdrawn *not returned* is stamped with the check's now, the session end with the 12-hour mark (DE-82).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.
