@@ -29,7 +29,7 @@ All examples on 2026-11-09 with the launch tariff unless stated otherwise. Posit
 
 - **E1.1** Given Anna's ride on bike B-17 started at 10:00 and ended with a free-floating return at (52.2298, 21.0123) at 10:30, When the ride is priced, Then its hourly fees are PLN 3.00, its return fee is the drop zone fee PLN 2.00 and its total fee is PLN 5.00 (Ride Priced).
 - **E1.2** Given Anna's ride started at 10:00 and ended with a free-floating return at (52.2298, 21.0123) at 10:10, inside the free period, When the ride is priced, Then its hourly fees are PLN 0.00, its return fee is PLN 2.00 and its total fee is PLN 2.00 (Ride Priced) (DE-84).
-- **E1.3** Given Anna's ride started at 10:00 and ended with a free-floating return at 10:30 at (52.2311, 21.0122), exactly on the border of the Old Town Square drop zone, When the ride is priced, Then its return fee is the drop zone fee PLN 2.00 and its total fee is PLN 5.00 (Ride Priced) (DE-84).
+- **E1.3** Given Anna's ride started at 10:00 and ended with a free-floating return at 10:30 at (52.23104, 21.0122), 149 m from the centre of the Old Town Square drop zone (radius 150 m), right at its border, When the ride is priced, Then its return fee is the drop zone fee PLN 2.00 and its total fee is PLN 5.00 (Ride Priced) (DE-84).
 
 ### R2: A free-floating return outside every drop zone adds the unauthorized zone return fee
 

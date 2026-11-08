@@ -6,7 +6,7 @@ system: velocity
 actor: Finance
 activity: Pay for the ride
 task: Retry failed charges
-status: specified
+status: planned
 date: 2026-11-08
 supersedes:
 superseded_by:

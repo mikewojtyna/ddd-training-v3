@@ -6,7 +6,7 @@ system: velocity
 actor: Fleet Manager
 activity: Keep the fleet healthy
 task: Add a bike to the fleet
-status: specified
+status: planned
 date: 2026-11-08
 supersedes:
 superseded_by:
