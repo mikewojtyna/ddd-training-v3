@@ -118,8 +118,7 @@ If yes:
 1. **Processes first.** Collect the business processes or user stories, from the input or by asking. The map must support every one of them.
 2. **Walk each process.** Map every step to its owning context. Every hand-off between contexts is a candidate relationship. The direction follows **model dependency**: the context whose model the other must understand is upstream. Choose patterns by `references/context-map-rules.md`:
    - ACL downstream by default
-   - OHS/PL upstream for APIs and events
-   - Customer/Supplier between internal teams
+   - either OHS/PL upstream for APIs and events (ACL or a justified CF downstream), or Customer/Supplier between internal teams (PL allowed upstream; OHS and CF are CML errors in C/S; an ACL only warns). They're alternatives, not layers: see "Choosing between OHS and Customer/Supplier" in the rules
    - CF only towards a well-established language
    - no Shared Kernel, no Big Ball of Mud, no U/D cycles
 

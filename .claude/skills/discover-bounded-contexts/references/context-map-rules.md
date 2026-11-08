@@ -30,7 +30,12 @@ The patterns come from the ddd-crew Context Map Cheat Sheet (`docs/context-map-c
 
    An indirect cycle (A → B → C → A) needs checking too. Is each arrow a real model dependency, or is one of them just the direction an event travels?
 4. **Separate Ways only for R&D.** Use it only when you deliberately build an experimental silo and *maybe* integrate later if the experiment is promising. Two contexts that simply don't talk aren't "Separate Ways". They just have no relationship.
-5. **Customer/Supplier is healthy for teams in the same organisation, domain or product,** because they work towards a common goal. It's the default flavour of U/D between internal teams.
+5. **Customer/Supplier is healthy for teams in the same organisation, domain or product,** because they work towards a common goal. It's the default flavour of U/D between internal teams. **C/S and OHS are alternatives, not layers:** in CML a C/S relationship allows only PL upstream and an ACL (with a warning) downstream. OHS and CF are errors. See "Choosing between OHS and Customer/Supplier" below.
+
+## Choosing between OHS and Customer/Supplier
+- **Open Host Service:** one protocol for any number of clients. The upstream doesn't plan around a single client. Use it when several contexts use the same API, or when one client must not shape the upstream's model. Example: Accounts' block/unblock.
+- **Customer/Supplier:** a specific agreement between two internal teams. The customer's needs go into the supplier's planning. Use it when one downstream really drives what the upstream builds. Example: Debt Recovery asking Settlement to collect.
+- If you're tempted to write both, decide which statement is true: "anyone can call this API as it is" (OHS) or "this downstream shapes our roadmap" (C/S). Context Mapper 6.10 rejects OHS and CF inside C/S (`CUSTOMER_SUPPLIER_WITH_OHS_ERROR_MESSAGE`, `CUSTOMER_SUPPLIER_WITH_CONFORMIST_ERROR_MESSAGE`).
 
 ## Integration pattern rules
 1. **Conformist only towards a well-established domain and language.** Examples are a payment provider's standard API or an industry standard. Otherwise the upstream model pollutes the downstream. Justify every CF.

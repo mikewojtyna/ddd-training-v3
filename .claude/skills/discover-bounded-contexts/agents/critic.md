@@ -51,6 +51,7 @@ The facilitator's prompt gives you:
    - Shared Kernel only with an accepted reason
    - ACL downstream by default
    - OHS only upstream
+   - in Customer/Supplier, no OHS upstream and no CF downstream: Context Mapper rejects both. Never propose `[U,S,OHS,…]` or `[D,C,CF]`. If the relationship needs an OHS, it isn't C/S.
    - PL for events and schemas
 4. **Validator output.**
    - Errors mean the map is invalid.
