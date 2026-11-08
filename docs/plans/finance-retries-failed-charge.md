@@ -3,7 +3,7 @@ name: finance-retries-failed-charge
 intent: finance-retries-failed-charge
 spec: finance-retries-failed-charge
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -110,7 +110,7 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 - **Done when:** canvas carries the two tags and the four new decisions. Prerequisite: plan `finance-charges-finished-ride` S10 done.
 
 ### S2: Update the Accounts canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tags for E2.2, E3.1)
@@ -168,8 +168,8 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 |---|---|---|
 | R1 / E1.1, E1.2, E1.3 | S4, S6, S7 | |
 | R2 / E2.1 | S4, S6, S7 | |
-| R2 / E2.2 | S2, S4, S5, S6, S7 | |
-| R3 / E3.1 | S2, S5, S6, S7 | |
+| R2 / E2.2 | S2, S4, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side) |
+| R3 / E3.1 | S2, S5, S6, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceRetriesFailedChargeSpecTest.java` (Accounts side) |
 
 ## Risks and open questions
 
@@ -183,8 +183,12 @@ notification and "no second notification" (DE-94) are Accounts' rules, already b
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Retry and debt rules in Settlement, block and notification in Accounts (already generic in `finance-blocks-rider-with-invalid-card`), so no rule is duplicated; Settlement → Accounts and Settlement → Debt Recovery follow the CML; tactical runs carry 2 rules each, split by the state they guard; every example covered and tested with Awaitility on each hand-off.
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Accounts-side Spring tests (Block Account over REST): `velocity/accounts/FinanceRetriesFailedChargeSpecTest#e2_2_outstanding_debt_blocks_the_account`, `#e3_1_debt_block_already_in_place_sends_no_second_notification`, `#block_contract_rejections`. Settlement reads notifications via `RecordingRiderNotifications#sentTo(riderId)` (bean `accountsRiderNotifications`). Settlement steps stay todo.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.

@@ -142,35 +142,35 @@ All directions match the CML.
 - **Done when:** `InvalidatePaymentMethodUseCase` maps the domain event to `api/events/PaymentMethodInvalidated` and publishes it; `POST /payments/processor-notifications/card-invalidations`; `./mvnw test` green.
 
 ### S5: Tag the Accounts canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R4
 - **Done when:** the Accounts canvas changes above are applied.
 
 ### S6: Blocks, notifications and eligibility in the Accounts api
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Account Blocked, Account Unblocked
 - **Done when:** prerequisites `rider-signs-user-agreement` S4 and this plan's S4 done; `api/usecases/BlockAccount`, `api/queries/RentalEligibilityQuery` + `RentalEligibility` records; port `RiderNotifications` with the recording adapter in `infra/adapters/secondary/messagingprovideracl`; `AccountsArchitectureTest` green (Accounts uses only `payments.api.events`).
 
 ### S7: Block, notification and unblock rules in Accounts
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R4, E1.1, E1.3, E2.1, E2.2, E2.3, E4.1, E4.2, E4.3, Account Blocked, Account Unblocked
 - **Done when:** unit tests per example: block during onboarding and after activation; eligibility = activated and unblocked; one notification per newly placed reason, none for a repeat; a verified card lifts only *invalid card* with `eligibleNow`; a declined card keeps it; `./mvnw test` green.
 
 ### S8: Listener, block use case, eligibility query and unblock on a verified card
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Add Payment Method, Account Blocked, Account Unblocked
 - **Done when:** `PaymentMethodInvalidatedListener` (`@Async @EventListener`) → `BlockAccountUseCase` (sends notifications for newly placed reasons); `POST /accounts/riders/{riderId}/blocks`; `AddPaymentMethodUseCase` lifts *invalid card* on a verified result and publishes `AccountUnblocked`; `RentalEligibilityQueryHandler` + `GET /accounts/riders/{riderId}/rental-eligibility`; Account Status shows `blocks`; `./mvnw test` green.
 
 ### S9: Acceptance tests for the card block
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts, Payments
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E1.3, E2.1, E2.2, E2.3, E3.1, E4.1, E4.2, E4.3
@@ -202,16 +202,16 @@ All directions match the CML.
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/InvalidatePaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/paymentprocessoracl/ProcessorNotificationsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
+| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/InvalidatePaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/paymentprocessoracl/ProcessorNotificationsController.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/paymentsctxacl/PaymentMethodInvalidatedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/BlockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/queries/RentalEligibilityQueryHandler.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
 | R1 / E1.2 | S5, S10 |  |
-| R1 / E1.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java` |
-| R2 / E2.1 | S5, S7, S8, S9 |  |
-| R2 / E2.2 | S5, S7, S8, S9 |  |
-| R2 / E2.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
-| R3 / E3.1 | S1, S3, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side) |
-| R4 / E4.1 | S5, S7, S8, S9 |  |
-| R4 / E4.2 | S5, S7, S8, S9 |  |
-| R4 / E4.3 | S5, S7, S9 |  |
+| R1 / E1.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R2 / E2.1 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R2 / E2.2 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicy.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/NotifyRiderWhenBlockedPolicyTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/messagingprovideracl/RecordingRiderNotifications.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R2 / E2.3 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R3 / E3.1 | S1, S3, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Payments side), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R4 / E4.1 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/AddPaymentMethodUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R4 / E4.2 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
+| R4 / E4.3 | S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/FinanceBlocksRiderWithInvalidCardSpecTest.java` (Accounts) |
 
 ## Risks and open questions
 
@@ -227,6 +227,7 @@ All directions match the CML.
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (placement follows both canvases and the CF relationship; old/duplicate filtering in Payments, blocks in Accounts; Payments before Accounts; Accounts tactical step holds 3 rules; E1.2 deferred to Rentals' delivery; CONTRACT GAPs recorded).
 - 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: the domain distinguishes `PaymentMethodInvalidated` (current card, mapped to `api.events.PaymentMethodInvalidated` by `IntegrationEventsPublisher`, not by the use case) from `FormerPaymentMethodInvalidated` (old card, not published); the processor notification endpoint sits in the primary ACL package `infra/adapters/primary/paymentprocessoracl` (notifications are the processor's language); an unknown `reason` answers `400`; if several riders ever added the same token, each is invalidated. Payments-side Spring tests in `velocity/payments/FinanceBlocksRiderWithInvalidCardSpecTest`. S5-S10 stay todo for the Accounts (and Rentals) waves.
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). S10 (E1.2) stays todo until Rentals can start a ride. Eligibility before activation answers `ONBOARDING_INCOMPLETE` even when blocked; after activation `BLOCKED`. The listener ignores (logs) riders Accounts doesn't know and retries an optimistic-locking conflict up to 3 times.
 
 ## Changelog
 
@@ -235,3 +236,6 @@ All directions match the CML.
 
 ### 2026-11-08: Payments steps S1-S4 done
 - Canvas tagged; `InvalidatePaymentMethod` command + use case; current-card / old-card / repeated-report rules test-first in `RiderPaymentMethods`; `POST /payments/processor-notifications/card-invalidations`; `PaymentMethodInvalidated` published. TDD log: `docs/bounded-contexts/velocity/payments/plan.md`.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.
