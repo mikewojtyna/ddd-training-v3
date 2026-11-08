@@ -111,7 +111,7 @@ What stays here:
 
 ## 6. Wiring
 
-`infra/config/<Context>ContextConfig` is a `@Configuration` with `@Bean` methods building use cases, query handlers, policies, repositories and adapters by hand. In Step 6a it holds only the ACL adapters; the rest is added in Step 6b, around the domain types `ddd-tactical-building-blocks` created. Domain and API classes have no Spring annotations. Prefix bean method names with the context name (`rentalsBikeStationRepository`), because Spring Boot refuses duplicate bean names across contexts. Inject `DomainEventPublisher`, which `common/infra/spring/CommonInfraConfig` already provides.
+`infra/config/<Context>ContextConfig` is a `@Configuration` with `@Bean` methods building use cases, query handlers, policies, repositories and adapters by hand. In Step 6a it holds only the ACL adapters; the rest is added in Step 6b, around the domain types `ddd-tactical-building-blocks` created. Domain and API classes have no Spring annotations. Prefix bean method names with the context name (`rentalsBikeRepository`), because Spring Boot refuses duplicate bean names across contexts. Inject `DomainEventPublisher`, which `common/infra/spring/CommonInfraConfig` already provides.
 
 ## 6a. Context boundaries
 
