@@ -3,7 +3,7 @@ name: rider-confirms-contact-details
 intent: rider-confirms-contact-details
 spec: rider-confirms-contact-details
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -83,35 +83,35 @@ tags → scaffolder update (api records) → domain rules test-first → use cas
 ## Steps
 
 ### S1: Tag the Accounts canvas with the contact-detail examples
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3
 - **Done when:** the Canvas changes above are in the Accounts canvas.
 
 ### S2: Add the contact-detail commands to the Accounts api
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Confirm Email, Verify Phone
 - **Done when:** prerequisite `person-registers-with-velocity` S5 done; `api/usecases/ConfirmEmail` and `VerifyPhone` records exist; `AccountsArchitectureTest` green; context plan changelog updated.
 
 ### S3: Email confirmation and phone verification rules
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E2.2, E3.1, Email Confirmed, Phone Verified
 - **Done when:** one unit test per example passes; `./mvnw test` green.
 
 ### S4: Use cases and REST for the confirmations
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Confirm Email, Verify Phone, Email Confirmed, Phone Verified
 - **Done when:** `ConfirmEmailUseCase`, `VerifyPhoneUseCase` publish their events through `DomainEventPublisher`; both endpoints in `AccountsController` with `409`/`404` mapping; `./mvnw test` green.
 
 ### S5: Acceptance tests for the confirmations
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -131,11 +131,11 @@ tags → scaffolder update (api records) → domain rules test-first → use cas
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5 | |
-| R1 / E1.2 | S1, S3, S4, S5 | |
-| R2 / E2.1 | S1, S3, S4, S5 | |
-| R2 / E2.2 | S1, S3, S4, S5 | |
-| R3 / E3.1 | S1, S3, S5 | |
+| R1 / E1.1 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/ConfirmEmailUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderConfirmsContactDetailsSpecTest.java` |
+| R1 / E1.2 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/ConfirmEmailUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderConfirmsContactDetailsSpecTest.java` |
+| R2 / E2.1 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/VerifyPhoneUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderConfirmsContactDetailsSpecTest.java` |
+| R2 / E2.2 | S1, S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/VerifyPhoneUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderConfirmsContactDetailsSpecTest.java` |
+| R3 / E3.1 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderConfirmsContactDetailsSpecTest.java` |
 
 ## Risks and open questions
 
@@ -146,8 +146,12 @@ tags → scaffolder update (api records) → domain rules test-first → use cas
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (one context; canvas example already exists for E2.2; every example covered; ≤3 rules in the tactical step).
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`. All steps done, full suite green.

@@ -3,7 +3,7 @@ name: rider-pays-off-outstanding-debt
 intent: rider-pays-off-outstanding-debt
 spec: rider-pays-off-outstanding-debt
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -108,28 +108,28 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 - **Done when:** canvas carries the two tags and the four new decisions. Prerequisite: plan `finance-retries-failed-charge` S6 done.
 
 ### S2: Update the Accounts canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** none (tag for E1.1)
 - **Done when:** canvas carries the new decision. Prerequisite: plan `finance-blocks-rider-with-invalid-card` S8 done.
 
 ### S3: Unblock command in the Accounts api (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Account Unblocked
 - **Done when:** `accounts/api/usecases/UnblockAccount` record; `AccountsArchitectureTest` green; `./mvnw test` green.
 
 ### S4: Lifting the debt block, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R1, E1.1, Account Unblocked
 - **Done when:** unit tests: lifting *outstanding debt* from a rider blocked only for it records Account Unblocked with eligible yes; with *invalid card* also present, eligible no and the card block stays (canvas decision, DE-6); lifting a reason not in place changes nothing; `./mvnw test` green.
 
 ### S5: Unblock use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Account Unblocked
@@ -178,7 +178,7 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S4, S5, S7, S8, S9 | |
+| R1 / E1.1 | S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountBlocksTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/UnblockAccountUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderPaysOffOutstandingDebtSpecTest.java` (Accounts side) |
 | R1 / E1.2, E1.3 | S7, S8, S9 | |
 | R2 / E2.1, E2.2 | S7, S8, S9 | |
 | R3 / E3.1 | S7, S8, S9 | |
@@ -195,8 +195,12 @@ Prerequisites: `finance-retries-failed-charge` S6 (outstanding debt, Rider Balan
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Debt rules in Settlement, block lifting in Accounts (canvas decision DE-6), no reverse dependency (Settlement calls Accounts' OHS, Accounts knows no Settlement events); upstream Accounts steps before Settlement's; tactical runs ≤ 3 rules; every example covered and tested with Awaitility on the Accounts hand-off.
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). Accounts-side Spring tests (Unblock Account over REST): `velocity/accounts/RiderPaysOffOutstandingDebtSpecTest#e1_1_cleared_debt_lifts_debt_block`, `#debt_unblock_does_not_lift_card_block`, `#unblock_contract`. Unblocking a rider without a debt block answers `200` and changes nothing; an unknown rider `404`. Settlement steps stay todo.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`.

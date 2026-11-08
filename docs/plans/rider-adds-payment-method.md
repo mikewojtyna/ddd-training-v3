@@ -3,7 +3,7 @@ name: rider-adds-payment-method
 intent: rider-adds-payment-method
 spec: rider-adds-payment-method
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -124,42 +124,42 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 - **Done when:** `VerifyPaymentMethodUseCase`; `POST /payments/payment-methods`; `GET /payments/riders/{riderId}/payment-methods`; in-memory repository with `Version`; wiring in `payments/infra/config`; `./mvnw test` green.
 
 ### S5: Tag the Accounts canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** none (this skill: apply the canvas diff above)
 - **Covers:** R1, R2, R3
 - **Done when:** the Accounts canvas changes above are applied.
 
 ### S6: Add Payment Method command and the Payments ACL in Accounts
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Add Payment Method
 - **Done when:** prerequisite `rider-provides-personal-data` S4 done; `api/usecases/AddPaymentMethod` record; port `PaymentMethodVerifier`; adapter `infra/adapters/secondary/paymentsctxacl/RestPaymentMethodVerifier` with its own request/response records (no import from `payments`); `AccountsArchitectureTest` green.
 
 ### S7: The payment step in Accounts
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** ddd-tactical-building-blocks (test-first, checkpoint loop off per D1)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E2.2, E3.1, E3.2
 - **Done when:** unit tests: verified completes the step, the precondition rejects before personal data without calling the verifier (E1.2), declined keeps the step, an activated account stays activated on either result; `./mvnw test` green.
 
 ### S8: Add Payment Method use case and REST
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Add Payment Method
 - **Done when:** `AddPaymentMethodUseCase` (load, check step, call `PaymentMethodVerifier`, record, save, publish); `POST /accounts/riders/{riderId}/payment-methods`; `./mvnw test` green.
 
 ### S9: Acceptance tests for onboarding with a card
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts, Payments
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E1.2, E2.1, E2.2
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java`, `@VelocitySpringTest`, REST into Accounts; the Accounts â†’ Payments hand-off is asserted on Payments' side (`GET /payments/riders/{riderId}/payment-methods`, simulated processor: PLN 1.00 held and released, none for E1.2), wrapped in Awaitility as for every cross-context assertion; `./mvnw test` green.
 
 ### S10: Acceptance tests for replacing the card after activation
-- **Status:** todo
+- **Status:** done
 - **Context:** Accounts, Payments
 - **Skill:** none (this skill)
 - **Covers:** E3.1, E3.2
@@ -180,12 +180,12 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/VerifyPaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/PaymentsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
-| R1 / E1.2 | S5, S7, S8, S9 |  |
-| R2 / E2.1 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
-| R2 / E2.2 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
-| R3 / E3.1 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
-| R3 / E3.2 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side) |
+| R1 / E1.1 | S1, S3, S4, S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/api/usecases/VerifyPaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/infra/adapters/primary/PaymentsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/AddPaymentMethodUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/paymentsctxacl/RestPaymentMethodVerifier.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/primary/AccountsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
+| R1 / E1.2 | S5, S7, S8, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/api/usecases/AddPaymentMethodUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
+| R2 / E2.1 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/infra/adapters/secondary/paymentsctxacl/RestPaymentMethodVerifier.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
+| R2 / E2.2 | S1, S3, S5, S7, S9 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
+| R3 / E3.1 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
+| R3 / E3.2 | S1, S3, S7, S10 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethods.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/domain/paymentmethods/RiderPaymentMethodsTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/payments/RiderAddsPaymentMethodSpecTest.java` (Payments side), `src/main/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/Account.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/domain/account/AccountOnboardingTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/RiderAddsPaymentMethodSpecTest.java` (Accounts) |
 
 ## Risks and open questions
 
@@ -200,6 +200,7 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (split follows the canvases and the CF relationship; Accounts can say no only to the onboarding order, Payments owns verified/current; upstream Payments built first; R3 tests deferred to after activation exists; CONTRACT GAP recorded).
 - 2026-11-08 (Payments wave, autonomous run): S1-S4 built. Decisions: the query result record is named `RiderPaymentMethodsView` (not `RiderPaymentMethods`) because the aggregate is `RiderPaymentMethods`; the domain event `PaymentMethodReplaced` was added next to Verified/Declined (no published record). The planned acceptance tests live in Accounts (S9, S10, later wave); Payments' own Spring tests with the same method names are in `velocity/payments/RiderAddsPaymentMethodSpecTest` (REST into Payments). S5-S10 stay todo for the Accounts wave.
+- 2026-11-08 (Accounts wave, autonomous run): Accounts steps built; context plan and TDD log in `docs/bounded-contexts/velocity/accounts/plan.md`. Decisions taken there: the aggregate `Account` calls the `PaymentMethodVerifier` port itself (`addPaymentMethod(card).at(now).using(verifier)`), so the onboarding order is checked before Payments is asked; the api result of Rental Eligibility is `RentalEligibilityView` (the domain enum is `RentalEligibility`); block notifications come from the policy `NotifyRiderWhenBlockedPolicy` on Account Blocked; `POST .../blocks` accepts only `OUTSTANDING_DEBT` and only `DELETE .../blocks/OUTSTANDING_DEBT` exists (the card block is lifted only by a verified card, DE-6). The planned Accounts tests are in `velocity/accounts/RiderAddsPaymentMethodSpecTest` (REST into Accounts, Payments side asserted with Awaitility on `GET /payments/riders/{riderId}/payment-methods` and the simulated processor). Q6 answered by `finance-blocks-rider-with-invalid-card` D7: a card can be added whenever the personal data step is complete.
 
 ## Changelog
 
@@ -208,3 +209,6 @@ command to an OHS through an ACL adapter. Direction matches the CML. Payments â†
 
 ### 2026-11-08: Payments steps S1-S4 done
 - Canvas tagged; `velocity/payments` scaffolded (package-info, api records, `PaymentProcessor` port, simulated processor in `paymentprocessoracl`, `PaymentsArchitectureTest`); `RiderPaymentMethods` built test-first; `VerifyPaymentMethodUseCase`, `POST /payments/payment-methods`, `GET /payments/riders/{riderId}/payment-methods`, in-memory repository with `Version`. Details and TDD log: `docs/bounded-contexts/velocity/payments/plan.md`.
+
+### 2026-11-08: Accounts steps done
+- Accounts module (`velocity/accounts`) built test-first; acceptance tests in `src/test/java/pl/wojtyna/dddtrainingv3/velocity/accounts/`. Details and TDD log: `docs/bounded-contexts/velocity/accounts/plan.md`. All steps done, full suite green.
