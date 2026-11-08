@@ -3,7 +3,7 @@ name: rider-reports-incident
 intent: rider-reports-incident
 spec: rider-reports-incident
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -94,35 +94,35 @@ Missing, add:
 ## Steps
 
 ### S1: Update the CustomerSupport canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E1.2, E2.1, E2.2, E2.3 (tags for E1.1, E3.1, E3.2, E3.3)
 - **Done when:** canvas contains "Open" and the two new decisions, tagged.
 
 ### S2: Scaffold the CustomerSupport module (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6a), told that this plan settles the structural decisions and D1
 - **Covers:** Report Incident (api record), Fleet Issue Reported (published language)
 - **Done when:** `customersupport/package-info.java` with `@BoundedContext(name = "CustomerSupport")` + `@Module`; record `ReportIncident`; `IncidentQuery`; the existing `api/events/FleetIssueReported` kept; `CustomerSupportArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Reporting and type detection, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E2.2, E2.3, E3.1, E3.2, E3.3, Incident Reported, Fleet Issue Reported
 - **Done when:** one domain test per example for CustomerSupport's part (type and the Fleet Issue Reported event, or its absence); `./mvnw test` green.
 
 ### S4: Use case, REST, query, published language, wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Report Incident, Incident Reported, Fleet Issue Reported
 - **Done when:** `ReportIncidentUseCase`, `POST /customer-support/incidents`, `IncidentQueryHandler` + `GET /customer-support/incidents/{incidentId}`, mapping of the domain `FleetIssueReported` to `api/events/FleetIssueReported`, `infra/config/CustomerSupportConfig` with the `velocityClock`; then the in-memory `Incidents` adapter with `Version` (D4); `./mvnw test` green.
 
 ### S5: Acceptance tests inside CustomerSupport
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (implementation-planner)
 - **Covers:** E1.1, E1.2, E2.1, E2.2, E2.3, E3.2
@@ -144,22 +144,22 @@ Missing, add:
 | E2.1 | `RiderReportsIncidentSpecTest#e2_1_cant_unlock_with_bike_is_fleet_issue` |
 | E2.2 | `RiderReportsIncidentSpecTest#e2_2_safety_report_is_safety_concern` |
 | E2.3 | `RiderReportsIncidentSpecTest#e2_3_broken_bike_without_bike_is_other_and_not_handed_over` |
-| E3.1 | `RiderReportsIncidentSpecTest#e3_1_fleet_issue_makes_bike_broken_and_unreservable` |
+| E3.1 | `RiderReportsIncidentSpecTest#e3_1_fleet_issue_makes_bike_broken_and_unreservable` (Customer Support half green; Rentals half in S6) |
 | E3.2 | `RiderReportsIncidentSpecTest#e3_2_wrongful_charge_naming_bike_leaves_bike_available` |
-| E3.3 | `RiderReportsIncidentSpecTest#e3_3_fleet_issue_during_ride_breaks_bike_but_ride_goes_on` |
+| E3.3 | `RiderReportsIncidentSpecTest#e3_3_fleet_issue_during_ride_breaks_bike_but_ride_goes_on` (Customer Support half green; Rentals half in S6) |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S4, S5 | |
-| R1 / E1.2 | S1, S3, S5 | |
-| R2 / E2.1 | S1, S3, S4, S5 | |
-| R2 / E2.2 | S1, S3, S5 | |
-| R2 / E2.3 | S1, S3, S5 | |
-| R3 / E3.1 | S1 (tag), S3, S4, S6 | |
-| R3 / E3.2 | S1 (tag), S3, S5 | |
-| R3 / E3.3 | S1 (tag), S3, S6 | |
+| R1 / E1.1 | S1 (tag), S3, S4, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R1 / E1.2 | S1, S3, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R2 / E2.1 | S1, S3, S4, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R2 / E2.2 | S1, S3, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R2 / E2.3 | S1, S3, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R3 / E3.1 | S1 (tag), S3, S4, S6 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R3 / E3.2 | S1 (tag), S3, S5 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
+| R3 / E3.3 | S1 (tag), S3, S6 | `domain/incident/Incident.java`, `IncidentType.java`, `ReportIncidentUseCase`, `IncidentController`, `IntegrationEventsPublisher`; tests `IncidentTest.Reporting`, `RiderReportsIncidentSpecTest` |
 
 ## Risks and open questions
 
@@ -172,8 +172,15 @@ Missing, add:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (type detection and the hand-off in CustomerSupport per canvas and DE-50/52; "broken" left to FleetMaintenance per CML, so no Brain Context; integration direction matches `CustomerSupport [U,OHS,PL]->[D,ACL] FleetMaintenance`; all 8 examples covered; cross-context examples isolated in S6 with explicit prerequisites).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built (autonomous run)
+- S1-S5 done: canvas updated; CustomerSupport module scaffolded (`src/main/java/pl/wojtyna/dddtrainingv3/velocity/customersupport`, plan `docs/bounded-contexts/velocity/customersupport/plan.md`); `Incident` aggregate built test-first (8 domain tests, `IncidentTest.Reporting`); use case, REST, Incident query, `FleetIssueReported` publication, wiring; `RiderReportsIncidentSpecTest` green.
+- D7 implemented as a test-only `ApplicationListener` added to the shared context by `CustomerSupportTestApi` (no extra test configuration, so the cached context is reused).
+- S6 left todo (needs Fleet Maintenance and Rentals): `e3_1_…` and `e3_3_…` exist and are green on Customer Support's half (Fleet Issue Reported published, asserted with Awaitility); the Rentals assertions are TODOs in the test.
+- Added queries beyond the plan, from integration-contracts.md "Additions": `GET /customer-support/incidents?riderId=`.

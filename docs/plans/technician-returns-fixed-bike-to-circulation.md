@@ -3,7 +3,7 @@ name: technician-returns-fixed-bike-to-circulation
 intent: technician-returns-fixed-bike-to-circulation
 spec: technician-returns-fixed-bike-to-circulation
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -123,7 +123,7 @@ Hand-offs:
 - **Done when:** `MakeBikeAvailableUseCase`, `POST /rentals/bikes/{bikeId}/availability` (404 unknown bike, 409 rule broken); REST-level test passes; `./mvnw test` green.
 
 ### S4: Customer Support: resolve a fleet issue because its bike is fixed
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Prerequisite:** the incident lifecycle from `rider-reports-incident`, `support-agent-decides-on-incident` and `support-agent-resolves-incident`.
@@ -131,7 +131,7 @@ Hand-offs:
 - **Done when:** domain tests: reported and accepted fleet issues are resolved with "bike fixed"; a resolved incident keeps its resolution and raises nothing; `./mvnw test` green.
 
 ### S5: Customer Support: Resolve Fleet Issue use case and REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Incident Resolved
@@ -184,8 +184,8 @@ Hand-offs:
 | R1 / E1.1, E1.2 | S2, S3, S7, S8, S9 | |
 | R1 / E1.3 | S1, S7, S8, S9 | |
 | R2 / E2.1, E2.2 | S1, S7, S8, S9 | |
-| R3 / E3.1 | S4, S5, S6, S7, S8, S9 | |
-| R3 / E3.2 | S4, S5, S9 | |
+| R3 / E3.1 | S4, S5, S6, S7, S8, S9 | Customer Support: `Incident.resolveFleetIssueOf`, `ResolveFleetIssueUseCase`, `IncidentController`; `IncidentTest.ResolvingFleetIssues`, `ResolveFleetIssueRestTest` |
+| R3 / E3.2 | S4, S5, S9 | Customer Support: as E3.1 (`alreadyResolvedFleetIssueKeepsItsResolution`, `already_resolved_incident_keeps_its_resolution`) |
 
 ## Risks and open questions
 
@@ -195,8 +195,14 @@ Hand-offs:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (FM decides the fix, Rentals the availability, Customer Support the incident state; both calls go to upstream OHS in the CML direction; every example covered; ≤3 rules per tactical step; no building blocks decided).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Customer Support steps built (autonomous run, CustomerSupport worktree)
+- S4 done: `Incident.resolveFleetIssueOf(bike).at(time)`: resolves a fleet issue of that bike with "bike fixed" from any open state; an already resolved incident keeps its resolution and raises nothing (idempotent, D6); an incident that isn't a fleet issue of that bike is refused (`NotAFleetIssueOfBike`). Tests `IncidentTest.ResolvingFleetIssues` (5).
+- S5 done: `ResolveFleetIssueUseCase`, `POST /customer-support/incidents/{incidentId}/fleet-resolution` `{bikeId}` → `200` (also when already resolved), `404 IncidentNotFound`, `409 NotAFleetIssueOfBike`; REST-level test `ResolveFleetIssueRestTest` (3).
+- S1: the CustomerSupport canvas part is applied (tag + "Several and already resolved" variant); FleetMaintenance and Rentals canvas parts are left to their contexts, so S1 stays todo.
