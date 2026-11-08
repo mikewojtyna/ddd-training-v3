@@ -41,3 +41,6 @@ build/
 .claude/skills/*-workspace/
 __pycache__/
 /training-plan.md
+
+# Claude Code agent worktrees
+.claude/worktrees/
