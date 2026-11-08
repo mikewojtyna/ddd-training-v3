@@ -8,137 +8,137 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 
 | # | Date | Intent | System | Actor | Activity | Status | Outcome |
 |---|------|--------|--------|-------|----------|--------|---------|
-| 1 | 2026-11-08 | [A person wants to register with VeloCity](person-registers-with-velocity.md) | velocity | Rider | Join VeloCity | specified | Account Registered |
-| 2 | 2026-11-08 | [A rider wants to confirm their email and phone number](rider-confirms-contact-details.md) | velocity | Rider | Join VeloCity | specified | Email Confirmed, Phone Verified |
-| 3 | 2026-11-08 | [A rider wants to provide their personal data](rider-provides-personal-data.md) | velocity | Rider | Join VeloCity | specified | Personal Data Provided |
-| 4 | 2026-11-08 | [A rider wants to add a payment method](rider-adds-payment-method.md) | velocity | Rider | Join VeloCity | specified | Payment Method Verified, Payment Method Declined |
-| 5 | 2026-11-08 | [A rider wants to sign the user agreement and have their account activated](rider-signs-user-agreement.md) | velocity | Rider | Join VeloCity | specified | Account Activated |
-| 6 | 2026-11-08 | [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) | velocity | Fleet Manager | Keep the fleet healthy | specified | Bike Added to Fleet |
-| 7 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | specified | Bike Reserved |
-| 8 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | specified | Rental Session Started, Unlock Failed |
-| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | specified | Reservation Expired |
-| 10 | 2026-11-08 | [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) | velocity | Rider | Return the bike | specified | Rental Session Ended, Bike Withdrawn |
-| 11 | 2026-11-08 | [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) | velocity | Rider | Return the bike | specified | Rental Session Ended, Bike Withdrawn |
-| 12 | 2026-11-08 | [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) | velocity | Fleet Operations | Ride | specified | Rental Session Ended, Bike Withdrawn |
-| 13 | 2026-11-08 | [Finance wants every finished ride priced by the tiered tariff](finance-prices-ride-by-tiered-tariff.md) | velocity | Finance | Pay for the ride | specified | Ride Priced |
-| 14 | 2026-11-08 | [Finance wants a free-floating return priced by the zone where the ride ended](finance-prices-free-floating-return-by-zone.md) | velocity | Finance | Pay for the ride | specified | Ride Priced |
-| 15 | 2026-11-08 | [Finance wants a penalty charged for a rental that exceeded the maximum rental time](finance-penalizes-overdue-rental.md) | velocity | Finance | Pay for the ride | specified | Ride Priced |
-| 16 | 2026-11-08 | [A pricing manager wants to publish a new tariff](pricing-manager-publishes-tariff.md) | velocity | Pricing Manager | Set prices | specified | Tariff Published |
-| 17 | 2026-11-08 | [Finance wants every finished ride charged to the rider's card](finance-charges-finished-ride.md) | velocity | Finance | Pay for the ride | specified | Ride Settled, Charge Attempt Failed |
-| 18 | 2026-11-08 | [Finance wants a failed ride charge retried before it becomes outstanding debt](finance-retries-failed-charge.md) | velocity | Finance | Pay for the ride | specified | Ride Settled, Charge Attempt Failed, Rental Fee Unpaid, Account Blocked |
-| 19 | 2026-11-08 | [A rider wants to pay off their outstanding debt](rider-pays-off-outstanding-debt.md) | velocity | Rider | Pay for the ride | specified | Outstanding Debt Cleared, Account Unblocked |
-| 20 | 2026-11-08 | [Finance wants a rider whose card became invalid blocked from new rentals](finance-blocks-rider-with-invalid-card.md) | velocity | Finance | Stay in good standing | specified | Payment Method Invalidated, Account Blocked, Account Unblocked |
-| 21 | 2026-11-08 | [Collections wants debt recovery to start as soon as a rental fee stays unpaid](collections-starts-debt-recovery.md) | velocity | Collections | Recover unpaid fees | specified | Recovery Started |
-| 22 | 2026-11-08 | [Collections wants to remind riders and try to collect their debt on a schedule](collections-attempts-debt-collection.md) | velocity | Collections | Recover unpaid fees | specified | Collection Attempted, Recovery Succeeded, Recovery Exhausted |
-| 23 | 2026-11-08 | [A collections agent wants to pause a rider's debt recovery](collections-agent-pauses-debt-recovery.md) | velocity | Collections Agent | Recover unpaid fees | specified | Recovery Paused |
-| 24 | 2026-11-08 | [A collections agent wants to resume a paused debt recovery](collections-agent-resumes-debt-recovery.md) | velocity | Collections Agent | Recover unpaid fees | specified | Recovery Resumed |
-| 25 | 2026-11-08 | [A rider wants to report an incident](rider-reports-incident.md) | velocity | Rider | Get help | specified | Incident Reported, Fleet Issue Reported |
-| 26 | 2026-11-08 | [A support agent wants to take on an incident and accept or reject it](support-agent-decides-on-incident.md) | velocity | Support Agent | Get help | specified | Incident Picked Up, Incident Accepted, Incident Rejected |
-| 27 | 2026-11-08 | [A support agent wants to escalate an accepted incident to a specialised team](support-agent-escalates-incident.md) | velocity | Support Agent | Get help | specified | Incident Escalated |
-| 28 | 2026-11-08 | [A rider wants to reopen an incident that was rejected](rider-reopens-rejected-incident.md) | velocity | Rider | Get help | specified | Incident Reopened |
-| 29 | 2026-11-08 | [A support agent wants to resolve an incident](support-agent-resolves-incident.md) | velocity | Support Agent | Get help | specified | Incident Resolved |
-| 30 | 2026-11-08 | [Fleet operations wants every faulty bike known as broken and kept away from riders](fleet-operations-takes-broken-bike-out-of-circulation.md) | velocity | Fleet Operations | Keep the fleet healthy | specified | Bike Reported Broken, Bike Withdrawn |
-| 31 | 2026-11-08 | [Fleet operations wants a bike that signals a fault taken away from riders](fleet-operations-withdraws-bike-signalling-fault.md) | velocity | Fleet Operations | Keep the fleet healthy | specified | Bike Withdrawn |
-| 32 | 2026-11-08 | [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) | velocity | Technician | Keep the fleet healthy | specified | Bike Reported Broken, Bike Withdrawn |
-| 33 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | specified | Bike Reserved, Reservation Expired |
-| 34 | 2026-11-08 | [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) | velocity | Technician | Keep the fleet healthy | specified | Bike Unlocked, Maintenance Started, Unlock Failed |
-| 35 | 2026-11-08 | [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) | velocity | Technician | Keep the fleet healthy | specified | Bike Fixed, Bike Made Available, Incident Resolved |
+| 1 | 2026-11-08 | [A person wants to register with VeloCity](person-registers-with-velocity.md) | velocity | Rider | Join VeloCity | planned | Account Registered |
+| 2 | 2026-11-08 | [A rider wants to confirm their email and phone number](rider-confirms-contact-details.md) | velocity | Rider | Join VeloCity | planned | Email Confirmed, Phone Verified |
+| 3 | 2026-11-08 | [A rider wants to provide their personal data](rider-provides-personal-data.md) | velocity | Rider | Join VeloCity | planned | Personal Data Provided |
+| 4 | 2026-11-08 | [A rider wants to add a payment method](rider-adds-payment-method.md) | velocity | Rider | Join VeloCity | planned | Payment Method Verified, Payment Method Declined |
+| 5 | 2026-11-08 | [A rider wants to sign the user agreement and have their account activated](rider-signs-user-agreement.md) | velocity | Rider | Join VeloCity | planned | Account Activated |
+| 6 | 2026-11-08 | [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) | velocity | Fleet Manager | Keep the fleet healthy | planned | Bike Added to Fleet |
+| 7 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | planned | Bike Reserved |
+| 8 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | planned | Rental Session Started, Unlock Failed |
+| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | planned | Reservation Expired |
+| 10 | 2026-11-08 | [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) | velocity | Rider | Return the bike | planned | Rental Session Ended, Bike Withdrawn |
+| 11 | 2026-11-08 | [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) | velocity | Rider | Return the bike | planned | Rental Session Ended, Bike Withdrawn |
+| 12 | 2026-11-08 | [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) | velocity | Fleet Operations | Ride | planned | Rental Session Ended, Bike Withdrawn |
+| 13 | 2026-11-08 | [Finance wants every finished ride priced by the tiered tariff](finance-prices-ride-by-tiered-tariff.md) | velocity | Finance | Pay for the ride | planned | Ride Priced |
+| 14 | 2026-11-08 | [Finance wants a free-floating return priced by the zone where the ride ended](finance-prices-free-floating-return-by-zone.md) | velocity | Finance | Pay for the ride | planned | Ride Priced |
+| 15 | 2026-11-08 | [Finance wants a penalty charged for a rental that exceeded the maximum rental time](finance-penalizes-overdue-rental.md) | velocity | Finance | Pay for the ride | planned | Ride Priced |
+| 16 | 2026-11-08 | [A pricing manager wants to publish a new tariff](pricing-manager-publishes-tariff.md) | velocity | Pricing Manager | Set prices | planned | Tariff Published |
+| 17 | 2026-11-08 | [Finance wants every finished ride charged to the rider's card](finance-charges-finished-ride.md) | velocity | Finance | Pay for the ride | planned | Ride Settled, Charge Attempt Failed |
+| 18 | 2026-11-08 | [Finance wants a failed ride charge retried before it becomes outstanding debt](finance-retries-failed-charge.md) | velocity | Finance | Pay for the ride | planned | Ride Settled, Charge Attempt Failed, Rental Fee Unpaid, Account Blocked |
+| 19 | 2026-11-08 | [A rider wants to pay off their outstanding debt](rider-pays-off-outstanding-debt.md) | velocity | Rider | Pay for the ride | planned | Outstanding Debt Cleared, Account Unblocked |
+| 20 | 2026-11-08 | [Finance wants a rider whose card became invalid blocked from new rentals](finance-blocks-rider-with-invalid-card.md) | velocity | Finance | Stay in good standing | planned | Payment Method Invalidated, Account Blocked, Account Unblocked |
+| 21 | 2026-11-08 | [Collections wants debt recovery to start as soon as a rental fee stays unpaid](collections-starts-debt-recovery.md) | velocity | Collections | Recover unpaid fees | planned | Recovery Started |
+| 22 | 2026-11-08 | [Collections wants to remind riders and try to collect their debt on a schedule](collections-attempts-debt-collection.md) | velocity | Collections | Recover unpaid fees | planned | Collection Attempted, Recovery Succeeded, Recovery Exhausted |
+| 23 | 2026-11-08 | [A collections agent wants to pause a rider's debt recovery](collections-agent-pauses-debt-recovery.md) | velocity | Collections Agent | Recover unpaid fees | planned | Recovery Paused |
+| 24 | 2026-11-08 | [A collections agent wants to resume a paused debt recovery](collections-agent-resumes-debt-recovery.md) | velocity | Collections Agent | Recover unpaid fees | planned | Recovery Resumed |
+| 25 | 2026-11-08 | [A rider wants to report an incident](rider-reports-incident.md) | velocity | Rider | Get help | planned | Incident Reported, Fleet Issue Reported |
+| 26 | 2026-11-08 | [A support agent wants to take on an incident and accept or reject it](support-agent-decides-on-incident.md) | velocity | Support Agent | Get help | planned | Incident Picked Up, Incident Accepted, Incident Rejected |
+| 27 | 2026-11-08 | [A support agent wants to escalate an accepted incident to a specialised team](support-agent-escalates-incident.md) | velocity | Support Agent | Get help | planned | Incident Escalated |
+| 28 | 2026-11-08 | [A rider wants to reopen an incident that was rejected](rider-reopens-rejected-incident.md) | velocity | Rider | Get help | planned | Incident Reopened |
+| 29 | 2026-11-08 | [A support agent wants to resolve an incident](support-agent-resolves-incident.md) | velocity | Support Agent | Get help | planned | Incident Resolved |
+| 30 | 2026-11-08 | [Fleet operations wants every faulty bike known as broken and kept away from riders](fleet-operations-takes-broken-bike-out-of-circulation.md) | velocity | Fleet Operations | Keep the fleet healthy | planned | Bike Reported Broken, Bike Withdrawn |
+| 31 | 2026-11-08 | [Fleet operations wants a bike that signals a fault taken away from riders](fleet-operations-withdraws-bike-signalling-fault.md) | velocity | Fleet Operations | Keep the fleet healthy | planned | Bike Withdrawn |
+| 32 | 2026-11-08 | [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) | velocity | Technician | Keep the fleet healthy | planned | Bike Reported Broken, Bike Withdrawn |
+| 33 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | planned | Bike Reserved, Reservation Expired |
+| 34 | 2026-11-08 | [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) | velocity | Technician | Keep the fleet healthy | planned | Bike Unlocked, Maintenance Started, Unlock Failed |
+| 35 | 2026-11-08 | [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) | velocity | Technician | Keep the fleet healthy | planned | Bike Fixed, Bike Made Available, Incident Resolved |
 
 ## Value stream: velocity
 
 ### 1. Join VeloCity
 
 - Register
-  - #1 [A person wants to register with VeloCity](person-registers-with-velocity.md) (Rider, specified) → Account Registered
+  - #1 [A person wants to register with VeloCity](person-registers-with-velocity.md) (Rider, planned) → Account Registered
 - Confirm contact details
-  - #2 [A rider wants to confirm their email and phone number](rider-confirms-contact-details.md) (Rider, specified) → Email Confirmed, Phone Verified
+  - #2 [A rider wants to confirm their email and phone number](rider-confirms-contact-details.md) (Rider, planned) → Email Confirmed, Phone Verified
 - Provide personal data
-  - #3 [A rider wants to provide their personal data](rider-provides-personal-data.md) (Rider, specified) → Personal Data Provided
+  - #3 [A rider wants to provide their personal data](rider-provides-personal-data.md) (Rider, planned) → Personal Data Provided
 - Add a payment method
-  - #4 [A rider wants to add a payment method](rider-adds-payment-method.md) (Rider, specified) → Payment Method Verified, Payment Method Declined
+  - #4 [A rider wants to add a payment method](rider-adds-payment-method.md) (Rider, planned) → Payment Method Verified, Payment Method Declined
 - Sign the user agreement
-  - #5 [A rider wants to sign the user agreement and have their account activated](rider-signs-user-agreement.md) (Rider, specified) → Account Activated
+  - #5 [A rider wants to sign the user agreement and have their account activated](rider-signs-user-agreement.md) (Rider, planned) → Account Activated
 
 ### 2. Get a bike
 
 - Reserve a bike
-  - #7 [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) (Rider, specified) → Bike Reserved
+  - #7 [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) (Rider, planned) → Bike Reserved
 - Unlock a bike
-  - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, specified) → Rental Session Started, Unlock Failed
+  - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, planned) → Rental Session Started, Unlock Failed
 - Release unused reservations
-  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, specified) → Reservation Expired
+  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, planned) → Reservation Expired
 
 ### 3. Ride
 
 - Ride within the maximum rental time
-  - #12 [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) (Fleet Operations, specified) → Rental Session Ended, Bike Withdrawn
+  - #12 [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) (Fleet Operations, planned) → Rental Session Ended, Bike Withdrawn
 
 ### 4. Return the bike
 
 - Return at a station
-  - #10 [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) (Rider, specified) → Rental Session Ended, Bike Withdrawn
+  - #10 [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) (Rider, planned) → Rental Session Ended, Bike Withdrawn
 - End the ride in a drop zone
-  - #11 [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) (Rider, specified) → Rental Session Ended, Bike Withdrawn
+  - #11 [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) (Rider, planned) → Rental Session Ended, Bike Withdrawn
 
 ### 5. Pay for the ride
 
 - Price the ride
-  - #13 [Finance wants every finished ride priced by the tiered tariff](finance-prices-ride-by-tiered-tariff.md) (Finance, specified) → Ride Priced
-  - #14 [Finance wants a free-floating return priced by the zone where the ride ended](finance-prices-free-floating-return-by-zone.md) (Finance, specified) → Ride Priced
-  - #15 [Finance wants a penalty charged for a rental that exceeded the maximum rental time](finance-penalizes-overdue-rental.md) (Finance, specified) → Ride Priced
+  - #13 [Finance wants every finished ride priced by the tiered tariff](finance-prices-ride-by-tiered-tariff.md) (Finance, planned) → Ride Priced
+  - #14 [Finance wants a free-floating return priced by the zone where the ride ended](finance-prices-free-floating-return-by-zone.md) (Finance, planned) → Ride Priced
+  - #15 [Finance wants a penalty charged for a rental that exceeded the maximum rental time](finance-penalizes-overdue-rental.md) (Finance, planned) → Ride Priced
 - Charge the ride
-  - #17 [Finance wants every finished ride charged to the rider's card](finance-charges-finished-ride.md) (Finance, specified) → Ride Settled, Charge Attempt Failed
+  - #17 [Finance wants every finished ride charged to the rider's card](finance-charges-finished-ride.md) (Finance, planned) → Ride Settled, Charge Attempt Failed
 - Retry failed charges
-  - #18 [Finance wants a failed ride charge retried before it becomes outstanding debt](finance-retries-failed-charge.md) (Finance, specified) → Ride Settled, Charge Attempt Failed, Rental Fee Unpaid, Account Blocked
+  - #18 [Finance wants a failed ride charge retried before it becomes outstanding debt](finance-retries-failed-charge.md) (Finance, planned) → Ride Settled, Charge Attempt Failed, Rental Fee Unpaid, Account Blocked
 - Pay off outstanding debt
-  - #19 [A rider wants to pay off their outstanding debt](rider-pays-off-outstanding-debt.md) (Rider, specified) → Outstanding Debt Cleared, Account Unblocked
+  - #19 [A rider wants to pay off their outstanding debt](rider-pays-off-outstanding-debt.md) (Rider, planned) → Outstanding Debt Cleared, Account Unblocked
 
 ### 6. Stay in good standing
 
 - Block a rider whose card is invalid
-  - #20 [Finance wants a rider whose card became invalid blocked from new rentals](finance-blocks-rider-with-invalid-card.md) (Finance, specified) → Payment Method Invalidated, Account Blocked, Account Unblocked
+  - #20 [Finance wants a rider whose card became invalid blocked from new rentals](finance-blocks-rider-with-invalid-card.md) (Finance, planned) → Payment Method Invalidated, Account Blocked, Account Unblocked
 
 ### 7. Recover unpaid fees
 
 - Start debt recovery
-  - #21 [Collections wants debt recovery to start as soon as a rental fee stays unpaid](collections-starts-debt-recovery.md) (Collections, specified) → Recovery Started
+  - #21 [Collections wants debt recovery to start as soon as a rental fee stays unpaid](collections-starts-debt-recovery.md) (Collections, planned) → Recovery Started
 - Attempt a collection
-  - #22 [Collections wants to remind riders and try to collect their debt on a schedule](collections-attempts-debt-collection.md) (Collections, specified) → Collection Attempted, Recovery Succeeded, Recovery Exhausted
+  - #22 [Collections wants to remind riders and try to collect their debt on a schedule](collections-attempts-debt-collection.md) (Collections, planned) → Collection Attempted, Recovery Succeeded, Recovery Exhausted
 - Pause debt recovery
-  - #23 [A collections agent wants to pause a rider's debt recovery](collections-agent-pauses-debt-recovery.md) (Collections Agent, specified) → Recovery Paused
+  - #23 [A collections agent wants to pause a rider's debt recovery](collections-agent-pauses-debt-recovery.md) (Collections Agent, planned) → Recovery Paused
 - Resume debt recovery
-  - #24 [A collections agent wants to resume a paused debt recovery](collections-agent-resumes-debt-recovery.md) (Collections Agent, specified) → Recovery Resumed
+  - #24 [A collections agent wants to resume a paused debt recovery](collections-agent-resumes-debt-recovery.md) (Collections Agent, planned) → Recovery Resumed
 
 ### 8. Get help
 
 - Report an incident
-  - #25 [A rider wants to report an incident](rider-reports-incident.md) (Rider, specified) → Incident Reported, Fleet Issue Reported
+  - #25 [A rider wants to report an incident](rider-reports-incident.md) (Rider, planned) → Incident Reported, Fleet Issue Reported
 - Decide on an incident
-  - #26 [A support agent wants to take on an incident and accept or reject it](support-agent-decides-on-incident.md) (Support Agent, specified) → Incident Picked Up, Incident Accepted, Incident Rejected
+  - #26 [A support agent wants to take on an incident and accept or reject it](support-agent-decides-on-incident.md) (Support Agent, planned) → Incident Picked Up, Incident Accepted, Incident Rejected
 - Escalate an incident
-  - #27 [A support agent wants to escalate an accepted incident to a specialised team](support-agent-escalates-incident.md) (Support Agent, specified) → Incident Escalated
+  - #27 [A support agent wants to escalate an accepted incident to a specialised team](support-agent-escalates-incident.md) (Support Agent, planned) → Incident Escalated
 - Reopen a rejected incident
-  - #28 [A rider wants to reopen an incident that was rejected](rider-reopens-rejected-incident.md) (Rider, specified) → Incident Reopened
+  - #28 [A rider wants to reopen an incident that was rejected](rider-reopens-rejected-incident.md) (Rider, planned) → Incident Reopened
 - Resolve an incident
-  - #29 [A support agent wants to resolve an incident](support-agent-resolves-incident.md) (Support Agent, specified) → Incident Resolved
+  - #29 [A support agent wants to resolve an incident](support-agent-resolves-incident.md) (Support Agent, planned) → Incident Resolved
 
 ### 9. Keep the fleet healthy
 
 - Add a bike to the fleet
-  - #6 [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) (Fleet Manager, specified) → Bike Added to Fleet
+  - #6 [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) (Fleet Manager, planned) → Bike Added to Fleet
 - Take broken bikes out of circulation
-  - #30 [Fleet operations wants every faulty bike known as broken and kept away from riders](fleet-operations-takes-broken-bike-out-of-circulation.md) (Fleet Operations, specified) → Bike Reported Broken, Bike Withdrawn
-  - #31 [Fleet operations wants a bike that signals a fault taken away from riders](fleet-operations-withdraws-bike-signalling-fault.md) (Fleet Operations, specified) → Bike Withdrawn
+  - #30 [Fleet operations wants every faulty bike known as broken and kept away from riders](fleet-operations-takes-broken-bike-out-of-circulation.md) (Fleet Operations, planned) → Bike Reported Broken, Bike Withdrawn
+  - #31 [Fleet operations wants a bike that signals a fault taken away from riders](fleet-operations-withdraws-bike-signalling-fault.md) (Fleet Operations, planned) → Bike Withdrawn
 - Report a fault
-  - #32 [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) (Technician, specified) → Bike Reported Broken, Bike Withdrawn
+  - #32 [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) (Technician, planned) → Bike Reported Broken, Bike Withdrawn
 - Reserve a broken bike
-  - #33 [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) (Technician, specified) → Bike Reserved, Reservation Expired
+  - #33 [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) (Technician, planned) → Bike Reserved, Reservation Expired
 - Start maintenance
-  - #34 [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) (Technician, specified) → Bike Unlocked, Maintenance Started, Unlock Failed
+  - #34 [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) (Technician, planned) → Bike Unlocked, Maintenance Started, Unlock Failed
 - Return a fixed bike to circulation
-  - #35 [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) (Technician, specified) → Bike Fixed, Bike Made Available, Incident Resolved
+  - #35 [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) (Technician, planned) → Bike Fixed, Bike Made Available, Incident Resolved
 
 ### 10. Set prices
 
 - Publish a tariff
-  - #16 [A pricing manager wants to publish a new tariff](pricing-manager-publishes-tariff.md) (Pricing Manager, specified) → Tariff Published
+  - #16 [A pricing manager wants to publish a new tariff](pricing-manager-publishes-tariff.md) (Pricing Manager, planned) → Tariff Published

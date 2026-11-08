@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Get help
 task: Report an incident
-status: specified
+status: planned
 date: 2026-11-08
 supersedes:
 superseded_by:

@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Join VeloCity
 task: Register
-status: specified
+status: planned
 date: 2026-11-08
 supersedes:
 superseded_by:

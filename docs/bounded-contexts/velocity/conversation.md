@@ -187,3 +187,36 @@ explicitly asked for a fully autonomous run, so:
      questions that don't block a happy path (e.g. "can an agent hand an incident to a colleague?") stay open in
      the specs for the trainer.
 
+### Stage 3: implementation plans
+
+**Inputs:** intents, specs, the context map, the canvases. **Output:** 35 plans in `docs/plans/`, one per intent,
+and the contract catalogue `docs/bounded-contexts/velocity/integration-contracts.md`.
+
+1. **One contract catalogue before planning.** Before any planner started, Claude wrote the technical side of the
+   context map: every Open Host Service's REST resources, every published integration event with its payload, and
+   the integration style the trainer asked for. That style is REST through `@AntiCorruptionLayer` adapters for
+   cross-context commands and queries, and `@Async @EventListener` on the in-process Spring bus for integration
+   events, so tests must wait with Awaitility. Without one catalogue, five parallel planners would have invented
+   five dialects of the same published language.
+2. **Five parallel planners** (same areas as Stage 2), each following `implementation-planner`. Each placed every
+   rule, command, query and event with a reason, translated the spec vocabulary into the owning context's language,
+   and mapped the contract to use cases, REST paths and events. They listed the missing canvas examples and ordered
+   the steps upstream first. The shared decisions are in every plan:
+   - **D1** TDD checkpoint loop off (autonomous run).
+   - **D2** state-based aggregates.
+   - **D3** one ACL per outbound call.
+   - **D4** in-memory repositories with `Version` after the domain is green.
+3. **What the planners sent back:**
+   - About 25 **contract gaps**, for example response bodies for unlock and returns ("the rider must be told why the
+     session ended"), an optional position for a bike that was never returned, and pause/resume bodies naming the
+     collections agent. Claude folded them all into the catalogue as one addendum.
+   - **A spec bug that only arithmetic could find.** `finance-prices-free-floating-return-by-zone` E1.3 claimed
+     (52.2311, 21.0122) lies "exactly on the border" of a 150 m drop zone; the planner computed 155.7 m. The planner
+     didn't plan around it but sent it back to the spec. Claude moved the point to 149 m from the centre (haversine),
+     set the spec back to draft and re-approved it.
+   - **A risk:** deleting the old `BikeStation` code removes the reference implementation that the
+     `ddd-tactical-building-blocks` and `tdd` skills point to. Claude kept the deletion, which the trainer
+     explicitly allowed, and noted that the skills' references must be repointed to the new Rentals aggregate.
+4. **Checks and approval.** `plans.py check`: 35 plans, 0 errors, 0 warnings. Every plan was approved with
+   `plans.py approve` (intents → `planned`) under the standing instruction.
+

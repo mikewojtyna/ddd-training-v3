@@ -6,7 +6,7 @@ system: velocity
 actor: Collections Agent
 activity: Recover unpaid fees
 task: Resume debt recovery
-status: specified
+status: planned
 date: 2026-11-08
 supersedes:
 superseded_by:
