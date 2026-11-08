@@ -3,7 +3,7 @@ name: support-agent-decides-on-incident
 intent: support-agent-decides-on-incident
 spec: support-agent-decides-on-incident
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -94,42 +94,42 @@ Missing, add:
 ## Steps
 
 ### S1: Update the CustomerSupport canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E1.2, E2.2, E2.3, E3.2, E4.1 (tags for E1.1, E2.1, E3.1, E4.2)
 - **Done when:** canvas contains the five new decisions, tagged.
 
 ### S2: Api records and query (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Pick Up Incident, Accept Incident, Reject Incident, Open Incidents
 - **Done when:** records `PickUpIncident`, `AcceptIncident`, `RejectIncident`, `OpenIncidentsQuery`; architecture test green; `./mvnw test` green.
 
 ### S3: Pick-up and assignment rules, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R3, E1.1, E1.2, E3.1, E3.2, Incident Picked Up
 - **Done when:** one domain test per example; `./mvnw test` green.
 
 ### S4: Accept and reject rules, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R2, R4, E2.1, E2.2, E2.3, E4.1, E4.2, Incident Accepted, Incident Rejected
 - **Done when:** one domain test per example; E2.3 and E4.2 use a minimal reopened state (Reopen comes with `rider-reopens-rejected-incident`, which then replaces it); `./mvnw test` green.
 
 ### S5: Use cases, REST, query (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Pick Up Incident, Accept Incident, Reject Incident, Open Incidents
 - **Done when:** the three use cases, their REST resources with the 409/400 mapping, `OpenIncidentsQueryHandler` + `GET /customer-support/incidents?status=OPEN`; `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -148,20 +148,21 @@ Missing, add:
 | E3.2 | `SupportAgentDecidesOnIncidentSpecTest#e3_2_open_incident_cannot_be_accepted_without_pick_up` |
 | E4.1 | `SupportAgentDecidesOnIncidentSpecTest#e4_1_accepted_incident_cannot_be_rejected` |
 | E4.2 | `SupportAgentDecidesOnIncidentSpecTest#e4_2_reopened_incident_cannot_be_rejected_again` |
+| (DE-97, reason required) | `SupportAgentDecidesOnIncidentSpecTest#rejection_without_reason_is_bad_request` |
 
 ## Traceability
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S3, S5, S6 | |
-| R1 / E1.2 | S1, S3, S5, S6 | |
-| R2 / E2.1 | S1 (tag), S4, S5, S6 | |
-| R2 / E2.2 | S1, S4, S5, S6 | |
-| R2 / E2.3 | S1, S4, S6 | |
-| R3 / E3.1 | S1 (tag), S3, S6 | |
-| R3 / E3.2 | S1, S3, S6 | |
-| R4 / E4.1 | S1, S4, S6 | |
-| R4 / E4.2 | S1 (tag), S4, S6 | |
+| R1 / E1.1 | S1 (tag), S3, S5, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R1 / E1.2 | S1, S3, S5, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R2 / E2.1 | S1 (tag), S4, S5, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R2 / E2.2 | S1, S4, S5, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R2 / E2.3 | S1, S4, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R3 / E3.1 | S1 (tag), S3, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R3 / E3.2 | S1, S3, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R4 / E4.1 | S1, S4, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
+| R4 / E4.2 | S1 (tag), S4, S6 | `domain/incident/Incident.java` (`pickUpBy`, `acceptBy`, `rejectBy`), use cases, `IncidentController`; tests `IncidentTest.PickingUp`/`Deciding`/`DecidingReopened`, `SupportAgentDecidesOnIncidentSpecTest` |
 
 ## Risks and open questions
 
@@ -174,8 +175,15 @@ Missing, add:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in CustomerSupport per canvas/CML; tactical runs of 2 rules each, grouped by assignment vs decision state; all 9 examples covered; the dependency on the reopen plan is explicit).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built (autonomous run)
+- All steps done; 9 spec examples as acceptance tests plus `rejection_without_reason_is_bad_request` (400, DE-97).
+- S4's minimal reopened state was not needed: Reopen (`rider-reopens-rejected-incident` S3) was built before E2.3/E4.2, so both use the real reopening and are enabled from the start (reopen plan D6).
+- Derived domain test `acceptedIncidentCannotBeAcceptedAgain` (R4: an accepted incident isn't decided again, also by a second acceptance).
+- E3.2 (accept without pick-up) answers `409 NotAssignedAgent`, as the contract mapping allows.

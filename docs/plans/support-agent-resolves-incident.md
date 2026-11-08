@@ -3,7 +3,7 @@ name: support-agent-resolves-incident
 intent: support-agent-resolves-incident
 spec: support-agent-resolves-incident
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -95,49 +95,49 @@ Missing, add:
 ## Steps
 
 ### S1: Update the CustomerSupport canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E1.1, E4.1, E5.1, E5.2, E5.3, E6.2 (tags for E2.1, E3.1, E6.1)
 - **Done when:** canvas contains the four new decisions, tagged.
 
 ### S2: Api records (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Resolve Incident, Resolve Uncontested Rejections
 - **Done when:** records `ResolveIncident`, `ResolveUncontestedRejections`; architecture test green; `./mvnw test` green.
 
 ### S3: Resolving by the agent, test-first (run 1 of 3)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R3, E1.1, E2.1, E3.1, Incident Resolved
 - **Done when:** one domain test per example; `IncidentResolved` carries the team for an escalated incident; `./mvnw test` green.
 
 ### S4: Who may resolve and from which state, test-first (run 2 of 3)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R4, R5, E4.1, E5.1, E5.2, E5.3
 - **Done when:** one domain test per example; `./mvnw test` green.
 
 ### S5: Uncontested rejections, test-first (run 3 of 3)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R6, E6.1, E6.2
 - **Done when:** one domain test per example, plus the window boundary from D5 (still rejected at 23:59 local on day 14, resolved from 00:00 on day 15, as in the canvas variant); `./mvnw test` green.
 
 ### S6: Use cases, REST, scheduled job (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Resolve Incident, Resolve Uncontested Rejections, Incident Resolved
 - **Done when:** `ResolveIncidentUseCase`, `POST /customer-support/incidents/{incidentId}/resolution` with the 409/400 mapping, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`, `resolution` in the Incident query; `./mvnw test` green.
 
 ### S7: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** CustomerSupport
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -161,15 +161,15 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S6, S7 | |
-| R2 / E2.1 | S1 (tag), S3, S6, S7 | |
-| R3 / E3.1 | S1 (tag), S3, S7 | |
-| R4 / E4.1 | S1, S4, S7 | |
-| R5 / E5.1 | S1, S4, S7 | |
-| R5 / E5.2 | S1, S4, S7 | |
-| R5 / E5.3 | S1, S4, S7 | |
-| R6 / E6.1 | S1 (tag), S5, S6, S7 | |
-| R6 / E6.2 | S1, S5, S6, S7 | |
+| R1 / E1.1 | S1, S3, S6, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R2 / E2.1 | S1 (tag), S3, S6, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R3 / E3.1 | S1 (tag), S3, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R4 / E4.1 | S1, S4, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R5 / E5.1 | S1, S4, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R5 / E5.2 | S1, S4, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R5 / E5.3 | S1, S4, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R6 / E6.1 | S1 (tag), S5, S6, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
+| R6 / E6.2 | S1, S5, S6, S7 | `domain/incident/Incident.java` (`resolveBy`, `resolveIfUncontestedAt`), `ResolveIncidentUseCase`, `ResolveUncontestedRejectionsUseCase`, `UncontestedRejectionsJob`; tests `IncidentTest.Resolving`, `SupportAgentResolvesIncidentSpecTest` |
 
 ## Risks and open questions
 
@@ -182,8 +182,14 @@ Missing, add:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in CustomerSupport per canvas/DE-87; three tactical runs of at most 3 rules, grouped by agent resolution / guards / clock; all 9 examples covered; the window shared with the reopen plan; DE-55 left to its owner plan).
+- 2026-11-08: built in the autonomous run (CustomerSupport worktree); decisions recorded in the changelog.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: built (autonomous run)
+- All steps done; 9 acceptance tests, 10 domain tests (with the 23:59 boundary of D5).
+- `UncontestedRejectionsJob` lives in `infra/adapters/primary/scheduling`, runs every `velocity.customer-support.uncontested-rejections-delay-ms` (default 60000) when scheduling is on.
+- Blank resolution → `400 InvalidInput` (value object `Resolution` rejects it).

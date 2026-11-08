@@ -6,7 +6,7 @@ system: velocity
 actor: Support Agent
 activity: Get help
 task: Decide on an incident
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:
