@@ -3,7 +3,7 @@ name: collections-agent-pauses-debt-recovery
 intent: collections-agent-pauses-debt-recovery
 spec: collections-agent-pauses-debt-recovery
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -84,42 +84,42 @@ Missing, add:
 ## Steps
 
 ### S1: Update the DebtRecovery canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E1.1, E2.1, E2.2, E4.1, E4.2, E4.3 (tag for E3.1)
 - **Done when:** canvas contains the three new decisions, tagged.
 
 ### S2: Pause Recovery api record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Pause Recovery
 - **Done when:** record `PauseRecovery` in `api/usecases`; architecture test green; `./mvnw test` green.
 
 ### S3: Pause rules, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R2, R4, E1.1, E2.1, E4.1, E4.3, Recovery Paused
 - **Done when:** one domain test per example; `RecoveryPaused` returned in `DomainEvents`; `./mvnw test` green.
 
 ### S4: A paused recovery is never due, test-first
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R3, E3.1
 - **Done when:** domain test for E3.1 (no attempt, no reminder, count kept); the minimal paused state used by `collections-attempts-debt-collection` S5 and `collections-starts-debt-recovery` S3 is replaced by the real pause; `./mvnw test` green.
 
 ### S5: Use case, REST, extended query (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Pause Recovery, Rider's Debt Recovery, E4.2, E2.2
 - **Done when:** `PauseRecoveryUseCase` (D6), `POST /debt-recovery/riders/{riderId}/recovery/pause` with 400/409 mapping (D5), query response with `pauseReason` and `outstandingDebt`; `./mvnw test` green.
 
 ### S6: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -141,13 +141,13 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S5, S6 | |
-| R2 / E2.1 | S1, S3, S5, S6 | |
-| R2 / E2.2 | S1, S5 (REST 400), S6 | |
-| R3 / E3.1 | S1 (tag), S4, S6 | |
-| R4 / E4.1 | S1, S3, S6 | |
-| R4 / E4.2 | S1, S5 (use case), S6 | |
-| R4 / E4.3 | S1, S3, S6 | |
+| R1 / E1.1 | S1, S3, S5, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R2 / E2.1 | S1, S3, S5, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R2 / E2.2 | S1, S5 (REST 400), S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R3 / E3.1 | S1 (tag), S4, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R4 / E4.1 | S1, S3, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R4 / E4.2 | S1, S5 (use case), S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
+| R4 / E4.3 | S1, S3, S6 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/PauseRecoveryUseCase`; `infra/adapters/primary/DebtRecoveryController`; `CollectionsAgentPausesDebtRecoverySpecTest` |
 
 ## Risks and open questions
 
@@ -162,7 +162,12 @@ Missing, add:
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (all elements in DebtRecovery per CML responsibility "Pausing and resuming recovery"; R2 as a closed type with E2.2 tested at the REST edge, recorded in D5; R3 split into its own tactical step since it touches the attempt logic; all 7 examples covered; prerequisites on earlier plans explicit).
 
+- 2026-11-08 (DebtRecovery wave, autonomous run): built. Decisions taken: Pause answers `200` with the Recovery Process view; `UnknownPauseReason` lives in `api/usecases` (string → closed `PauseReason`) and maps to `400`; the paused state used by the starts/attempts examples is the real pause (no minimal stand-in was needed, all plans built together).
+
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: delivered (DebtRecovery wave)
+- S1-S6 done; acceptance tests `CollectionsAgentPausesDebtRecoverySpecTest` (7).

@@ -3,7 +3,7 @@ name: collections-attempts-debt-collection
 intent: collections-attempts-debt-collection
 spec: collections-attempts-debt-collection
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -107,7 +107,7 @@ Missing, add:
 ## Steps
 
 ### S1: Tag the DebtRecovery canvas and add the 72-hour example
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** none (apply the approved canvas diff above)
 - **Covers:** E1.2 (tags for E1.1, E2.1, E3.1, E4.1, E4.2, E5.1, E5.2, E5.3)
@@ -121,35 +121,35 @@ Missing, add:
 - **Done when:** `CollectOutstandingDebtUseCase` + `POST /settlement/riders/{riderId}/debt-collections` return `{collected, collectedAmount, outstandingDebt}`; a successful collection publishes `OutstandingDebtCleared` and unblocks the rider (Settlement canvas decision); a Settlement Spring test covers success and failure; `./mvnw test` green.
 
 ### S3: DebtRecovery ports and ACLs (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (update mode, 6a)
 - **Covers:** Attempt Due Collections, Record Debt Cleared (api records), Outstanding Debt Cleared (listener package)
 - **Done when:** records `AttemptDueCollections`, `RecordDebtCleared`; ports `DebtCollection`, `PaymentReminders`; `SettlementDebtCollection` (REST ACL) and `SimulatedPaymentReminders`; `DebtRecoveryArchitectureTest` still green; `./mvnw test` green.
 
 ### S4: Attempt rules, test-first (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off; one spec example per cycle, verbatim)
 - **Covers:** R1, R3, R4, E1.1, E1.2, E3.1, E4.1, E4.2, Collection Attempted, Recovery Exhausted
 - **Done when:** one domain test per example; due-ness to the minute (72 h); exhausted recoveries are never due; `./mvnw test` green.
 
 ### S5: Success rules, test-first (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** ddd-tactical-building-blocks (D1: loop off)
 - **Covers:** R2, R5, E2.1, E5.1, E5.2, E5.3, Recovery Succeeded
 - **Done when:** one domain test per example; a paused Given for E5.1 is built with minimal state (Pause Recovery comes with `collections-agent-pauses-debt-recovery`); a second clearance returns no events; `./mvnw test` green.
 
 ### S6: Use cases, scheduled job, listener and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Attempt Due Collections, Record Debt Cleared, Outstanding Debt Cleared
 - **Done when:** `AttemptDueCollectionsUseCase` (D7), `RecordDebtClearedUseCase`, `DueCollectionsJob`, `OutstandingDebtClearedListener` (`@Async @EventListener`), retry on version conflict (D6), wiring in `infra/config/DebtRecoveryConfig`; `./mvnw test` green.
 
 ### S7: Acceptance tests
-- **Status:** todo
+- **Status:** done
 - **Context:** DebtRecovery (with real Accounts, Payments, Pricing, Settlement beans)
 - **Skill:** none (implementation-planner)
 - **Covers:** all examples
@@ -173,15 +173,15 @@ Missing, add:
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1 (tag), S2, S4, S6, S7 | |
-| R1 / E1.2 | S1, S4, S7 | |
-| R2 / E2.1 | S1 (tag), S2, S5, S6, S7 | |
-| R3 / E3.1 | S1 (tag), S4, S7 | |
-| R4 / E4.1 | S1 (tag), S4, S7 | |
-| R4 / E4.2 | S1 (tag), S4, S7 | |
-| R5 / E5.1 | S1 (tag), S5, S6, S7 | |
-| R5 / E5.2 | S1 (tag), S5, S6, S7 | |
-| R5 / E5.3 | S1 (tag), S5, S6, S7 | |
+| R1 / E1.1 | S1 (tag), S2, S4, S6, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R1 / E1.2 | S1, S4, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R2 / E2.1 | S1 (tag), S2, S5, S6, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R3 / E3.1 | S1 (tag), S4, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R4 / E4.1 | S1 (tag), S4, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R4 / E4.2 | S1 (tag), S4, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R5 / E5.1 | S1 (tag), S5, S6, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R5 / E5.2 | S1 (tag), S5, S6, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
+| R5 / E5.3 | S1 (tag), S5, S6, S7 | `domain/recovery/RecoveryProcess.java`, `RecoveryProcessTest`; `api/usecases/AttemptDueCollectionsUseCase`, `RecordDebtClearedUseCase`; `settlementctxacl/SettlementDebtCollection`, `OutstandingDebtClearedListener`, `messagingacl/SimulatedPaymentReminders`; `CollectionsAttemptsDebtCollectionSpecTest` |
 
 ## Risks and open questions
 
@@ -198,6 +198,8 @@ Missing, add:
 
 - 2026-11-08 (Settlement wave, autonomous run): S2 built: `CollectOutstandingDebtUseCase` + `POST /settlement/riders/{riderId}/debt-collections`, reusing the payoff's collection (`OutstandingDebtCollector`). Decision: a rider who owes nothing answers `200 {collected: false, collectedAmount: "0.00", outstandingDebt: "0.00"}` (not `409`), matching this plan's risk note. Settlement Spring test: `src/test/java/pl/wojtyna/dddtrainingv3/velocity/settlement/CollectOutstandingDebtRestTest.java` (success, failure, nothing owed). `UnpaidRideFixture` (D8) can build on `velocity/settlement/SettlementDriver#ridesUnpaid` (package-private, copy or move it). DebtRecovery steps stay todo.
 
+- 2026-11-08 (DebtRecovery wave, autonomous run): S1, S3-S7 built. Decisions taken: a failed attempt recorded after the recovery was paused or ended doesn't count, a collection that collected is still recorded as made (Collection Attempted) without a second Recovery Succeeded (race between attempt and clearance, D6); an Outstanding Debt Cleared from before the recovery started doesn't end it (late delivery); an unanswered collection (error status, Settlement unreachable) counts as a failed attempt; the scheduled job is `infra/adapters/primary/scheduling/DueCollectionsJob` (60 s). E5.1 is not disabled: Pause Recovery and Pay Outstanding Debt both exist.
+
 ## Changelog
 
 ### 2026-11-08: planned
@@ -205,3 +207,6 @@ Missing, add:
 
 ### 2026-11-08: Settlement step S2 done (Settlement wave)
 - Collect Outstanding Debt over REST; success publishes `OutstandingDebtCleared` and unblocks the rider.
+
+### 2026-11-08: delivered (DebtRecovery wave)
+- S1, S3-S7 done; acceptance tests `CollectionsAttemptsDebtCollectionSpecTest` (9), shared fixture `UnpaidRideFixture`.
