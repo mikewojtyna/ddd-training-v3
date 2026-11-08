@@ -3,7 +3,7 @@ name: rider-ends-ride-in-drop-zone
 intent: rider-ends-ride-in-drop-zone
 spec: rider-ends-ride-in-drop-zone
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -79,35 +79,35 @@ is in a drop zone is **not** Rentals' question: Pricing asks the City zone map w
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E1.2, E3.1, E3.2 (canvas decisions), tags for E1.1, E2.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the command record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: End Ride Here (record)
 - **Done when:** `api/usecases/EndRideHere` exists; `RentalsArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Domain: ending the ride at the rider's position
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R2, R3, E1.1, E1.2, E2.1, E3.1, E3.2
 - **Done when:** one unit test per example, written first, passes; after a free-floating return the bike is free and available at that position (so a rider near it can reserve it); a failed lock withdraws it with *lock failed*; `./mvnw test` green.
 
 ### S4: Use case, REST, event publishing and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: End Ride Here, Event: Rental Session Ended, Event: Bike Withdrawn
 - **Done when:** `EndRideHereUseCase` (load, close the lock, execute, save, publish, map integration events), REST `POST /rentals/bikes/{bikeId}/free-floating-return` with the answer and error mapping above; `./mvnw test` green.
 
 ### S5: Acceptance tests for every example
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST for eligible riders)
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -127,11 +127,11 @@ is in a drop zone is **not** Rentals' question: Pricing asks the City zone map w
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S4, S5 | |
-| R1 / E1.2 | S1, S3, S5 | |
-| R2 / E2.1 | S3, S4, S5 | |
-| R3 / E3.1 | S1, S3, S5 | |
-| R3 / E3.2 | S1, S3, S5 | |
+| R1 / E1.1 | S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FreeFloatingReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndRideHereUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderEndsRideInDropZoneSpecTest.java` |
+| R1 / E1.2 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FreeFloatingReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndRideHereUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderEndsRideInDropZoneSpecTest.java` |
+| R2 / E2.1 | S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FreeFloatingReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndRideHereUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderEndsRideInDropZoneSpecTest.java` |
+| R3 / E3.1 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FreeFloatingReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndRideHereUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderEndsRideInDropZoneSpecTest.java` |
+| R3 / E3.2 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FreeFloatingReturnTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/EndRideHereUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderEndsRideInDropZoneSpecTest.java` |
 
 ## Risks and open questions
 
@@ -142,8 +142,12 @@ is in a drop zone is **not** Rentals' question: Pricing asks the City zone map w
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner; zone decision kept in Pricing (no new City → Rentals relationship); three rules in one tactical run, all guarding the session end; integration events only for existing listeners.
+- 2026-11-08 (Rentals wave, autonomous run): No zone logic in Rentals (D6): the position goes into `RentalSessionEnded` (no `stationId`).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

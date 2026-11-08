@@ -3,7 +3,7 @@ name: fleet-operations-takes-broken-bike-out-of-circulation
 intent: fleet-operations-takes-broken-bike-out-of-circulation
 spec: fleet-operations-takes-broken-bike-out-of-circulation
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -104,7 +104,7 @@ Hand-offs:
 ## Steps
 
 ### S1: Remove the old FleetMaintenance code and context plan
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** none (this skill)
 - **Covers:** none
@@ -118,7 +118,7 @@ Hand-offs:
 - **Done when:** both canvases carry the tags and additions above.
 
 ### S3: Rentals: withdraw a bike on a client's request
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Prerequisite:** the Rentals bike lifecycle (bike, reservation, rental session) from the plans of `fleet-manager-adds-bike-to-fleet`, `rider-reserves-bike`, `rider-unlocks-reserved-bike` and `rider-returns-bike-at-station` (its withdrawal on a failed lock).
@@ -126,7 +126,7 @@ Hand-offs:
 - **Done when:** one domain test per scenario passes: withdraw a free available bike (reason *requested*), withdraw a reserved bike (reservation cancelled), withdraw a bike in a ride (session goes on, bike not available after the return), withdraw an already withdrawn bike (nothing happens); `./mvnw test` green.
 
 ### S4: Rentals: Withdraw Bike use case and REST
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Withdraw Bike, Bike Withdrawn
@@ -179,9 +179,9 @@ Hand-offs:
 | Spec ID | Step | Files |
 |---|---|---|
 | R1 / E1.1, E1.2 | S2, S6, S7, S8 | |
-| R2 / E2.1 | S3, S4, S6, S7, S8 | |
-| R2 / E2.2 | S3, S4, S8 | |
-| R2 / E2.3 | S2, S3, S8 | |
+| R2 / E2.1 | S3, S4, S6, S7, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`withdraw`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeWithdrawalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/WithdrawBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`WithdrawingOnRequest`) |
+| R2 / E2.2 | S3, S4, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`withdraw`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeWithdrawalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/WithdrawBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`WithdrawingOnRequest`) |
+| R2 / E2.3 | S2, S3, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`withdraw`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeWithdrawalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/WithdrawBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`WithdrawingOnRequest`) |
 | R3 / E3.1 | S2, S6, S8 | |
 | R4 / E4.1 | S8 (rule delivered by `rider-reserves-bike`) | |
 
@@ -196,8 +196,12 @@ Hand-offs:
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (placement follows canvases and CML; hand-off directions match the map; every example covered; steps upstream-first; no building blocks decided). Note: R2 is deliberately split between FM and Rentals.
+- 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S1 marked done: the old FleetMaintenance code, tests and context plan were removed in commit 4702217 (prep). S3/S4 built in Rentals: `POST /rentals/bikes/{bikeId}/withdrawal` answers `200` (empty body), unknown bike `404`; a withdrawal during a ride withdraws the bike at once and publishes Bike Withdrawn *requested* while the ride goes on. The Rentals half of S2's canvas diff is applied to the Rentals canvas; the FleetMaintenance half and S2 itself stay todo for the Fleet Maintenance wave.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

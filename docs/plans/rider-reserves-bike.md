@@ -3,7 +3,7 @@ name: rider-reserves-bike
 intent: rider-reserves-bike
 spec: rider-reserves-bike
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -87,49 +87,49 @@ final deferred step.
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E2.2, E3.1, E3.2, E4.2 (canvas decisions), tags for E1.1, E2.1, E4.1, E5.1, E5.2
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the eligibility ACL and the API records (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a), told that this plan settles the structural decisions
 - **Covers:** Command: Reserve Bike (record), Query: Rider's Active Rental (records), R3 (port + ACL)
 - **Done when:** `api/usecases/ReserveBike`, `api/queries/RidersActiveRentalQuery` + `RidersActiveRental`, port `RentalEligibility`, adapter `infra/adapters/secondary/accountsctxacl` (package-info with `@AntiCorruptionLayer`), its wiring in `RentalsContextConfig`, and an adapter test against a stubbed HTTP response exist; `RentalsArchitectureTest` green; changelog line in the Rentals context plan; `./mvnw test` green.
 
 ### S3: Domain: reserving a free, available bike nearby (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R2, R5, E1.1, E2.1, E2.2, E5.1
 - **Done when:** one unit test per example, written first, passes; the reservation ends at reserved at + 2 minutes; `./mvnw test` green.
 
 ### S4: Domain: eligibility and one rider, one bike (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R3, R4, E3.1, E3.2, E4.1
 - **Done when:** one unit test per example passes (E3.1/E3.2 as "the eligibility port answers *not eligible*"); the tactical skill has decided and recorded how R4 is enforced across bikes; `./mvnw test` green.
 
 ### S5: Use case, query, REST and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Reserve Bike, Query: Rider's Active Rental, Event: Bike Reserved
 - **Done when:** `ReserveBikeUseCase` (eligibility via port, load, execute, save, publish), `RidersActiveRentalQueryHandler`, REST `POST /rentals/bikes/{bikeId}/reservations` and `GET /rentals/riders/{riderId}/active-rental` with the error mapping above; `./mvnw test` green.
 
 ### S6: Acceptance tests for E1.1-E4.1 and E5.1
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST)
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E2.1, E2.2, E3.1, E3.2, E4.1, E5.1
 - **Done when:** prerequisite: Accounts serves onboarding, `GET /accounts/riders/{riderId}/rental-eligibility` and `POST /accounts/riders/{riderId}/blocks` (the Accounts plans: `person-registers-with-velocity` … `rider-signs-user-agreement`, and the plan that adds Block Account); `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` is a `@VelocitySpringTest` with real beans: riders are onboarded through Accounts' REST API (a small test fixture in the `rentals` test package), bikes added with `POST /rentals/bikes`, time set with `MutableClock`; one test method per example asserting through `GET /rentals/bikes/{bikeId}` and `GET /rentals/riders/{riderId}/active-rental`; `./mvnw test` green.
 
 ### S7: Deferred examples: a running ride (E4.2) and a withdrawn bike (E5.2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (domain scenarios, if the earlier rules don't already cover them), then this skill (acceptance tests)
 - **Covers:** R4, R5, E4.2, E5.2
@@ -153,15 +153,15 @@ final deferred step.
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6 | |
-| R2 / E2.1 | S3, S5, S6 | |
-| R2 / E2.2 | S1, S3, S5, S6 | |
-| R3 / E3.1 | S1, S2, S4, S6 | |
-| R3 / E3.2 | S1, S2, S4, S6 | |
-| R4 / E4.1 | S4, S6 | |
-| R4 / E4.2 | S1, S7 | |
-| R5 / E5.1 | S3, S6 | |
-| R5 / E5.2 | S7 | |
+| R1 / E1.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R2 / E2.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R2 / E2.2 | S1, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R3 / E3.1 | S1, S2, S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R3 / E3.2 | S1, S2, S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R4 / E4.1 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R4 / E4.2 | S1, S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R5 / E5.1 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
+| R5 / E5.2 | S7 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeReservationTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/accountsctxacl/AccountsRentalEligibilityAdapter.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderReservesBikeSpecTest.java` |
 
 ## Risks and open questions
 
@@ -173,8 +173,12 @@ final deferred step.
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Placement follows the CML (Accounts → Rentals ACL, direction correct, no new relationship); R3 kept as a precondition, not copied into Rentals; tactical runs ≤ 3 rules; deferred examples have explicit prerequisites; R4's cross-bike nature left to the tactical skill (not decided here).
+- 2026-11-08 (Rentals wave, autonomous run): Decisions (tactical, S4): R4 "one rider, one bike" spans bikes, so the use case gathers a `RiderStanding` (Accounts' eligibility through the port + `BikeRepository.holdsABike(rider, now)`) and passes it into `Bike.reserveForRide(..)`; the bike decides. Accepted race: two concurrent reservations by the same rider on different bikes can both pass (recorded in the context plan). A reservation that ran out but wasn't released yet no longer counts as holding a bike. Accounts unavailable → `503 RentalEligibilityUnknown` (D7). Response `201 {bikeId, holderType, holderId, reservedAt, expiresAt}` per integration-contracts.md Additions.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

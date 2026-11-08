@@ -3,7 +3,7 @@ name: rider-unlocks-reserved-bike
 intent: rider-unlocks-reserved-bike
 spec: rider-unlocks-reserved-bike
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -84,42 +84,42 @@ technicians); a rider's successful unlock starts a rental session, which stays i
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E2.2, E3.2, E3.3 (canvas decisions), tags for E1.1, E1.2, E2.1, E3.1, E4.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the bike locks port, the command record and the published events (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: Unlock Bike (record), Event: Unlock Failed (integration record, exists)
 - **Done when:** `api/usecases/UnlockBike`, port `BikeLocks`, adapter `infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks` (with a way for tests to register a bike as faulty) and its wiring exist; `api/events/UnlockFailed` checked against integration-contracts.md; `RentalsArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Domain: the holder unlocks within the reservation period (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R3, E1.1, E1.2, E3.1, E3.2, E3.3
 - **Done when:** one unit test per example, written first, passes (E1.2 at exactly 10:02:00 succeeds, E3.3 at 10:02:30 is rejected); a session gets its own identity; `./mvnw test` green.
 
 ### S4: Domain: failed unlock and eligibility re-check (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R2, R4, E2.1, E2.2, E4.1
 - **Done when:** one unit test per example passes; after a failed unlock the bike is free and available and the rider holds nothing (so "one rider, one bike" from `rider-reserves-bike` lets them reserve again); an ineligible rider's unlock changes nothing; `./mvnw test` green.
 
 ### S5: Use case, REST, event publishing and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Unlock Bike, Event: Rental Session Started, Event: Unlock Failed
 - **Done when:** `UnlockBikeUseCase` (eligibility via port for riders, load, open the lock via `BikeLocks`, execute, save, publish domain events, map `UnlockFailed` to the integration event), REST `POST /rentals/bikes/{bikeId}/unlock` with the error mapping above; `GET /rentals/riders/{riderId}/active-rental` reports `kind: "SESSION"` with `sessionId`; `./mvnw test` green.
 
 ### S6: Acceptance tests for every example
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts and Payments over REST)
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -142,14 +142,14 @@ technicians); a rider's successful unlock starts a rental session, which stays i
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6 | |
-| R1 / E1.2 | S3, S5, S6 | |
-| R2 / E2.1 | S4, S5, S6 | |
-| R2 / E2.2 | S1, S4, S6 | |
-| R3 / E3.1 | S3, S6 | |
-| R3 / E3.2 | S1, S3, S6 | |
-| R3 / E3.3 | S1, S3, S6 | |
-| R4 / E4.1 | S4, S5, S6 | |
+| R1 / E1.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R1 / E1.2 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R2 / E2.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R2 / E2.2 | S1, S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R3 / E3.1 | S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R3 / E3.2 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R3 / E3.3 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
+| R4 / E4.1 | S4, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/BikeUnlockTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/bikelocksacl/SimulatedBikeLocks.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RiderUnlocksReservedBikeSpecTest.java` |
 
 ## Risks and open questions
 
@@ -161,8 +161,12 @@ technicians); a rider's successful unlock starts a rental session, which stays i
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner, precondition via existing ACL; integration event only where Fleet Maintenance listens; ≤ 3 rules per tactical run (R1+R3 guard the hold, R2+R4 the unlock outcome); E2.2 relies on `rider-reserves-bike`, delivered earlier (D5).
+- 2026-11-08 (Rentals wave, autonomous run): Decisions: the unlock answer follows integration-contracts.md Additions, `200 {bikeId, outcome: "UNLOCKED"|"UNLOCK_FAILED", sessionId?}` (the plan's `SESSION_STARTED` was overridden by the contract). The bike calls the `BikeLocks` port itself (`unlockForRide(rider).given(eligibility).at(now).using(locks)`) only after the holder and eligibility checks, so a rejected unlock never touches the lock. `SimulatedBikeLocks` lets tests `registerFaulty(bikeId)` or `scriptNext(bikeId, results...)`. Published-event assertions use a recording listener on the multicaster (events are published on server threads, `@RecordApplicationEvents` wouldn't see them) with Awaitility.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

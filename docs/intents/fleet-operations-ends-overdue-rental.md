@@ -6,7 +6,7 @@ system: velocity
 actor: Fleet Operations
 activity: Ride
 task: Ride within the maximum rental time
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

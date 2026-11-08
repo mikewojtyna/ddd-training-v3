@@ -6,7 +6,7 @@ system: velocity
 actor: Finance
 activity: Stay in good standing
 task: Block a rider whose card is invalid
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:
