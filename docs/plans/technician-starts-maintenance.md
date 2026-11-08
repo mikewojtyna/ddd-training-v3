@@ -3,7 +3,7 @@ name: technician-starts-maintenance
 intent: technician-starts-maintenance
 spec: technician-starts-maintenance
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -100,7 +100,7 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 - **Done when:** both canvases carry the tags and additions above.
 
 ### S2: Rentals: technician unlocks
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Prerequisite:** the unlock and `BikeLocks` port of `rider-unlocks-reserved-bike`.
@@ -108,7 +108,7 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 - **Done when:** one domain test per scenario (holder's unlock opens the lock, no session; another technician rejected; expired holder rejected; failed lock releases the reservation, bike stays withdrawn); `./mvnw test` green.
 
 ### S3: Rentals: REST and published events for technician unlocks (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Bike Unlocked, Unlock Failed
@@ -156,10 +156,10 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6, S7 | |
-| R2 / E2.1 | S2, S3, S7 | |
-| R3 / E3.1, E3.2 | S1, S2, S4, S7 | |
-| R4 / E4.1 | S1, S2, S3, S5, S6, S7 | |
+| R1 / E1.1 | S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
+| R2 / E2.1 | S2, S3, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
+| R3 / E3.1, E3.2 | S1, S2, S4, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
+| R4 / E4.1 | S1, S2, S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
 
 ## Risks and open questions
 
@@ -170,8 +170,12 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (the unlock and its rules stay in Rentals, maintenance in FM; events follow the CML direction; every example covered; tactical steps ≤3 rules; no building blocks decided).
+- 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S2/S3 built. Technician unlock answers `200 {bikeId, outcome: "UNLOCKED"|"UNLOCK_FAILED"}` (no `sessionId`); someone else's or an expired reservation → `409 NotReservationHolder`. `BikeUnlocked` is published for technicians only; `UnlockFailed` for every holder. The Rentals half of S1's canvas diff is applied; S1 stays todo for the FleetMaintenance half.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

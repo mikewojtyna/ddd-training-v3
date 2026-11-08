@@ -3,7 +3,7 @@ name: fleet-operations-releases-expired-reservations
 intent: fleet-operations-releases-expired-reservations
 spec: fleet-operations-releases-expired-reservations
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -82,42 +82,42 @@ Data note: *expired at* is the moment of the check (now), which is later than th
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E1.3, E3.1, E3.2 (canvas decisions), E2.2 (boundary), tags for E1.1, E1.2, E2.1
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the command record and check the published event (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: Release Expired Reservations (record), Event: Reservation Expired (integration record, exists)
 - **Done when:** `api/usecases/ReleaseExpiredReservations` exists; `api/events/ReservationExpired` matches integration-contracts.md; `RentalsArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Domain: rider reservations expire, used ones don't
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R3, E1.1, E1.2, E1.3, E3.1, E3.2
 - **Done when:** one unit test per example, written first, passes (10:02:00 still reserved, 10:02:01 expired; an unlocked or failed-unlock bike has nothing to expire); `./mvnw test` green.
 
 ### S4: Use case, scheduled job, event publishing and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Release Expired Reservations, Event: Reservation Expired
 - **Done when:** `ReleaseExpiredReservationsUseCase` (find reservations ending before now, release each, save, publish, map to the integration event), `ReservationExpiryJob` (`@Scheduled`, e.g. every second, using `velocityClock`), wiring in `RentalsContextConfig`; `./mvnw test` green.
 
 ### S5: Acceptance tests for the rider examples
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST for eligible riders)
 - **Skill:** none (this skill)
 - **Covers:** E1.1, E1.2, E1.3, E3.1, E3.2
 - **Done when:** `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` is a `@VelocitySpringTest` with real beans; reservations and unlocks go through REST; "the reservations are checked at T" sets `MutableClock` to T and calls the `ReleaseExpiredReservationsUseCase` bean; E1.1 asserts the published `ReservationExpired` integration event with `@RecordApplicationEvents` and Awaitility; one test method per example; `./mvnw test` green.
 
 ### S6: Technician reservations expire, the bike stays withdrawn
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (domain scenarios), then this skill (acceptance tests)
 - **Covers:** R2, E2.1, E2.2
@@ -139,13 +139,13 @@ Data note: *expired at* is the moment of the check (now), which is later than th
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S4, S5 | |
-| R1 / E1.2 | S3, S5 | |
-| R1 / E1.3 | S1, S3, S5 | |
-| R2 / E2.1 | S6 | |
-| R2 / E2.2 | S1, S6 | |
-| R3 / E3.1 | S1, S3, S5 | |
-| R3 / E3.2 | S1, S3, S5 | |
+| R1 / E1.1 | S3, S4, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R1 / E1.2 | S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R1 / E1.3 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R2 / E2.1 | S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R2 / E2.2 | S1, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R3 / E3.1 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
+| R3 / E3.2 | S1, S3, S5 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReleaseExpiredReservationsUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsClockJobs.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsReleasesExpiredReservationsSpecTest.java` |
 
 ## Risks and open questions
 
@@ -156,8 +156,12 @@ Data note: *expired at* is the moment of the check (now), which is later than th
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner; integration event only because Fleet Maintenance listens; R2 kept in Rentals (the rule is about the hold, not about repair); technician examples wait for the plan that creates technician reservations instead of duplicating it.
+- 2026-11-08 (Rentals wave, autonomous run): S6 (technician examples) was built in the same wave as `technician-reserves-broken-bike` S2-S4. The scheduled job `RentalsClockJobs` runs every second (`fixedDelay = 1000`) when scheduling is on.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Return the bike
 task: End the ride in a drop zone
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:

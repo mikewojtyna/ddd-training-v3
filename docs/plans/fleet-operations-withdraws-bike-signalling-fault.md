@@ -3,7 +3,7 @@ name: fleet-operations-withdraws-bike-signalling-fault
 intent: fleet-operations-withdraws-bike-signalling-fault
 spec: fleet-operations-withdraws-bike-signalling-fault
 system: velocity
-status: approved
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -79,42 +79,42 @@ for a technician) belongs to its own plans.
 ## Steps
 
 ### S1: Update the Rentals canvas
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** none (this skill applies the canvas diff above)
 - **Covers:** E1.1, E1.2, E4.1 (canvas decisions), tags for E2.1, E3.1, E3.2
 - **Done when:** the canvas contains the diff from "Canvas changes" exactly.
 
 ### S2: Scaffold the command record (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (update mode, Step 6a)
 - **Covers:** Command: Signal Fault (record)
 - **Done when:** `api/usecases/SignalFault` exists; `RentalsArchitectureTest` green; `./mvnw test` green.
 
 ### S3: Domain: a fault outside a ride withdraws the bike (run 1 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R2, R4, E1.1, E1.2, E2.1, E4.1
 - **Done when:** one unit test per example, written first, passes: a free bike is withdrawn with *fault signalled*; a reservation on it is cancelled and its rider holds nothing; an already withdrawn bike produces no event; `./mvnw test` green.
 
 ### S4: Domain: a fault during a ride withdraws the bike at the session end (run 2 of 2)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R3, E3.1, E3.2
 - **Done when:** one unit test per example passes; the station return, free-floating return and overdue end (from the earlier plans) apply the pending fault by D6, with their existing tests still green; `./mvnw test` green.
 
 ### S5: Use case, REST and wiring (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (Step 6b)
 - **Covers:** Command: Signal Fault, Event: Bike Withdrawn
 - **Done when:** `SignalFaultUseCase` (load, execute, save, publish, map `BikeWithdrawn`), REST `POST /rentals/bikes/{bikeId}/fault-signals`, wiring; `./mvnw test` green.
 
 ### S6: Acceptance tests for every example
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals (Accounts over REST for eligible riders)
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -135,12 +135,12 @@ for a technician) belongs to its own plans.
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S1, S3, S5, S6 | |
-| R1 / E1.2 | S1, S3, S6 | |
-| R2 / E2.1 | S3, S5, S6 | |
-| R3 / E3.1 | S4, S6 | |
-| R3 / E3.2 | S4, S6 | |
-| R4 / E4.1 | S1, S3, S6 | |
+| R1 / E1.1 | S1, S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
+| R1 / E1.2 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
+| R2 / E2.1 | S3, S5, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
+| R3 / E3.1 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
+| R3 / E3.2 | S4, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
+| R4 / E4.1 | S1, S3, S6 | `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/FaultSignalTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/SignalFaultUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/primary/RentalsController.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/FleetOperationsWithdrawsBikeSignallingFaultSpecTest.java` |
 
 ## Risks and open questions
 
@@ -153,8 +153,12 @@ for a technician) belongs to its own plans.
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE. Single owner; the event is published only because Fleet Maintenance listens; R1/R2/R4 grouped (bike outside a ride), R3 alone (session end); last in delivery order so S4 doesn't depend on later work.
+- 2026-11-08 (Rentals wave, autonomous run): D6 implemented and tested (`FaultSignalTest#pendingFaultAndLockFailureWithdrawOnceWithLockFailed`): a pending fault is used only when the session end wouldn't withdraw the bike anyway. The fault code travels as `BikeWithdrawn.faultDescription`. A cancelled reservation raises the domain event `ReservationCancelled` (not published: no listener).
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.

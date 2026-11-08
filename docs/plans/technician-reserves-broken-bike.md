@@ -3,7 +3,7 @@ name: technician-reserves-broken-bike
 intent: technician-reserves-broken-bike
 spec: technician-reserves-broken-bike
 system: velocity
-status: approved
+status: in progress
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -104,7 +104,7 @@ Hand-offs (all in the CML direction `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenanc
 - **Done when:** both canvases carry the tags and additions above.
 
 ### S2: Rentals: technician reservations
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1), via bounded-context-scaffolder update mode
 - **Prerequisite:** the reservation model of `rider-reserves-bike` and the withdrawal of `fleet-operations-takes-broken-bike-out-of-circulation`.
@@ -112,7 +112,7 @@ Hand-offs (all in the CML direction `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenanc
 - **Done when:** one domain test per example (30-minute hold without a position, several holds per technician, rejected on a bike that isn't withdrawn, rejected when another holder has it); `./mvnw test` green.
 
 ### S3: Rentals: technician reservations expire and the bike stays withdrawn
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Prerequisite:** `ReleaseExpiredReservationsUseCase` from `fleet-operations-releases-expired-reservations`. If that plan deferred its technician examples (R2) until technician reservations exist, this step completes them; otherwise it only adds the scenarios below.
@@ -120,7 +120,7 @@ Hand-offs (all in the CML direction `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenanc
 - **Done when:** domain tests for expiry at 09:30:01 (bike stays withdrawn), no expiry at 09:29 and at exactly 09:30:00 pass; `./mvnw test` green.
 
 ### S4: Rentals: REST and published events for technicians (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** Rentals
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Bike Reserved, Reservation Expired
@@ -172,12 +172,12 @@ Hand-offs (all in the CML direction `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenanc
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S2, S4, S6, S7, S8 | |
-| R1 / E1.2, E1.3 | S1, S2, S4, S8 | |
-| R2 / E2.1 | S1, S2, S6, S8 | |
-| R3 / E3.1 | S1, S2, S5, S8 | |
-| R4 / E4.1 | S3, S4, S6, S7, S8 | |
-| R4 / E4.2, E4.3 | S3, S8 | |
+| R1 / E1.1 | S2, S4, S6, S7, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
+| R1 / E1.2, E1.3 | S1, S2, S4, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
+| R2 / E2.1 | S1, S2, S6, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
+| R3 / E3.1 | S1, S2, S5, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
+| R4 / E4.1 | S3, S4, S6, S7, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
+| R4 / E4.2, E4.3 | S3, S8 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`reserveForService`, `releaseIfExpired`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/ReservationExpiryTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/ReserveBikeUseCase.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`ReservingForService`) |
 
 ## Risks and open questions
 
@@ -190,8 +190,12 @@ Hand-offs (all in the CML direction `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenanc
 ## Review notes
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (holds stay in Rentals, "broken" stays in FM; calls and events follow `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`; every example covered; tactical steps ≤3 rules each; no building blocks decided).
+- 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S2-S4 built. Rejections for the FM adapter: bike not withdrawn → `409 BikeNotWithdrawn`; held by someone → `409 BikeAlreadyHeld`; unknown bike → `404`. Answer `201 {bikeId, holderType, holderId, reservedAt, expiresAt}`. The Rentals half of S1's canvas diff is applied to the Rentals canvas; S1 stays todo for the FleetMaintenance half.
 
 ## Changelog
 
 ### 2026-11-08: planned
 - Built from spec dated 2026-11-08.
+
+### 2026-11-08: Rentals wave (autonomous run)
+- Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.
