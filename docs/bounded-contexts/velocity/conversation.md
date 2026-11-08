@@ -133,7 +133,7 @@ explicitly asked for a fully autonomous run, so:
    - Accounts → Rentals became an explicit OHS with an ACL in Rentals.
 4. **Independent critic** (one general-purpose agent, given only the canvases, vision, map and DE answers).
    Verdict **DISAGREE**, with two blocking findings, both in Rentals:
-   - Rentals listed inbound commands (Withdraw Bike, Make Bike Available, Signal Fault, Put Bike into Service) with
+   - Rentals listed inbound commands (Withdraw Bike, Make Bike Available, Signal Fault, Add Bike to Fleet) with
      no rules for them, although DE answers already decided their behaviour.
    - Its "expired reservation / failed unlock → bike available to anyone" examples contradicted Fleet Maintenance for
      technicians' reservations of withdrawn bikes, which must stay withdrawn.
@@ -147,4 +147,43 @@ explicitly asked for a fully autonomous run, so:
    - Three domain roles that didn't match the worksheet's meaning were corrected.
 
    A second critic round wasn't run: the fixes were additive, and the critic's own suggested wording was used.
+
+### Stage 2: intents and specs
+
+**Inputs:** the vision (product scenarios), the context map, plus the canvases and expert answers from Stage 1.
+**Output:** 35 intents in `docs/intents/`, the story map and the generated `README.md`, and 35 specs in `docs/specs/`.
+
+1. **Story map and slicing, by Claude.** Claude extended `docs/intents/story-map.md` with ten activities, from
+   *Join VeloCity* to *Set prices*, and cut the vision into 35 fine-grained intents. Each has one actor, one goal
+   and one outcome, as `intent-creator` demands. For example, the vision's billing section became four intents:
+   tiered hourly fees, zone-dependent return fees, the overdue penalty, and publishing a tariff.
+   - It fixed every intent's sequence number, actor, activity and task in a working manifest, so parallel agents
+     couldn't collide on them.
+   - It also fixed one shared list of business event names (*Bike Reserved*, *Rental Fee Unpaid*, …).
+   - Time-driven needs got a business actor, as the skill requires: *Fleet Operations* wants expired reservations
+     released, *Finance* wants failed charges retried, *Collections* wants debt pursued.
+2. **Five parallel agents**, one per area (onboarding & card, Rentals, pricing & settlement, debt recovery &
+   support, fleet maintenance). They worked from one shared brief: follow `intent-creator` and `spec-writer` exactly,
+   use the DE answers instead of `?`, apply the spec critic's checklist as a separate self-review pass, and fix every
+   `specs.py check` error.
+3. **The agents found gaps the canvases had papered over.** Examples:
+   - DE-14 (eligibility checked only at reservation) contradicted the vision's "a blocked account cannot start new
+     rentals".
+   - Nothing said whether a reservation still holds at the exact second it ends.
+   - "15:01" in DE-31 could be minutes or seconds.
+   - A rider's *can't unlock* report made a bike broken, while a failed unlock alone didn't.
+   - A rejected incident the rider never reopens would stay open forever, against "every incident ends resolved".
+
+   🎭 Claude answered them as a second round of expert answers (DE-80 … DE-98) and sent each agent back, with its
+   context intact, to apply them. It updated the canvases to match.
+4. **A naming clash with the tooling.** `specs.py` treats "service" as a technical word, so the intent
+   `fleet-manager-puts-bike-into-service` failed its check. Claude renamed the intent rather than loosen the skill's
+   script: it became `fleet-manager-adds-bike-to-fleet`, with the event *Bike Added to Fleet*, renamed in every
+   artifact.
+5. **Checks and approval.**
+   - `intents.py check`: 35 intents, 0 errors, 0 warnings. `specs.py check`: 35 specs, 0 errors, 0 warnings. The
+     business events in the specs' contracts match the shared list word for word.
+   - Every spec was approved with `specs.py approve` (intents → `specified`) under the standing instruction. Open
+     questions that don't block a happy path (e.g. "can an agent hand an incident to a colleague?") stay open in
+     the specs for the trainer.
 

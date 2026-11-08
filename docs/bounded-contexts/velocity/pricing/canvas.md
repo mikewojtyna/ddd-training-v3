@@ -73,6 +73,11 @@ rides, only tariffs.
 - **When** a session from 10:00 to 10:30 ending free-floating at (52.2500, 21.1000) is priced
 - **Then** the total fee is PLN 3.00 + PLN 40.00 = PLN 43.00
 
+### A quick free-floating trip still pays the return fee
+- **Given** the launch tariff
+- **When** a session from 10:00 to 10:10 ending free-floating at (52.2298, 21.0123) is priced
+- **Then** the total fee is PLN 2.00: no hourly fee, the drop zone fee (DE-84)
+
 ### A lock failure costs nothing extra
 - **Given** the launch tariff
 - **When** a session from 10:00 to 10:30 that ended in a lock failure at (52.2500, 21.1000) is priced
@@ -90,7 +95,9 @@ rides, only tariffs.
 
 ## Assumptions
 - 🎭 DE-30: launch tariff values.
-- 🎭 DE-31: started hours are charged, resolving the vision's "when it completes".
+- 🎭 DE-31, DE-83: started hours are charged, measured to the second, resolving the vision's "when it completes".
+- 🎭 DE-84: a position on a zone border is inside; the zone map valid at the end of the ride applies.
+- 🎭 DE-96: a tariff's valid-from lies in the future when published; two tariffs with the same valid-from are rejected.
 - Money is in PLN only.
 - The zone map comes from the City; until a real feed exists, it is a configured list of circular drop zones.
 

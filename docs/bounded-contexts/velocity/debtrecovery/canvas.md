@@ -94,7 +94,8 @@ for disputes, payment-plan talks or regulatory holds without abandoning it.
 
 ## Assumptions
 - 🎭 DE-40, DE-41, DE-42, DE-43, DE-44.
-- A second unpaid fee while recovery is open joins it; after success or exhaustion a new unpaid fee starts a new process. (Exhausted debt stays with the rider.)
+- 🎭 DE-88: a second unpaid fee joins any open recovery, running or paused; after success or exhaustion a new unpaid fee starts a new process. (Exhausted debt stays with the rider.)
+- 🎭 DE-89, DE-90: closed list of pause reasons; only a running recovery can be paused, only a paused one resumed; "every 3 days" is 72 hours.
 
 ## Verification Metrics
 - Share of recovery processes that succeed.

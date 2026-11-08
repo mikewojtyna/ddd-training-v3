@@ -31,7 +31,7 @@ is its clients' business.
 | Collaborator | Type (Query/Command/Event) | Message | Notes |
 |---|---|---|---|
 | Rider app | Command | Reserve Bike (for a ride) | Checks rental eligibility in Accounts |
-| Rider app | Command | Unlock Bike | A rider's unlock starts a rental session |
+| Rider app | Command | Unlock Bike | A rider's unlock starts a rental session; eligibility re-checked (DE-80) |
 | Rider app | Command | Return Bike at Station | Optional fault description (DE-24) |
 | Rider app | Command | End Ride Here (free-floating return) | At the rider's position |
 | Rider app | Query | Rider's Active Rental | Reservation or session of a rider |
@@ -40,7 +40,7 @@ is its clients' business.
 | Fleet Maintenance | Command | Withdraw Bike | e.g. a fleet-issue incident or a technician's fault report |
 | Fleet Maintenance | Command | Make Bike Available | Back in circulation at a station or position |
 | Bike (telemetry) | Command | Signal Fault | The bike itself detected a fault (DE-25) |
-| Fleet manager | Command | Put Bike into Service | A new bike at a station (DE-18) |
+| Fleet manager | Command | Add Bike to Fleet | A new bike at a station (DE-18) |
 | Fleet operations (clock) | Command | Expire Reservations | Reservation period passed |
 | Fleet operations (clock) | Command | End Overdue Sessions | Maximum rental time exceeded |
 | Anyone | Query | Bike Availability | |
@@ -97,6 +97,11 @@ is its clients' business.
 - **When** Anna unlocks B-17 at 10:01 and the lock opens
 - **Then** a rental session starts for Anna on B-17 at 10:01 (Rental Session Started)
 
+### An ineligible rider can't unlock
+- **Given** B-17 is reserved for Anna until 10:02, and Anna's account was blocked at 10:01
+- **When** Anna unlocks B-17 at 10:01:30
+- **Then** the unlock is rejected and nothing changes; the reservation runs out on its own (DE-80)
+
 ### A failed unlock releases the reservation
 - **Given** B-17 is reserved for Anna
 - **When** Anna unlocks B-17 and the lock doesn't open
@@ -105,14 +110,15 @@ is its clients' business.
 
 ### An expired reservation releases the bike
 - **Given** B-17 is reserved for Anna until 10:02
-- **When** the reservations are checked at 10:03
+- **When** the reservations are checked at 10:02:01
 - **Then** the reservation expired and B-17 is available to anyone (Reservation Expired)
+- *Boundary (DE-81):* checked at 10:02:00 it still holds, and Anna can still unlock at 10:02:00.
 - *Technician variant:* withdrawn B-17 reserved for Tom at 09:00 (until 09:30, DE-11); checked at 09:31 → the reservation expired and B-17 **stays withdrawn**; checked at 09:29 → still reserved.
 
-### A fleet manager puts a new bike into service at a station
+### A fleet manager adds a new bike to the fleet at a station
 - **Given** bike B-40 is unknown to Rentals
 - **When** a fleet manager puts B-40 into service at station Central
-- **Then** B-40 is available at Central's position (Bike Put into Service) (DE-18); putting B-40 into service again is rejected
+- **Then** B-40 is available at Central's position (Bike Added to Fleet) (DE-18); putting B-40 into service again is rejected
 
 ### A station return with a locked bike ends the session
 - **Given** Anna's session on B-17 started at 10:01
@@ -173,12 +179,13 @@ is its clients' business.
 - *Rejected:* making B-17 available while it is reserved for a technician but not unlocked, or while a rider's session runs on it.
 
 ## Assumptions
-- 🎭 DE-14: eligibility is checked at reservation only.
+- 🎭 DE-14 as revised by DE-80: eligibility is checked at reservation and again at a rider's unlock.
+- 🎭 DE-82: an overdue session ends at the 12-hour mark, whenever it is noticed.
 - 🎭 DE-25: a fault signalled during a ride withdraws the bike when the session ends.
 - 🎭 DE-22: the client-reported station and position are trusted.
 - 🎭 DE-26: the 50 m rule applies to riders only. Technicians reserve without a position; finding a bike that wasn't returned (its last signalled position) is the technician's job and out of scope.
 - The rider is "told why" a session ended (vision, lock failure) through the answer to their return command, which states the end reason.
-- A bike that is withdrawn while a rider rides it keeps the ride going; it simply isn't available after the return.
+- 🎭 DE-86: a bike that is withdrawn while a rider rides it keeps the ride going; it simply isn't available after the return.
 
 ## Verification Metrics
 - Seconds from reservation to session start.
