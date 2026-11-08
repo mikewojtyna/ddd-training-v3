@@ -3,7 +3,7 @@ name: technician-starts-maintenance
 intent: technician-starts-maintenance
 spec: technician-starts-maintenance
 system: velocity
-status: in progress
+status: done
 date: 2026-11-08
 spec_date: 2026-11-08
 ---
@@ -92,7 +92,7 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 ## Steps
 
 ### S1: Canvas updates for FleetMaintenance and Rentals
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance, Rentals
 - **Skill:** none (apply the "Canvas changes" diff exactly)
 - **Prerequisite:** `technician-reserves-broken-bike` delivered.
@@ -115,28 +115,28 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 - **Done when:** `POST /rentals/bikes/{bikeId}/unlock` accepts `{holderType: "TECHNICIAN", holderId}` (D6), `BikeUnlocked` / `UnlockFailed` for technician holders published as `rentals.api.events.*`; REST-level test passes; `./mvnw test` green.
 
 ### S4: FleetMaintenance: port, adapter, records (6a)
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** bounded-context-scaffolder (6a, update mode)
 - **Covers:** none
 - **Done when:** records `UnlockBrokenBike`, `StartMaintenance`; port `ServiceUnlocks` with `rentalsctxacl` adapter (409 → `NotYourReservation`); architecture test green; `./mvnw test` green.
 
 ### S5: FleetMaintenance: maintenance rules
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** ddd-tactical-building-blocks (checkpoint loop off, D1)
 - **Covers:** R1, R4, E1.1, E4.1
 - **Done when:** domain tests: a technician's unlock of a broken bike starts maintenance (Maintenance Started at the unlock time); a failed unlock leaves the bike broken and unreserved; `./mvnw test` green.
 
 ### S6: FleetMaintenance: use cases, listeners, REST (6b)
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance
 - **Skill:** bounded-context-scaffolder (6b)
 - **Covers:** Unlock Broken Bike, Maintenance Started
 - **Done when:** `UnlockBrokenBikeUseCase`, `StartMaintenanceUseCase`, `BikeUnlockedListener`, `UnlockFailedListener` (technicians only), `POST /fleet-maintenance/bikes/{bikeId}/unlock`, `GET /fleet-maintenance/bikes/{bikeId}` reporting `UNDER_MAINTENANCE`; `./mvnw test` green.
 
 ### S7: Acceptance tests for the spec examples
-- **Status:** todo
+- **Status:** done
 - **Context:** FleetMaintenance, Rentals
 - **Skill:** none (this skill)
 - **Covers:** all examples
@@ -156,10 +156,10 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 
 | Spec ID | Step | Files |
 |---|---|---|
-| R1 / E1.1 | S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
-| R2 / E2.1 | S2, S3, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
-| R3 / E3.1, E3.2 | S1, S2, S4, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
-| R4 / E4.1 | S1, S2, S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`) |
+| R1 / E1.1 | S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`unlockFor`, `startMaintenanceBy`, `releaseReservationOf`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/MaintenanceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/UnlockBrokenBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/StartMaintenanceUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/BikeUnlockedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/UnlockFailedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsServiceUnlocksAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianStartsMaintenanceSpecTest.java` |
+| R2 / E2.1 | S2, S3, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`unlockFor`, `startMaintenanceBy`, `releaseReservationOf`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/MaintenanceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/UnlockBrokenBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/StartMaintenanceUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/BikeUnlockedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/UnlockFailedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsServiceUnlocksAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianStartsMaintenanceSpecTest.java` |
+| R3 / E3.1, E3.2 | S1, S2, S4, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`unlockFor`, `startMaintenanceBy`, `releaseReservationOf`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/MaintenanceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/UnlockBrokenBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/StartMaintenanceUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/BikeUnlockedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/UnlockFailedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsServiceUnlocksAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianStartsMaintenanceSpecTest.java` |
+| R4 / E4.1 | S1, S2, S3, S5, S6, S7 | Rentals: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/Bike.java` (`unlockForService`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/domain/bike/TechnicianServiceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/api/usecases/UnlockBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/rentals/infra/adapters/secondary/IntegrationEventsPublisher.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/rentals/RentalsServiceForFleetMaintenanceRestTest.java` (`UnlockingForService`); FleetMaintenance: `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/Bike.java` (`unlockFor`, `startMaintenanceBy`, `releaseReservationOf`), `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/domain/bike/MaintenanceTest.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/UnlockBrokenBikeUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/api/usecases/StartMaintenanceUseCase.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/BikeUnlockedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/primary/rentalsctxacl/UnlockFailedListener.java`, `src/main/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/infra/adapters/secondary/rentalsctxacl/RentalsServiceUnlocksAdapter.java`, `src/test/java/pl/wojtyna/dddtrainingv3/velocity/fleetmaintenance/TechnicianStartsMaintenanceSpecTest.java` |
 
 ## Risks and open questions
 
@@ -171,6 +171,8 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 
 - 2026-11-08: draft written (autonomous run); self-review against plan-critic.md checklist: AGREE (the unlock and its rules stay in Rentals, maintenance in FM; events follow the CML direction; every example covered; tactical steps ≤3 rules; no building blocks decided).
 - 2026-11-08 (Rentals wave, autonomous run): Rentals wave: S2/S3 built. Technician unlock answers `200 {bikeId, outcome: "UNLOCKED"|"UNLOCK_FAILED"}` (no `sessionId`); someone else's or an expired reservation → `409 NotReservationHolder`. `BikeUnlocked` is published for technicians only; `UnlockFailed` for every holder. The Rentals half of S1's canvas diff is applied; S1 stays todo for the FleetMaintenance half.
+- 2026-11-08 (Fleet Maintenance wave, autonomous run): FleetMaintenance steps built; decisions:
+  - `POST /fleet-maintenance/bikes/{bikeId}/unlock` answers `200 {bikeId, outcome}` and records nothing (D5): maintenance starts on Rentals' Bike Unlocked; Unlock Failed releases the technician's reservation. Rentals' `NotReservationHolder` → `409 NotYourReservation`; any other Rentals 409 → `409 UnlockRefused`. Fleet Maintenance rejects the unlock of a bike that isn't broken (`409 NotBroken`) before calling Rentals.
 
 ## Changelog
 
@@ -179,3 +181,9 @@ Hand-offs (CML `Rentals [U,OHS,PL]->[D,ACL] FleetMaintenance`):
 
 ### 2026-11-08: Rentals wave (autonomous run)
 - Rentals steps built test-first (TDD checkpoint loop off, D1); per-cycle log in `docs/bounded-contexts/velocity/rentals/plan.md`. Files and tests in the Traceability table; full suite green.
+
+### 2026-11-08: Fleet Maintenance wave (autonomous run)
+- FleetMaintenance steps built test-first (TDD checkpoint loop off, D1): domain tests `MaintenanceTest (5)`, red seen before
+  green; per-cycle log in `docs/bounded-contexts/velocity/fleetmaintenance/plan.md`. Canvas diff applied to the
+  FleetMaintenance canvas. One acceptance test per example (Acceptance tests table), every cross-context hand-off
+  asserted with Awaitility; full suite green.
