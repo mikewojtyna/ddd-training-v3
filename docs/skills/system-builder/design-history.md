@@ -171,7 +171,12 @@ the skill. Further gains need harder evals, not more skill text.
   contract mismatch between two plans, and an assertion for the failure paths of cross-context calls.
 - One real end-to-end run on a small system (Orders + a second context) to test the builder relay with the loop on,
   which the planning evals can't exercise.
-- Description optimization (skill-creator's `run_loop`), once the skill's wording settles.
+- Description optimization: tried on 2026-11-09 with 20 trigger queries (10 should, 10 near misses), and it gave no
+  signal. The first run was shadowed: the installed `system-builder` has the same description and won over the
+  harness's temporary copy. In the second run (a project copy without the installed skill), recall stayed at 0–6 %
+  for every candidate description, with precision 100 %. In `claude -p`, Claude starts big multi-stage prompts
+  directly instead of consulting a skill on the first turn, so this harness can't measure the description. The
+  original description was kept. Queries and logs are in `system-builder-workspace/description-opt/`.
 
 The eval workspace (outputs, gradings, benchmarks, `iteration-3/review.html`) is in
 `.claude/skills/system-builder-workspace/` and isn't meant to be committed.
