@@ -1,0 +1,28 @@
+{
+  "skill_name": "my-skill",
+  "evals": [
+    {
+      "id": 1,
+      "name": "typical-request",
+      "prompt": "<A request the way a colleague would type it, with real details: names, numbers, a deadline.>",
+      "expected_output": "<What a good result looks like: file path, key content, what is NOT done, what the final message says.>",
+      "files": [],
+      "assertions": [
+        "<A checkable statement, e.g. 'File created at docs/my-thing/<name>.md'>",
+        "<'check.py reports 0 errors'>",
+        "<'Status left as draft (not self-approved)'>"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "tricky-request",
+      "prompt": "<Missing information, a request the skill should refuse or push back on, or a status change.>",
+      "expected_output": "<What the skill should do instead of guessing.>",
+      "files": [],
+      "assertions": [
+        "<'Asks for <missing fact> instead of inventing it'>",
+        "<'No file created' or 'Only the status changed, through the script'>"
+      ]
+    }
+  ]
+}
