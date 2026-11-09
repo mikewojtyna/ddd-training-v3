@@ -4,18 +4,27 @@ import org.jmolecules.ddd.annotation.ValueObject;
 
 import java.util.Objects;
 
-/// An official dock where bikes are locked. Its id is its name (`Central`, `Old Town`, `Riverside`).
+/// An official dock where bikes are locked. Its id is its name (`Central`, `Old Town`, `Riverside`). It docks at most
+/// `capacity` bikes; most stations hold 20.
 @ValueObject
-public record Station(StationId id, Position position) {
+public record Station(StationId id, Position position, int capacity) {
+
+    public static final int USUAL_CAPACITY = 20;
 
     public Station {
         Objects.requireNonNull(id, "station id");
         Objects.requireNonNull(position, "station position");
     }
 
-    /// Whether a returned bike may dock here, given how many bikes already do.
+    public Station(StationId id, Position position) {
+        this(id, position, USUAL_CAPACITY);
+    }
+
+    /// Admits a returned bike when the station has room for it, given how many bikes already dock here.
+    ///
+    /// @throws StationFull when `bikesDocked` already fills the station
     public void admitReturn(int bikesDocked) {
-        if (bikesDocked >= 20) {
+        if (bikesDocked >= capacity) {
             throw new StationFull(id.value() + " is full");
         }
     }
