@@ -97,6 +97,10 @@ public class RentalsDriver implements ApplicationListener<ApplicationEvent> {
                     Reservation.class);
     }
 
+    public Reply<Void> cancelReservation(String bikeId, String riderId) {
+        return post("/rentals/bikes/" + bikeId + "/reservation-cancellation", Map.of("riderId", riderId), Void.class);
+    }
+
     public Reply<Unlock> unlock(String bikeId, String riderId) {
         return post("/rentals/bikes/" + bikeId + "/unlock", Map.of("holderType", "RIDER", "holderId", riderId), Unlock.class);
     }

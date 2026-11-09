@@ -22,6 +22,8 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.RidersActiveRentalQ
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.RidersActiveRentalQueryHandler;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.AddBikeToFleet;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.AddBikeToFleetUseCase;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.CancelReservation;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.CancelReservationUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.BikeReservation;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndRideHere;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndRideHereUseCase;
@@ -46,6 +48,7 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeNotFound;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeNotUnlockedForService;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeNotWithdrawn;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.NoRunningSession;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.NoReservationToCancel;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.NotReservationHolder;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.OneRiderOneBike;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.RentalEligibilityUnknown;
@@ -72,6 +75,9 @@ public class RentalsController {
     public record UnlockRequest(String holderType, String holderId) {
     }
 
+    public record CancellationRequest(String riderId) {
+    }
+
     public record StationReturnRequest(String riderId, String stationId, String faultDescription) {
     }
 
@@ -94,12 +100,13 @@ public class RentalsController {
     private final MakeBikeAvailableUseCase makeBikeAvailable;
     private final BikeAvailabilityQueryHandler bikeAvailability;
     private final RidersActiveRentalQueryHandler ridersActiveRental;
+    private final CancelReservationUseCase cancelReservation;
 
     public RentalsController(AddBikeToFleetUseCase addBikeToFleet, ReserveBikeUseCase reserveBike, UnlockBikeUseCase unlockBike,
                              ReturnBikeAtStationUseCase returnBikeAtStation, EndRideHereUseCase endRideHere,
                              SignalFaultUseCase signalFault, WithdrawBikeUseCase withdrawBike,
                              MakeBikeAvailableUseCase makeBikeAvailable, BikeAvailabilityQueryHandler bikeAvailability,
-                             RidersActiveRentalQueryHandler ridersActiveRental) {
+                             RidersActiveRentalQueryHandler ridersActiveRental, CancelReservationUseCase cancelReservation) {
         this.addBikeToFleet = addBikeToFleet;
         this.reserveBike = reserveBike;
         this.unlockBike = unlockBike;
@@ -110,6 +117,7 @@ public class RentalsController {
         this.makeBikeAvailable = makeBikeAvailable;
         this.bikeAvailability = bikeAvailability;
         this.ridersActiveRental = ridersActiveRental;
+        this.cancelReservation = cancelReservation;
     }
 
     @PostMapping("/bikes")
@@ -128,6 +136,16 @@ public class RentalsController {
     public BikeReservation reserve(@PathVariable("bikeId") String bikeId, @RequestBody ReservationRequest request) {
         return reserveBike.handle(new ReserveBike(bikeId, request.holderType(), request.holderId(), request.latitude(),
                                                   request.longitude()));
+    }
+
+    @PostMapping("/bikes/{bikeId}/reservation-cancellation")
+    public void cancelReservation(@PathVariable("bikeId") String bikeId, @RequestBody CancellationRequest request) {
+        var bike = bikeAvailability.handle(new BikeAvailabilityQuery(bikeId))
+                                   .orElseThrow(() -> new BikeNotFound(bikeId + " is not part of the fleet"));
+        if (!"RIDER".equals(bike.holderType()) || !request.riderId().equals(bike.holderId())) {
+            throw new NotReservationHolder(request.riderId() + " holds no reservation of " + bikeId);
+        }
+        cancelReservation.handle(new CancelReservation(bikeId, request.riderId()));
     }
 
     @PostMapping("/bikes/{bikeId}/unlock")
@@ -169,7 +187,7 @@ public class RentalsController {
 
     @ExceptionHandler({BikeAlreadyInFleet.class, UnknownStation.class, TooFarFromBike.class, RiderNotEligible.class,
         OneRiderOneBike.class, BikeNotAvailable.class, BikeNotWithdrawn.class, BikeAlreadyHeld.class,
-        NotReservationHolder.class, NoRunningSession.class, BikeNotUnlockedForService.class,
+        NotReservationHolder.class, NoReservationToCancel.class, NoRunningSession.class, BikeNotUnlockedForService.class,
         OptimisticLockingException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse brokenRule(RuntimeException exception) {

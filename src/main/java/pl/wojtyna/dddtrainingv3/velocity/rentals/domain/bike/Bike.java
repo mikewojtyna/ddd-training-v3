@@ -284,6 +284,17 @@ public class Bike {
         return cancelReservation(now).append(withdrawNow(WithdrawalReason.REQUESTED, null, now));
     }
 
+    /// The rider cancels their reservation; the bike is free for anyone at once (spec rider-cancels-reservation).
+    public At<Instant, DomainEvents> cancelReservationOf(Holder rider) {
+        return now -> {
+            if (!(hold instanceof Hold.Reserved reserved)) {
+                throw new NoReservationToCancel(id.value() + " has no reservation to cancel");
+            }
+            hold = new Hold.Free();
+            return DomainEvents.of(new BikeEvent.ReservationCancelled(id, reserved.holder(), now));
+        };
+    }
+
     private DomainEvents cancelReservation(Instant now) {
         if (hold instanceof Hold.Reserved reserved) {
             hold = new Hold.Free();

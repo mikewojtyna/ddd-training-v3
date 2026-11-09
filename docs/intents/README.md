@@ -43,6 +43,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 | 33 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Reserved, Reservation Expired |
 | 34 | 2026-11-08 | [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Unlocked, Maintenance Started, Unlock Failed |
 | 35 | 2026-11-08 | [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Fixed, Bike Made Available, Incident Resolved |
+| 36 | 2026-11-10 | [A rider wants to cancel a reservation they no longer need](rider-cancels-reservation.md) | velocity | Rider | Get a bike | specified | Reservation Cancelled |
 
 ## Value stream: velocity
 
@@ -67,6 +68,8 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
   - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, delivered) → Rental Session Started, Unlock Failed
 - Release unused reservations
   - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, delivered) → Reservation Expired
+- Cancel a reservation
+  - #36 [A rider wants to cancel a reservation they no longer need](rider-cancels-reservation.md) (Rider, specified) → Reservation Cancelled
 
 ### 3. Ride
 

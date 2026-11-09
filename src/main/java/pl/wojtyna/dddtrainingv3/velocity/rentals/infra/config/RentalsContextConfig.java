@@ -9,6 +9,7 @@ import pl.wojtyna.dddtrainingv3.velocity.common.infra.VelocityServiceUrls;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.BikeAvailabilityQueryHandler;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.queries.RidersActiveRentalQueryHandler;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.AddBikeToFleetUseCase;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.CancelReservationUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessionsUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndRideHereUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.MakeBikeAvailableUseCase;
@@ -82,6 +83,12 @@ public class RentalsContextConfig {
     public ReleaseExpiredReservationsUseCase rentalsReleaseExpiredReservationsUseCase(InMemoryBikeRepository rentalsBikeRepository,
                                                                                       DomainEventPublisher eventPublisher) {
         return new ReleaseExpiredReservationsUseCase(rentalsBikeRepository, eventPublisher);
+    }
+
+    @Bean
+    public CancelReservationUseCase rentalsCancelReservationUseCase(InMemoryBikeRepository rentalsBikeRepository,
+                                                                    DomainEventPublisher eventPublisher, Clock clock) {
+        return new CancelReservationUseCase(rentalsBikeRepository, eventPublisher, clock);
     }
 
     @Bean

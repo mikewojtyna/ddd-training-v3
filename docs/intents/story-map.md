@@ -23,6 +23,7 @@ Actors: Rider, Technician, Support Agent, Collections Agent, Fleet Manager, Flee
 - Reserve a bike
 - Unlock a bike
 - Release unused reservations
+- Cancel a reservation
 
 ### 3. Ride
 - Ride within the maximum rental time
