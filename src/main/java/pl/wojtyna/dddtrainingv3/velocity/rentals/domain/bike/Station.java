@@ -15,6 +15,9 @@ public record Station(StationId id, Position position) {
 
     /// Whether a returned bike may dock here, given how many bikes already do.
     public void admitReturn(int bikesDocked) {
+        if (bikesDocked >= 20) {
+            throw new StationFull(id.value() + " is full");
+        }
     }
 
     @ValueObject
