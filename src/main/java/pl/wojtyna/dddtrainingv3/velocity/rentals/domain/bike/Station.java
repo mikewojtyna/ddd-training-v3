@@ -13,6 +13,10 @@ public record Station(StationId id, Position position) {
         Objects.requireNonNull(position, "station position");
     }
 
+    /// Whether a returned bike may dock here, given how many bikes already do.
+    public void admitReturn(int bikesDocked) {
+    }
+
     @ValueObject
     public record StationId(String value) {
 
