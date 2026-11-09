@@ -2,47 +2,89 @@
   "skill_name": "tdd",
   "evals": [
     {
+      "id": 0,
+      "name": "asks-mode-first",
+      "prompt": "let's TDD placing an order in the orders system. Given an open order with one BOOK item for 20 PLN, When the customer places the order, Then an OrderPlaced event is returned.",
+      "expected_output": "Asks first whether to stop at every checkpoint or run fully autonomously; writes no test or production code yet.",
+      "files": [],
+      "assertions": [
+        "No test or production code changed (empty diff)",
+        "Final response asks whether to stop at every checkpoint or run fully autonomously",
+        "Checkpoint mode is offered as the recommended option"
+      ]
+    },
+    {
       "id": 1,
-      "name": "return-bike-happy-path",
-      "prompt": "let's TDD the bike return in velocity rentals. Given a bike station with 1 bike that George has rented for 2 hours, When George returns that bike, Then a BikeReturned event is published.",
-      "expected_output": "One new GWT test in BikeStationTest with a real assertion; red observed (UnsupportedOperationException / assertion); BikeStation.returnBike changed minimally (e.g. return DomainEvents.of(new BikeReturned())); full suite green; report lists the shortcut and suggests a next scenario; asks for next scenario.",
+      "name": "checkpoint-stops-after-red",
+      "prompt": "TDD please, stop at each checkpoint. Orders system: Given an open order with one BOOK item for 20 PLN, When the customer places the order, Then an OrderPlaced event is returned.",
+      "expected_output": "One new GWT test in OrderTest with a real assertion; only compile-only scaffolding in production (place() returning DomainEvents.empty() or similar, OrderPlaced record); red observed; test opened (or attempted) in the IDE; asks whether the user implements it or Claude generates it; stops.",
       "files": [],
       "assertions": [
         "Exactly one new @Test method added",
-        "New test has @DisplayName with given/when/then wording",
-        "New test's assertion really asserts (assertThat around the boolean / event check, not a bare call)",
-        "Red run of the new test observed and logged before production change",
-        "Production change confined to BikeStation.returnBike, no new fields or classes",
-        "No existing test modified or removed",
-        "Full suite run after the change and green",
-        "Final response names shortcuts and asks the user for the next scenario"
+        "New test has @DisplayName with given/when/then wording and the 20 PLN value",
+        "New test's assertion really asserts (assertThat around the event check)",
+        "Red run of the new test observed and reported",
+        "Production code has no placing logic yet: place() returns an empty/dumb value, OrderPlaced is never produced",
+        "Opening the test file in the IDE is attempted or recorded",
+        "Final response asks whether the user implements the step or Claude generates it, and does not continue to green"
       ]
     },
     {
       "id": 2,
       "name": "no-scenario-asks-first",
-      "prompt": "I want to work test-first on the BikeStation: stations should have a capacity limit for docked bikes. Go.",
-      "expected_output": "Asks for exactly one concrete Given/When/Then scenario (may propose one with a concrete capacity to confirm); writes no test or production code.",
+      "prompt": "I want to work test-first on the Order aggregate: customers should be able to remove items from an open order. Stop at every checkpoint please.",
+      "expected_output": "Asks for exactly one concrete Given/When/Then scenario (may propose one to confirm); does not ask the mode question again since the mode was named; writes no test or production code.",
       "files": [],
       "assertions": [
         "No test or production code changed (empty diff)",
         "Final response asks for one concrete Given/When/Then scenario",
-        "Final response does not choose a capacity number as fact (proposes it for confirmation, if at all)"
+        "Final response does not ask the checkpoint/autonomous mode question again (mode was named in the prompt)"
       ]
     },
     {
       "id": 3,
-      "name": "rent-specific-bike-smallest-change",
-      "prompt": "TDD please, baby steps. Scenario: Given a bike station with bike01 and bike02 where bike01 is already rented by Anna, When George rents bike01 for 1 hour, Then the rental is rejected with BikeNotAvailableException.",
-      "expected_output": "One new test; red observed because rent currently picks any available bike (bike02); minimal fix makes rent look at the requested bike; all existing BikeStationTest tests still green; no other tests edited.",
+      "name": "generate-then-critic-and-checkpoint-b",
+      "prompt": "SETUP (simulates the earlier part of this TDD session; apply it first, it is not part of the cycle you are judged on): in checkpoint mode you already wrote this red test in src/test/java/pl/wojtyna/dddtrainingv3/orders/ordering/domain/order/OrderTest.java:\n\n    // @formatter:off\n    @DisplayName(\n        \"\"\"\n         given an open order with one BOOK item for 20 PLN,\n         when the customer places the order,\n         then OrderPlaced is returned\n        \"\"\"\n    )\n    // @formatter:on\n    @Test\n    void placingOrderWithOneItemReturnsOrderPlaced() {\n        // given\n        var orderId = new OrderId(\"order-1\");\n        var order = Order.open(orderId);\n        order.add(new Item(new ItemType(\"BOOK\"), Money.of(CurrencyUnit.of(\"PLN\"), 20)));\n\n        // when\n        var events = order.place();\n\n        // then\n        assertThat(events.hasAtLeastOneEventMatching(e -> e instanceof OrderEvent.OrderPlaced)).isTrue();\n    }\n\nplus compile-only scaffolding: `record OrderPlaced(OrderId orderId) implements OrderEvent {}` in OrderEvent and `public DomainEvents place() { return DomainEvents.empty(); }` in Order (adjust constructors/imports to the real types if they differ). You showed it at Checkpoint A and asked who implements it.\n\nUSER'S ANSWER: Generate it for me.",
+      "expected_output": "Smallest change making the test pass (e.g. return/append OrderPlaced); single test and full suite green; independent critic run (agent spawned, or fallback checklist stated) with the diff; each critic finding weighed; production file opened (or attempted) in the IDE; asks next scenario / change / apply refactor (if any) / feature done; stops.",
       "files": [],
       "assertions": [
-        "Exactly one new @Test method added",
+        "Production change is minimal (no new fields or general algorithm beyond producing OrderPlaced)",
         "No existing test modified or removed",
-        "Red run of the new test observed and logged before production change",
-        "Production change confined to BikeStation.rent (no new fields or classes)",
         "Full suite run after the change and green",
-        "Final response asks the user for the next scenario"
+        "Independent critic run: a critic agent spawned with the diff, or the fallback checklist explicitly run because no Agent tool was available",
+        "Final response states agree/reject for each critic finding (or reports a CLEAN verdict)",
+        "Opening the production file in the IDE is attempted or recorded",
+        "Final response asks with options including next scenario and feature is done, and does not start another cycle"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "autonomous-two-scenarios",
+      "prompt": "TDD this fully autonomously, don't stop between steps. Orders system, two scenarios:\n1. Given an open order with one BOOK item for 20 PLN, When the customer places the order, Then an OrderPlaced event is returned.\n2. Given an open order with no items, When the customer places the order, Then it is rejected with EmptyOrderException.",
+      "expected_output": "Does not ask the mode question; two test-first cycles with no stops, red observed before each green; full suite green; critic run per cycle with suggestions collected, not applied; final summary table with both cycles; asks for more scenarios or feature done.",
+      "files": [],
+      "assertions": [
+        "Does not ask the checkpoint/autonomous mode question",
+        "Exactly two new @Test methods added",
+        "A red run is reported for each of the two tests before its implementation",
+        "Full suite run at the end and green",
+        "Critic run reported for the cycles (agent or fallback checklist)",
+        "Final response contains a per-cycle log covering both scenarios",
+        "Final response asks for more scenarios or whether the feature is done"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "feature-done-summary",
+      "prompt": "SETUP (simulates the earlier part of this TDD session; apply it first): in checkpoint mode we did one cycle. Add to OrderTest a test `placingOrderWithOneItemReturnsOrderPlaced` (given an open order with one BOOK item for 20 PLN, when placed, then OrderPlaced is returned), add `record OrderPlaced(OrderId orderId) implements OrderEvent {}` and make `Order.place()` return `DomainEvents.of(new OrderEvent.OrderPlaced(id))` (hard-coded, the user generated it via Claude). You were at Checkpoint B.\n\nUSER'S ANSWER: Feature is done.",
+      "expected_output": "Runs the full suite once more; writes the final summary (mode, per-cycle table, suite result, shortcuts still in the code such as place() ignoring emptiness, open suggestions); adds no new test; no commit.",
+      "files": [],
+      "assertions": [
+        "No new test beyond the setup test added",
+        "Full suite run and green",
+        "Final summary contains a per-cycle table/log with the place-order cycle",
+        "Final summary names the remaining shortcut(s) in place()",
+        "No git commit made"
       ]
     }
   ]
