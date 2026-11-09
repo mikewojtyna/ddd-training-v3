@@ -64,6 +64,60 @@ Context maps can be rendered to PNG (into `target/`) by running these as plain `
 - `velocity/contextmap/VelocityBoundedContexts` renders only the bounded contexts, without relationships, as an intermediate step.
 - `crowdsorcery/contextmap/ContextMapperExample` builds a map in code with `context-map-generator`.
 
+## Exercises
+
+Each workshop exercise lives on its own branch, `exercise/NN-<name>`, with two tags:
+
+- `exNN/start`: where you begin. It holds `EXERCISE.md` (goal, time, steps, when you're done, debrief questions) and,
+  for most exercises, materials in `handouts/`.
+- `exNN/solution`: the reference answer (answer key, trainer notes or reference code). Look at it only in the debrief.
+
+The exercise branches are cut from master once and never merged back. Master holds the full VeloCity implementation,
+so don't use it as a starting point.
+
+### Doing an exercise
+
+```bash
+git fetch origin --tags
+git switch -c my-ex07 ex07/start      # your own branch from the starting point
+cat EXERCISE.md                        # read the task
+./mvnw test                            # green before you start (exercises with code)
+```
+
+Work and commit on your branch. In the debrief, compare with the reference:
+
+```bash
+git diff ex07/start ex07/solution --stat
+git diff ex07/start ex07/solution -- docs/specs
+```
+
+Exercises 7, 8 and 9 build on each other: each one starts from the previous one's solution. If you didn't finish,
+continue from the next start tag (`git switch -c my-ex08 ex08/start`). It contains the reference answer of the step
+before.
+
+### The exercises
+
+| # | Module | Branch | What you do |
+|---|---|---|---|
+| 1 | M1+2 Vibe coding | `exercise/01-spot-the-vibe` | Find the business decisions an AI made silently in a one-prompt implementation (`git show ex01/start`). |
+| 2 | M6 Domain exploration | `exercise/02-interview-expert` | Event Storming with a role-played expert, then let AI find the gaps in your board. |
+| 3 | M6 Archetypes | `exercise/03-archetype-card-sort` | Sort 12 cards into archetype, entity, design pattern or process. |
+| 4 | M6 Archetypes | `exercise/04-archetypes-funnel-plm` | Walk the Archetypes Funnel on a PLM narrative, with AI asking the questions. |
+| 5 | M3 Modularization | `exercise/05-find-boundaries` | Find VeloCity's bounded contexts with `discover-bounded-contexts`. |
+| 6 | M3 Modularization | `exercise/06-layered-vs-vertical` | Redraw a feature of your own system as bounded contexts and estimate the agent's context. |
+| 7 | M4 Implementing a module | `exercise/07-write-spec` | Write the spec of a reservation intent with `spec-writer`. |
+| 8 | M4 Implementing a module | `exercise/08-plan` | Plan it with `implementation-planner` and decide where it lives. |
+| 9 | M4 Implementing a module | `exercise/09-build` | Build reservation expiry test-first in the TDD checkpoint loop. |
+| 10 | M5 Testing | `exercise/10-debate-tests` | Debate who should write the tests. |
+| 11 | M5 Testing | `exercise/11-tdd-ping-pong` | TDD ping-pong with the `tdd` skill on a station capacity rule. |
+| 12 | M5 Testing | `exercise/12-review` | Review an agent's commit with three planted defects (`git show ex12/start`). |
+| 13 | M7 Advanced agent setup | `exercise/13-team-skill` | Build a skill for a recurring task of your team, with evals. |
+| 14 | M7 Advanced agent setup | `exercise/14-port-to-your-tool` | Port `CLAUDE.md`, a skill and its critic to Copilot or Cursor. |
+| 15 | M7 Advanced agent setup | `exercise/15-living-docs` | Decide which docs an agent should read, and where they live. |
+
+Exercises 1, 2, 3, 4, 6, 10 and 15 need no build: you only need `EXERCISE.md`, `handouts/` and, for Exercise 1, git.
+The others need the Java build and an AI coding agent (the skills are in `.claude/skills/`).
+
 ## Code layout
 
 A single Spring Boot application (`DddTrainingV3Application`) hosts several systems. Each top-level package is a system (`velocity`, `crowdsorcery`, `orders`), plus a top-level `common` package shared by all of them. Within a system, each subpackage is a bounded context, except `common` (shared by that system's contexts) and `contextmap`.
