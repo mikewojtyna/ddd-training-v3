@@ -13,7 +13,6 @@ import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.domain.bike.*;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.customersupportctxacl.FleetIssueReportedListener;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.BikeUnlockedListener;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.BikeWithdrawnListener;
-import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.ReservationExpiredListener;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.UnlockFailedListener;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.InMemoryBikes;
 import pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.customersupportctxacl.CustomerSupportFleetIssueResolutionsAdapter;
@@ -134,12 +133,6 @@ public class FleetMaintenanceContextConfig {
     @Bean
     public BikeUnlockedListener fleetMaintenanceBikeUnlockedListener(StartMaintenanceUseCase fleetMaintenanceStartMaintenanceUseCase) {
         return new BikeUnlockedListener(fleetMaintenanceStartMaintenanceUseCase);
-    }
-
-    @Bean
-    public ReservationExpiredListener fleetMaintenanceReservationExpiredListener(
-        ReleaseTechnicianReservationUseCase fleetMaintenanceReleaseTechnicianReservationUseCase) {
-        return new ReservationExpiredListener(fleetMaintenanceReleaseTechnicianReservationUseCase);
     }
 
     @Bean

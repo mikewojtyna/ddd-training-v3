@@ -27,7 +27,7 @@ repair them, and decides when a repaired bike goes back into circulation. Mainte
 |---|---|---|---|
 | Rentals | Event | Bike Withdrawn (fault reported at return, lock failed, fault signalled, not returned) | Rentals withdrew it itself; we register it broken |
 | Rentals | Event | Bike Unlocked (by a technician) | We start maintenance |
-| Rentals | Event | Reservation Expired / Unlock Failed (technician) | Bike stays broken and waits for a technician |
+| Rentals | Event | Unlock Failed (technician) | Bike stays broken and waits for a technician |
 | Customer Support | Event | Fleet Issue Reported | Confirmed (DE-52); we register it broken and ask Rentals to withdraw it |
 | Technician app | Command | Report Fault | DE-62 |
 | Technician app | Command | Reserve Broken Bike | Via Rentals' service reservation |
@@ -92,11 +92,6 @@ repair them, and decides when a repaired bike goes back into circulation. Mainte
 - **Given** B-17 is broken and reserved for Tom until 09:30
 - **When** Rentals reports Tom's unlock of B-17 failed at 09:20
 - **Then** no maintenance starts, B-17 is still broken and any technician can reserve it (spec: technician-starts-maintenance#E4.1)
-
-### An expired reservation leaves the bike broken
-- **Given** B-17 is broken and reserved for Tom
-- **When** Rentals reports Tom's reservation of B-17 expired
-- **Then** B-17 is still broken and can be reserved by any technician (spec: technician-reserves-broken-bike#E4.1)
 
 ### A bike returns to circulation only after maintenance has started
 - **Given** B-17 is broken and maintenance hasn't started

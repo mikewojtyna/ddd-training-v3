@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 /// Publishes Rentals' published language (`api.events`, integration-contracts.md) from its domain events: only what
 /// other contexts listen to. `BikeUnlocked` leaves Rentals for technicians only (a rider's unlock is a Rental Session
-/// Started, not a published fact); `ReservationExpired` and `UnlockFailed` for every holder (the consumer filters).
+/// Started, not a published fact); `UnlockFailed` for every holder (the consumer filters).
 @SecondaryAdapter
 public class IntegrationEventsPublisher {
 
@@ -39,12 +39,6 @@ public class IntegrationEventsPublisher {
     public void on(BikeEvent.BikeUnlocked event) {
         publisher.publishEvent(new pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.BikeUnlocked(
             event.bikeId().value(), event.holder().type().name(), event.holder().id(), event.unlockedAt()));
-    }
-
-    @EventListener
-    public void on(BikeEvent.ReservationExpired event) {
-        publisher.publishEvent(new pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.ReservationExpired(
-            event.bikeId().value(), event.holder().type().name(), event.holder().id(), event.expiredAt()));
     }
 
     @EventListener

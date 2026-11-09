@@ -16,10 +16,6 @@ public sealed interface BikeEvent extends DomainEvent {
     record BikeReserved(BikeId bikeId, Holder holder, Instant reservedAt, Instant reservedUntil) implements BikeEvent {
     }
 
-    /// The reservation ran out before its holder unlocked the bike. `expiredAt` is the moment the expiry was noticed.
-    record ReservationExpired(BikeId bikeId, Holder holder, Instant reservedAt, Instant expiredAt) implements BikeEvent {
-    }
-
     /// A rider's reservation ended because the bike was withdrawn (a fault signal or a client's request).
     record ReservationCancelled(BikeId bikeId, Holder holder, Instant cancelledAt) implements BikeEvent {
     }

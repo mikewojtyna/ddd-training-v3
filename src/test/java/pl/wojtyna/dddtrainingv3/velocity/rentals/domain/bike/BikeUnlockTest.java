@@ -38,7 +38,6 @@ class BikeUnlockTest {
             assertThat(event.startedAt()).isEqualTo(at("10:01"));
             assertThat(event.sessionId()).isNotNull();
         });
-        assertThat(b17.releaseIfExpired(at("10:03")).stream()).isEmpty();
     }
 
     // @formatter:off

@@ -132,61 +132,6 @@ class TechnicianReservesBrokenBikeSpecTest extends FleetMaintenanceSpecTestBase 
     }
 
     @Test
-    @DisplayName("E4.1 an unused reservation expires and the bike stays broken, waiting for any technician")
-    void e4_1_unused_reservation_expires_and_bike_stays_broken() {
-        // given
-        var b17 = reservedForTom(bike("B-17"), technician("tom"));
-
-        // when
-        at("2026-11-09T09:30:01Z");
-        reservationsAreChecked();
-
-        // then
-        await().atMost(HAND_OFF).untilAsserted(() -> {
-            var bike = brokenBike(b17).body();
-            assertThat(bike.status()).isEqualTo("BROKEN");
-            assertThat(bike.technicianId()).isNull();
-            assertThat(bike.reservedUntil()).isNull();
-        });
-        var inRentals = rentals.bike(b17).body();
-        assertThat(inRentals.availability()).isEqualTo("WITHDRAWN");
-        assertThat(inRentals.hold()).isEqualTo("FREE");
-        assertThat(reserveBrokenBike(b17, technician("tara")).status()).isEqualTo(200);
-    }
-
-    @Test
-    @DisplayName("E4.2 the reservation is still held before its end")
-    void e4_2_reservation_still_held_before_end() {
-        // given
-        var tom = technician("tom");
-        var b17 = reservedForTom(bike("B-17"), tom);
-
-        // when
-        at("2026-11-09T09:29:00Z");
-        reservationsAreChecked();
-
-        // then
-        assertThat(rentals.bike(b17).body().holderId()).isEqualTo(tom);
-        assertThat(brokenBike(b17).body().technicianId()).isEqualTo(tom);
-    }
-
-    @Test
-    @DisplayName("E4.3 the reservation is still held at its exact end (DE-81)")
-    void e4_3_reservation_still_held_at_exact_end() {
-        // given
-        var tom = technician("tom");
-        var b17 = reservedForTom(bike("B-17"), tom);
-
-        // when
-        at("2026-11-09T09:30:00Z");
-        reservationsAreChecked();
-
-        // then
-        assertThat(rentals.bike(b17).body().holderId()).isEqualTo(tom);
-        assertThat(brokenBike(b17).body().technicianId()).isEqualTo(tom);
-    }
-
-    @Test
     @DisplayName("derived: the broken bikes list shows broken bikes with where they are")
     void broken_bikes_list_shows_where_they_are() {
         // given

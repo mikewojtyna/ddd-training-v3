@@ -187,7 +187,6 @@ class TechnicianServiceTest {
         void expiredReservationCannotUnlock() {
             // given
             var b17 = reservedForService(TOM, "B-17", at("09:00"));
-            b17.releaseIfExpired(at("09:30:01"));
 
             // when / then
             assertThatThrownBy(() -> b17.unlockForService(TOM).at(at("09:35")).using(FakeBikeLocks.working()))

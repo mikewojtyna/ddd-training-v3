@@ -6,7 +6,7 @@ system: velocity
 actor: Technician
 activity: Keep the fleet healthy
 task: Reserve a broken bike
-status: delivered
+status: accepted
 date: 2026-11-08
 supersedes:
 superseded_by:

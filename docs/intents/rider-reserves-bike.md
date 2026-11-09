@@ -6,7 +6,7 @@ system: velocity
 actor: Rider
 activity: Get a bike
 task: Reserve a bike
-status: delivered
+status: accepted
 date: 2026-11-08
 supersedes:
 superseded_by:

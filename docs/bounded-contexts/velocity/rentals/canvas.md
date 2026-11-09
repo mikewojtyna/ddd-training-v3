@@ -41,7 +41,6 @@ is its clients' business.
 | Fleet Maintenance | Command | Make Bike Available | Back in circulation at a station or position |
 | Bike (telemetry) | Command | Signal Fault | The bike itself detected a fault (DE-25) |
 | Fleet manager | Command | Add Bike to Fleet | A new bike at a station (DE-18) |
-| Fleet operations (clock) | Command | Expire Reservations | Reservation period passed |
 | Fleet operations (clock) | Command | End Overdue Sessions | Maximum rental time exceeded |
 | Anyone | Query | Bike Availability | |
 | Accounts | Query (outbound, see below) | | |
@@ -54,7 +53,7 @@ is its clients' business.
 | Rental Session Ended (session, rider, bike, started at, ended at, end reason, station or position) | Event | Settlement | n/a for events (PL) |
 | Bike Withdrawn (bike, reason) | Event | Fleet Maintenance | n/a for events (PL) |
 | Bike Unlocked (bike, holder) | Event | Fleet Maintenance | n/a |
-| Reservation Expired / Unlock Failed (bike, holder) | Event | Fleet Maintenance | n/a |
+| Unlock Failed (bike, holder) | Event | Fleet Maintenance | n/a |
 | Bike Added to Fleet, Bike Reserved, Rental Session Started, Bike Made Available | Event | none outside Rentals yet | n/a |
 
 ## Ubiquitous Language
@@ -133,23 +132,6 @@ is its clients' business.
 - **Given** Anna holds no reservation for available B-22, and Anna's reservation of B-17 ran until 10:02 but wasn't released yet
 - **When** Anna unlocks B-22, or unlocks B-17 at 10:02:30
 - **Then** the unlock is rejected and the lock stays closed
-
-### An expired reservation releases the bike (spec: fleet-operations-releases-expired-reservations#E1.1, #E1.2, #E2.1, #E2.2, technician-reserves-broken-bike#E4.1, #E4.2, #E4.3)
-- **Given** B-17 is reserved for Anna until 10:02
-- **When** the reservations are checked at 10:02:01
-- **Then** the reservation expired and B-17 is available to anyone (Reservation Expired)
-- *Boundary (DE-81):* checked at 10:02:00 it still holds, and Anna can still unlock at 10:02:00 (spec: rider-unlocks-reserved-bike#E1.2).
-- *Technician variant:* withdrawn B-17 reserved for Tom at 09:00 (until 09:30, DE-11); checked at 09:30:01 → the reservation expired and B-17 **stays withdrawn**; checked at exactly 09:30:00 → still reserved.
-
-### The next rider can reserve a bike whose reservation expired (spec: fleet-operations-releases-expired-reservations#E1.3)
-- **Given** Anna's reservation of B-17 expired at 10:02:01
-- **When** Ben, standing 10 m from B-17, reserves it at 10:04
-- **Then** B-17 is reserved for Ben until 10:06
-
-### A reservation that ended by an unlock doesn't expire (spec: fleet-operations-releases-expired-reservations#E3.1, #E3.2)
-- **Given** Anna unlocked B-17 at 10:01 (ride running), or Anna's unlock of B-17 failed at 10:01
-- **When** the reservations are checked at 10:03
-- **Then** nothing expires
 
 ### A fleet manager adds a new bike to the fleet at a station (spec: fleet-manager-adds-bike-to-fleet#E1.1, #E2.1)
 - **Given** bike B-40 is unknown to Rentals
