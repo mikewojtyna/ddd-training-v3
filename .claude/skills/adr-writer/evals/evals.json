@@ -1,0 +1,42 @@
+{
+  "skill_name": "adr-writer",
+  "evals": [
+    {
+      "id": 1,
+      "name": "postgres-instead-of-mongodb",
+      "prompt": "We decided to use PostgreSQL instead of MongoDB for the simulation-results index, write it down. Background: analysts run ad-hoc queries over the results of the nightly crash-simulation runs, and with Mongo every new filter field meant a new index and a reindex over the weekend. The team already runs Postgres for two other services. Downside is we'll need to migrate about 3 years of results.",
+      "expected_output": "docs/adr/0002-<slug>.md (next number after the existing 0001) from the template, status proposed; Context describes the ad-hoc query / reindex problem, not the solution; drivers include ad-hoc querying, team experience; at least two options (PostgreSQL, MongoDB as today, possibly another) judged against drivers; Decision cites drivers; Negative consequences include the 3-year migration and no invented figures (data volume, latency) beyond what the user said; adrs.py check passes; the critic was run; the ADR is not accepted; the final message gives the accept command.",
+      "files": [
+        "docs/adr/0001-record-architecture-decisions.md"
+      ],
+      "assertions": [
+        "ADR file created at docs/adr/0002-<kebab-case-slug>.md",
+        "adrs.py check reports 0 errors",
+        "At least two considered options, each under its own '### ' heading",
+        "Negative consequences mention migrating the existing simulation results",
+        "Context describes the problem (ad-hoc queries, reindexing) before any mention of PostgreSQL as the choice",
+        "No invented numbers (data volume, latency, cost) that the user did not give",
+        "Status is 'proposed' (not self-accepted)",
+        "Final message tells the user how to accept the ADR (adrs.py accept)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "supersede-message-broker",
+      "prompt": "ADR 2 says we use RabbitMQ for the test-bench telemetry. That's no longer true - the platform team now offers managed Kafka and we're moving to it because we need to replay the last 7 days of telemetry when a bench analysis job fails. Please supersede the old ADR. The architecture board already approved the move this morning, so go ahead and make it official.",
+      "expected_output": "A new ADR docs/adr/0003-<slug>.md with supersedes: 2, Context explaining replay need and managed Kafka availability, options at least Kafka (managed) and staying on RabbitMQ (e.g. with streams), negatives such as migration and new operational dependency on the platform team; the old ADR's decision text is not rewritten; because the user states the board approved, the status change is made with 'adrs.py supersede 2 3' (new accepted, old superseded with superseded_by: 3), never by editing status lines; adrs.py check passes afterwards.",
+      "files": [
+        "evals/files/seed-adrs/"
+      ],
+      "assertions": [
+        "New ADR created at docs/adr/0003-<kebab-case-slug>.md with 'supersedes: 2'",
+        "The decision text of ADR 0002 is unchanged (only status, superseded_by and a Links line differ)",
+        "At least two considered options, including staying on RabbitMQ",
+        "Negative consequences list at least one real cost of moving to Kafka",
+        "Status changes were made by running adrs.py supersede, not by editing status lines",
+        "After the run, ADR 0002 is 'superseded' with superseded_by: 3 and ADR 0003 is 'accepted'",
+        "adrs.py check reports 0 errors at the end"
+      ]
+    }
+  ]
+}
