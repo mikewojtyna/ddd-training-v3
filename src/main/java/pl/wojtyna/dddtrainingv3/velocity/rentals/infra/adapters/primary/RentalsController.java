@@ -140,11 +140,6 @@ public class RentalsController {
 
     @PostMapping("/bikes/{bikeId}/reservation-cancellation")
     public void cancelReservation(@PathVariable("bikeId") String bikeId, @RequestBody CancellationRequest request) {
-        var bike = bikeAvailability.handle(new BikeAvailabilityQuery(bikeId))
-                                   .orElseThrow(() -> new BikeNotFound(bikeId + " is not part of the fleet"));
-        if (!"RIDER".equals(bike.holderType()) || !request.riderId().equals(bike.holderId())) {
-            throw new NotReservationHolder(request.riderId() + " holds no reservation of " + bikeId);
-        }
         cancelReservation.handle(new CancelReservation(bikeId, request.riderId()));
     }
 

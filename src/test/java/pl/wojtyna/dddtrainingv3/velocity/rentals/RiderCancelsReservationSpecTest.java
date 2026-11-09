@@ -70,4 +70,32 @@ class RiderCancelsReservationSpecTest extends RentalsSpecTestBase {
         assertThat(cancellation.error()).isEqualTo("NotReservationHolder");
         assertThat(rentals.bike(b17).body().holderId()).isEqualTo(anna);
     }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         E3.1 given Anna unlocked B-17 at 10:01 and is riding it,
+         when Anna cancels her reservation of B-17 at 10:05,
+         then the cancellation is rejected and Anna's ride goes on
+        """
+    )
+    // @formatter:on
+    @Test
+    void e3_1_ride_in_progress_cannot_be_cancelled() {
+        // given
+        at("2026-11-10T09:00:00Z");
+        var anna = rider("anna");
+        at("2026-11-10T10:01:00Z");
+        var b17 = bike("B-17");
+        rentals.riding(b17, CENTRAL, anna);
+
+        // when
+        at("2026-11-10T10:05:00Z");
+        var cancellation = rentals.cancelReservation(b17, anna);
+
+        // then
+        assertThat(cancellation.status()).isEqualTo(409);
+        assertThat(cancellation.error()).isEqualTo("NoReservationToCancel");
+        assertThat(rentals.activeRentalOf(anna).body().kind()).isEqualTo("SESSION");
+    }
 }

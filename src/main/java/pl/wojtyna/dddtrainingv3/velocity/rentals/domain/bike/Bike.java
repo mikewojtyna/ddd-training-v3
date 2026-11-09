@@ -285,10 +285,14 @@ public class Bike {
     }
 
     /// The rider cancels their reservation; the bike is free for anyone at once (spec rider-cancels-reservation).
+    /// Rejected for anyone but the reservation's holder (R2) and when there's no reservation, e.g. during a ride (R3).
     public At<Instant, DomainEvents> cancelReservationOf(Holder rider) {
         return now -> {
             if (!(hold instanceof Hold.Reserved reserved)) {
                 throw new NoReservationToCancel(id.value() + " has no reservation to cancel");
+            }
+            if (!reserved.holder().equals(rider)) {
+                throw new NotReservationHolder(rider.id() + " holds no reservation of " + id.value());
             }
             hold = new Hold.Free();
             return DomainEvents.of(new BikeEvent.ReservationCancelled(id, reserved.holder(), now));
