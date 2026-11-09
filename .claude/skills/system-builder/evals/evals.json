@@ -1,0 +1,94 @@
+{
+  "skill_name": "system-builder",
+  "evals": [
+    {
+      "id": 1,
+      "name": "crowdsorcery-autonomous",
+      "prompt": "I'm away for the weekend. Build all of CrowdSorcery's bounded contexts and the integrations between them end to end, from its vision (docs/domains/crowdsorcery/CrowdSorcery.md) and the existing code. Fake the domain expert's answers when you need them, don't ask me anything, and open a PR when you're done.",
+      "runner_limit": "This is a test run. Do the orchestration set-up and Stage 1 only up to the point where you would start writing the bounded context canvases (or the context map, if one is missing): branch, working/tracking files, session record, the domain-expert answers file. Don't write canvases, code or a PR, don't spawn sub-agents, don't commit or push.",
+      "expected_output": "Autonomous dials recorded with quotes from the prompt; integration branch; manifest with detected conventions; session record with the verbatim prompt; central DE file with DE-n IDs and 🎭; notices CrowdSorcery has no CML context map and plans discover-bounded-contexts / a CML before canvases; notes existing code is input; no canvases or code.",
+      "files": [],
+      "assertions": [
+        "Records all three dials (expert questions, stage gates, TDD loop) as the autonomous preset, quoting the prompt",
+        "Creates a dedicated integration branch for the run",
+        "Creates a manifest/tracking file that records detected project conventions (build command, package, layout, CML location)",
+        "Session record exists and quotes the user's prompt verbatim",
+        "Central domain-expert answers file with stable DE-n IDs and every answer marked as role-played (🎭)",
+        "Notices CrowdSorcery has no CML context map and plans a map/discovery step (discover-bounded-contexts) before canvases",
+        "Treats the existing CrowdSorcery code as input, not as the source of truth",
+        "Records an allowed-removals policy (what existing code/docs may be removed or must be kept, and from which words of the prompt) in the manifest",
+        "Writes no canvases, code or PR (respects the test-run limit) and asks the user nothing"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "velocity-in-the-loop",
+      "prompt": "Let's rebuild all of VeloCity's bounded contexts from the context map and the vision with the full flow. This time I want to stay in the loop: I'll answer the domain expert questions myself, approve each stage, and I want to drive the TDD of the domain.",
+      "runner_limit": "This is a test run. Work until the first point where you would wait for the user, then stop. Save the message you would send to the user (including any questions) as outputs/final-message.md. Don't spawn sub-agents, don't commit or push.",
+      "expected_output": "In-the-loop dials (ask, stop, TDD on with relay) recorded; manifest + session record with verbatim prompt; DE file with PROPOSED answers (not 🎭 faked); first batch of expert questions with proposed answers, grouped, small batch; stops; no statuses moved, no canvases finalised as approved.",
+      "files": [],
+      "assertions": [
+        "Records the in-the-loop settings for all three dials (ask the expert, stop after each stage, TDD loop on)",
+        "Says how TDD checkpoints of parallel builders will reach the user (relay/batched through the orchestrator)",
+        "Session record exists and quotes the user's prompt verbatim",
+        "Expert-answer file holds PROPOSED answers awaiting the user, none presented as already decided/role-played",
+        "Final message asks a first batch of expert questions, each with a proposed answer, grouped by area",
+        "The expert-question batch is small (at most ~10 domain-expert questions; setup questions don't count)",
+        "Asks the open setup questions (e.g. may the existing code/canvases be removed, integration style) with proposed answers before creating the integration branch",
+        "Stops for the user: no canvases approved, no intents/specs/plans written, no statuses moved"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "library-stage4-builders",
+      "prompt": "Stages 1-3 of the Library system build are done and the plans are approved. Carry on with the build.",
+      "runner_limit": "This is a test run. First copy the fixture into your worktree root: cp -r FIXTURE/src FIXTURE/docs . (FIXTURE is given below). Then work as you would, with these limits: don't write Java code - write the prep you would do as outputs/prep-plan.md; run any tooling you'd use to decide the build order; instead of spawning sub-agents, write the exact sub-agent calls you would make (all parameters and the full prompt of each) to outputs/agent-calls.md, and explain in outputs/next-steps.md what you'd do as each one finishes. Don't commit or push.",
+      "expected_output": "Resumes from the manifest at stage 4; prep plan lists shared clock, REST client resolving port at call time, @EnableAsync, scheduling switch, error body, system test annotation with mutable clock, Awaitility, published event BookReturnedLate written up front, smoke test; waves via waves.py with --event-only Lending->Fines: wave 1 Catalog+Fines, wave 2 Lending; builder calls in one message, worktree isolation, named per context, each using bounded-context-scaffolder, starting with git merge --ff-only library-full-implementation, ownership limits, TDD loop off, robustness checklist; next steps: verify report, merge, waves --merged, stage 5 matrix/journeys/discover validate.",
+      "files": [
+        "evals/files/library-stage4/"
+      ],
+      "assertions": [
+        "Resumes from the manifest at stage 4 instead of redoing stages 1-3",
+        "Runs waves.py (or equivalent tooling) and gets Catalog and Fines in wave 1, Lending in wave 2 (Lending->Fines event-only)",
+        "Prep plan includes shared clock, REST client resolving the port at call time, @EnableAsync and a scheduling switch",
+        "Prep plan includes a system Spring test annotation with a mutable clock, Awaitility, and a smoke test of the plumbing",
+        "Prep plan writes the published integration event BookReturnedLate up front, before builders start",
+        "Dry-runs the flow scripts the builders will call (plans.py step on a copy), finds that the plans' step format is rejected, fixes it centrally and re-runs the dry run before builders start",
+        "Checks that every catalogue contract is built by some plan and reports that no plan step produces BookReturnedLate (or the other catalogue contracts)",
+        "Adds the system's shared beans (Clock, RestClient) without breaking VeloCity's unqualified injection points and without editing another system's wiring (e.g. system-specific names + qualifiers)",
+        "Checks that BookReturnedLate carries what Fines needs to charge the fee (or names the query/decision that supplies it) and settles any gap centrally",
+        "Doesn't rely implicitly on another system's application-wide switches (e.g. VeloCity's @EnableAsync/scheduling config) for the Library listeners",
+        "One builder agent call per context, the independent ones launched together in parallel",
+        "Builder calls use worktree isolation and each builder starts with git merge --ff-only library-full-implementation",
+        "Each builder is told to build its context with bounded-context-scaffolder (domain via ddd-tactical-building-blocks)",
+        "Builder briefs state ownership limits (only own packages/docs/plan steps; shared changes go to the orchestrator)",
+        "Builder briefs carry the TDD-loop-off decision and test-first one example per cycle",
+        "Next steps: verify each builder's report and run the full suite before merging, then start newly unblocked contexts",
+        "Next steps include orchestrator-owned verification: journeys, API-only check, communication matrix proving consumer reaction, map-vs-code validation with discover-bounded-contexts"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "velocity-stage5-verification",
+      "prompt": "All VeloCity contexts are merged on master now. Before I open the PR, verify the system really hangs together: that the contexts only talk through their APIs, that every relationship in the context map actually works in code, and that the map still matches the implementation.",
+      "runner_limit": "This is a test run. Do the checks you would do, with these limits: don't write new test classes - list the tests that are missing; instead of invoking another skill or sub-agent for any map validation, write the exact invocation/brief you would give to outputs/map-validation-brief.md; run the Maven test suite at most once. Save your findings and any generated tracking files (e.g. a matrix) to outputs/. Don't commit or push.",
+      "expected_output": "API-only: architecture tests per context listed + global import scan result; communication matrix with one row per relationship message (9 internal relationships), effect in receiving context and proving test, comm_matrix.py check run; external relationships noted; missing proofs listed; as-built map extracted from ACL packages/listeners; brief for discover-bounded-contexts validate mode with critic; findings summary.",
+      "files": [],
+      "assertions": [
+        "Checks that every context has an architecture test enforcing api-only access",
+        "Runs a global scan of cross-context imports outside other contexts' api packages and reports the result",
+        "Treats an in-process import of another context's api.usecases/api.queries as a violation (REST/ACL bypass), scanning for it explicitly rather than only for non-api imports",
+        "Actually runs the architecture tests (or the suite including them) and reports the result",
+        "Produces a communication matrix with a row per message for all 9 internal relationships of the CML",
+        "Each matrix row names the effect in the receiving context and a proving test (or marks it missing)",
+        "Event rows are proven by consumer reaction asserted asynchronously (Awaitility), not just publication",
+        "Runs a mechanical check of the matrix (e.g. comm_matrix.py check) and reports its result",
+        "Extracts an as-built map from the code (ACL adapters, REST calls, event listeners)",
+        "Writes a brief for discover-bounded-contexts in validate mode comparing the map with the as-built map, with its critic",
+        "Lists concrete missing tests instead of writing them, and gives the user a findings report",
+        "Identifies concrete messages that are NOT proven end to end (e.g. BikeWithdrawn fault variants to Fleet Maintenance, overdue RentalSessionEnded to Settlement) instead of declaring every relationship proven",
+        "Gives event variants with different consumer effects their own matrix rows, and marks rows proven only by tests that publish the producer's event themselves as consumer-only"
+      ]
+    }
+  ]
+}
