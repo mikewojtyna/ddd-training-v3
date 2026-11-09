@@ -16,7 +16,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 | 6 | 2026-11-08 | [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) | velocity | Fleet Manager | Keep the fleet healthy | delivered | Bike Added to Fleet |
 | 7 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | delivered | Bike Reserved |
 | 8 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | delivered | Rental Session Started, Unlock Failed |
-| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | planned | Reservation Expired |
+| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | delivered | Reservation Expired |
 | 10 | 2026-11-08 | [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) | velocity | Rider | Return the bike | delivered | Rental Session Ended, Bike Withdrawn |
 | 11 | 2026-11-08 | [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) | velocity | Rider | Return the bike | delivered | Rental Session Ended, Bike Withdrawn |
 | 12 | 2026-11-08 | [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) | velocity | Fleet Operations | Ride | delivered | Rental Session Ended, Bike Withdrawn |
@@ -66,7 +66,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 - Unlock a bike
   - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, delivered) → Rental Session Started, Unlock Failed
 - Release unused reservations
-  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, planned) → Reservation Expired
+  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, delivered) → Reservation Expired
 
 ### 3. Ride
 

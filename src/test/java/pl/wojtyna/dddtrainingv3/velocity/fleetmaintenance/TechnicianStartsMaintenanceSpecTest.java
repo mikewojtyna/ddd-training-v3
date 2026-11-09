@@ -93,6 +93,26 @@ class TechnicianStartsMaintenanceSpecTest extends FleetMaintenanceSpecTestBase {
     }
 
     @Test
+    @DisplayName("E3.2 an expired reservation can't unlock; Tom has to reserve again")
+    void e3_2_expired_reservation_cannot_unlock() {
+        // given: Tom's reservation expired at 09:30
+        var tom = technician("tom");
+        var b17 = reservedForTom(bike("B-17"), tom);
+        at("2026-11-09T09:30:01Z");
+        reservationsAreChecked();
+        await().atMost(HAND_OFF).untilAsserted(() -> assertThat(brokenBike(b17).body().technicianId()).isNull());
+
+        // when
+        at("2026-11-09T09:35:00Z");
+        var reply = unlockBrokenBike(b17, tom);
+
+        // then
+        assertThat(reply.status()).isEqualTo(409);
+        assertThat(reply.error()).isEqualTo("NotYourReservation");
+        assertThat(brokenBike(b17).body().status()).isEqualTo("BROKEN");
+    }
+
+    @Test
     @DisplayName("E4.1 a failed unlock releases the reservation and the bike stays broken")
     void e4_1_failed_unlock_releases_reservation_bike_stays_broken() {
         // given

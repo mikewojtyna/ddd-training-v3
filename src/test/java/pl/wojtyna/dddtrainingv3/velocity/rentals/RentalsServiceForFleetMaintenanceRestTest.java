@@ -8,9 +8,12 @@ import pl.wojtyna.dddtrainingv3.velocity.common.VelocitySpringTest;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.BikeUnlocked;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.BikeWithdrawn;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.RentalSessionEnded;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.ReservationExpired;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.events.UnlockFailed;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessions;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessionsUseCase;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReleaseExpiredReservations;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReleaseExpiredReservationsUseCase;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -30,6 +33,8 @@ import static pl.wojtyna.dddtrainingv3.velocity.rentals.RentalsDriver.RIVERSIDE;
 @DisplayName("Rentals' service resources for Fleet Maintenance")
 class RentalsServiceForFleetMaintenanceRestTest extends RentalsSpecTestBase {
 
+    @Autowired
+    ReleaseExpiredReservationsUseCase releaseExpiredReservations;
     @Autowired
     EndOverdueRentalSessionsUseCase endOverdueRentalSessions;
 
@@ -287,6 +292,36 @@ class RentalsServiceForFleetMaintenanceRestTest extends RentalsSpecTestBase {
             assertThat(reservation.error()).isEqualTo("BikeAlreadyHeld");
             assertThat(rentals.bike(b17).body().holderId()).isEqualTo(tom);
         }
+
+        // @formatter:off
+        @DisplayName(
+            """
+             E4.1-E4.3 given B-17 is reserved for Tom from 09:00 until 09:30,
+             when the reservations are checked at 09:29, at exactly 09:30:00 and at 09:30:01,
+             then it still holds at 09:29 and 09:30:00, and expires at 09:30:01 (Reservation Expired) with B-17 still withdrawn
+            """
+        )
+        // @formatter:on
+        @Test
+        void e4_technician_reservation_expires_after_its_end_and_bike_stays_withdrawn() {
+            // given
+            at("2026-11-08T08:00:00Z");
+            var b17 = withdrawnBike("B-17", OLD_TOWN);
+            var tom = "tom-" + suffix;
+            at("2026-11-08T09:00:00Z");
+            rentals.reserveForService(b17, tom);
+
+            // when / then
+            releaseExpiredReservations.handle(new ReleaseExpiredReservations(Instant.parse("2026-11-08T09:29:00Z")));
+            assertThat(rentals.bike(b17).body().hold()).isEqualTo("RESERVED");
+            releaseExpiredReservations.handle(new ReleaseExpiredReservations(Instant.parse("2026-11-08T09:30:00Z")));
+            assertThat(rentals.bike(b17).body().hold()).isEqualTo("RESERVED");
+            releaseExpiredReservations.handle(new ReleaseExpiredReservations(Instant.parse("2026-11-08T09:30:01Z")));
+            assertThat(rentals.bike(b17).body().hold()).isEqualTo("FREE");
+            assertThat(rentals.bike(b17).body().availability()).isEqualTo("WITHDRAWN");
+            await().atMost(HAND_OFF).untilAsserted(() -> assertThat(rentals.published(ReservationExpired.class, event -> event.bikeId().equals(b17)))
+                .containsExactly(new ReservationExpired(b17, "TECHNICIAN", tom, Instant.parse("2026-11-08T09:30:01Z"))));
+        }
     }
 
     @Nested
@@ -373,6 +408,7 @@ class RentalsServiceForFleetMaintenanceRestTest extends RentalsSpecTestBase {
             var tom = "tom-" + suffix;
             at("2026-11-08T09:00:00Z");
             rentals.reserveForService(b17, tom);
+            releaseExpiredReservations.handle(new ReleaseExpiredReservations(Instant.parse("2026-11-08T09:30:01Z")));
 
             // when
             at("2026-11-08T09:35:00Z");

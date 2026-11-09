@@ -12,6 +12,7 @@ import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.AddBikeToFleetUseC
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessionsUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndRideHereUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.MakeBikeAvailableUseCase;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReleaseExpiredReservationsUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReserveBikeUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReturnBikeAtStationUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.SignalFaultUseCase;
@@ -78,6 +79,12 @@ public class RentalsContextConfig {
     }
 
     @Bean
+    public ReleaseExpiredReservationsUseCase rentalsReleaseExpiredReservationsUseCase(InMemoryBikeRepository rentalsBikeRepository,
+                                                                                      DomainEventPublisher eventPublisher) {
+        return new ReleaseExpiredReservationsUseCase(rentalsBikeRepository, eventPublisher);
+    }
+
+    @Bean
     public ReturnBikeAtStationUseCase rentalsReturnBikeAtStationUseCase(InMemoryBikeRepository rentalsBikeRepository,
                                                                         Stations rentalsStations, SimulatedBikeLocks rentalsBikeLocks,
                                                                         DomainEventPublisher eventPublisher, Clock clock) {
@@ -125,7 +132,8 @@ public class RentalsContextConfig {
     }
 
     @Bean
-    public RentalsClockJobs rentalsClockJobs(EndOverdueRentalSessionsUseCase rentalsEndOverdueRentalSessionsUseCase, Clock clock) {
-        return new RentalsClockJobs(rentalsEndOverdueRentalSessionsUseCase, clock);
+    public RentalsClockJobs rentalsClockJobs(ReleaseExpiredReservationsUseCase rentalsReleaseExpiredReservationsUseCase,
+                                             EndOverdueRentalSessionsUseCase rentalsEndOverdueRentalSessionsUseCase, Clock clock) {
+        return new RentalsClockJobs(rentalsReleaseExpiredReservationsUseCase, rentalsEndOverdueRentalSessionsUseCase, clock);
     }
 }

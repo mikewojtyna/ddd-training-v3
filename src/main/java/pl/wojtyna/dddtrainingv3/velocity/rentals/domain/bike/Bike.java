@@ -8,6 +8,7 @@ import pl.wojtyna.dddtrainingv3.common.domain.Version;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeEvent.BikeReserved;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeEvent.BikeWithdrawn;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeEvent.RentalSessionStarted;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeEvent.ReservationExpired;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeEvent.UnlockFailed;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.BikeLocks.LockResult;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.domain.bike.FluentLanguage.At;
@@ -161,6 +162,16 @@ public class Bike {
     private DomainEvents unlockFailed(Hold.Reserved reservation, Instant now) {
         hold = new Hold.Free();
         return DomainEvents.of(new UnlockFailed(id, reservation.holder(), now));
+    }
+
+    /// Releases a reservation whose period is over (from the second after its end, DE-81). The bike's availability
+    /// doesn't change: a technician's bike stays withdrawn.
+    public DomainEvents releaseIfExpired(Instant now) {
+        if (hold instanceof Hold.Reserved reserved && now.isAfter(reserved.until())) {
+            hold = new Hold.Free();
+            return DomainEvents.of(new ReservationExpired(id, reserved.holder(), reserved.reservedAt(), now));
+        }
+        return DomainEvents.empty();
     }
 
     /// The riding rider returns the bike at the station they name (trusted, DE-22). A lock that closes ends the session

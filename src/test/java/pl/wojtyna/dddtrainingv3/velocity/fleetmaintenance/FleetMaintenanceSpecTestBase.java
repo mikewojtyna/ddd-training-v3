@@ -11,6 +11,8 @@ import pl.wojtyna.dddtrainingv3.velocity.common.infra.VelocityServiceUrls;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.RentalsDriver;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessions;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.EndOverdueRentalSessionsUseCase;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReleaseExpiredReservations;
+import pl.wojtyna.dddtrainingv3.velocity.rentals.api.usecases.ReleaseExpiredReservationsUseCase;
 import pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.bikelocksacl.SimulatedBikeLocks;
 
 import java.math.BigDecimal;
@@ -66,6 +68,8 @@ abstract class FleetMaintenanceSpecTestBase {
     @Autowired
     SimulatedBikeLocks locks;
     @Autowired
+    ReleaseExpiredReservationsUseCase releaseExpiredReservations;
+    @Autowired
     EndOverdueRentalSessionsUseCase endOverdueRentalSessions;
 
     RentalsDriver rentals;
@@ -98,6 +102,10 @@ abstract class FleetMaintenanceSpecTestBase {
     }
 
     // --- Rentals' clock-driven work ---
+
+    void reservationsAreChecked() {
+        releaseExpiredReservations.handle(new ReleaseExpiredReservations(clock.instant()));
+    }
 
     void overdueSessionsAreEnded() {
         endOverdueRentalSessions.handle(new EndOverdueRentalSessions(clock.instant()));

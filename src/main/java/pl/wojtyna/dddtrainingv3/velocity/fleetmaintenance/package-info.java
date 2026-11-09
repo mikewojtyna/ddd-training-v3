@@ -55,7 +55,7 @@
 ///
 /// ## Integration
 /// - Technician app: REST resources under `/fleet-maintenance` (integration-contracts.md).
-/// - Consumes `rentals.api.events.BikeWithdrawn` (all reasons except `REQUESTED`), `BikeUnlocked`,
+/// - Consumes `rentals.api.events.BikeWithdrawn` (all reasons except `REQUESTED`), `BikeUnlocked`, `ReservationExpired`,
 ///   `UnlockFailed` (technicians only) and `customersupport.api.events.FleetIssueReported`, through the ACL listeners
 ///   in `infra/adapters/primary/rentalsctxacl` and `customersupportctxacl`.
 /// - Calls Rentals' OHS (Withdraw Bike, Reserve/Unlock Bike for service, Make Bike Available, Bike Availability) and

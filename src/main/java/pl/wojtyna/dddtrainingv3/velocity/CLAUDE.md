@@ -25,7 +25,7 @@ All eight contexts of the reference map exist in code, each with the root layout
 |---|---|---|
 | Accounts | `account.Account` (onboarding, blocks, eligibility) | Payments (verify card, REST); listens to Payments' `PaymentMethodInvalidated` |
 | Payments | `paymentmethods.RiderPaymentMethods` | the simulated processor; publishes `PaymentMethodInvalidated` |
-| Rentals | `bike.Bike` (availability, hold, rental session) | Accounts (eligibility, REST); publishes `RentalSessionEnded`, `BikeWithdrawn`, `BikeUnlocked`, `UnlockFailed` |
+| Rentals | `bike.Bike` (availability, hold, rental session) | Accounts (eligibility, REST); publishes `RentalSessionEnded`, `BikeWithdrawn`, `BikeUnlocked`, `ReservationExpired`, `UnlockFailed` |
 | Pricing | `tariff.TariffSchedule`, domain service `fee.FeeCalculator` | City zone map |
 | Settlement | `ride.RideSettlement`, `debt.RiderDebt` | Pricing, Payments, Accounts (REST); listens to `RentalSessionEnded`; publishes `RentalFeeUnpaid`, `OutstandingDebtCleared` |
 | DebtRecovery | `recovery.RecoveryProcess` | Settlement (collect, REST); listens to Settlement's events |
@@ -36,7 +36,7 @@ All eight contexts of the reference map exist in code, each with the root layout
 
 - **Commands and queries between contexts go over REST**: a secondary port in the caller's language, implemented in `infra/adapters/secondary/<ctx>ctxacl` (`@AntiCorruptionLayer`) with `velocityRestClient` and `VelocityServiceUrls`. The adapter keeps its own request/response records and never imports the upstream's classes.
 - **Integration events go over the in-process Spring bus**: the publisher maps its domain event to an `api/events` record; the consumer listens in `infra/adapters/primary/<ctx>ctxacl` with `@Async @EventListener` and calls its own use case. Listeners are asynchronous on purpose, as with a broker.
-- **Time**: every context reads the shared `velocityClock`. Time-driven use cases (overdue sessions, charge retries, collection attempts, uncontested rejections) are triggered by `@Scheduled` jobs, which `velocity.scheduling.enabled=false` switches off.
+- **Time**: every context reads the shared `velocityClock`. Time-driven use cases (reservation expiry, overdue sessions, charge retries, collection attempts, uncontested rejections) are triggered by `@Scheduled` jobs, which `velocity.scheduling.enabled=false` switches off.
 - **Tests**: `@VelocitySpringTest` starts the whole application with real beans on a random port, with a `MutableClock` and scheduling off. All Spring tests share one cached context, so they use their own ids. Cross-context effects are asserted with Awaitility. End-to-end journeys across contexts are in `src/test/java/.../velocity/journeys`.
 - Rentals' chained commands (`bike.reserveForRide(anna).standingAt(position).given(standing).at(now)`) are the style for multi-argument commands, built from the `FluentLanguage` interfaces. `Bike` and its tests are the reference implementation for the `ddd-tactical-building-blocks` and `tdd` skills.
 - `rentals/package-info.java` declares the context with `@BoundedContext(name = "Rentals")` and `@Module`; every context's `package-info.java` uses its CML `BoundedContext` name and carries the canvas as javadoc, with the business decisions naming their tests.

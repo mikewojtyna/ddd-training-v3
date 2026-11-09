@@ -50,6 +50,8 @@
 ///   `#unlockAtExactEndOfReservationStartsSession`, `#failedUnlockReleasesReservationAndBikeIsAvailable`,
 ///   `#afterFailedUnlockRiderReservesAnotherBike`, `#otherRiderCannotUnlockReservedBike`, `#unlockWithoutReservationIsRejected`,
 ///   `#unlockAfterReservationPeriodIsRejected`, `#riderBlockedDuringReservationCannotUnlock`.
+/// - **A reservation not used in its period expires; the bike's availability doesn't change** (DE-81):
+///   `ReservationExpiryTest` (rider and technician examples).
 /// - **A station return ends the session at the named station; a failed lock ends it as a lock failure and withdraws
 ///   the bike; a reported fault withdraws it with normal fees** (DE-22, DE-24): `StationReturnTest`.
 /// - **A free-floating return ends the ride where the rider is; a failed lock is a lock failure wherever it is**

@@ -6,7 +6,7 @@ system: velocity
 actor: Fleet Operations
 activity: Get a bike
 task: Release unused reservations
-status: planned
+status: delivered
 date: 2026-11-08
 supersedes:
 superseded_by:
