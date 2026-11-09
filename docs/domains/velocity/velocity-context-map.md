@@ -1,0 +1,171 @@
+# VeloCity — Reference Context Map
+
+> This is the reference solution for the VeloCity context mapping exercise. Group should be able to achieve a similar result based on collaboration with the domain expert.
+
+The solution below is one well-argued answer, not the only correct one. See **Accepted alternatives** before judging a group's result.
+
+---
+
+## Bounded Contexts
+
+| Context | Owns | Key language |
+|---|---|---|
+| **Accounts** | Onboarding, account activation, account blocks and unblocks | user, registration, activated, blocked |
+| **Rentals** | Bike availability (available / withdrawn), reserve & unlock for any authorised client, rental sessions, station returns & locking, max-rental-time end, withdrawing a bike on a fault it detects | reservation, unlock, rental session, available, withdrawn |
+| **Pricing** | Pure calculation of the total fee — tiered hourly fees, penalty, drop zone / unauthorized zone fees, tariff valid at session start | free period, hourly fee, penalty, drop zone fee, total fee |
+| **Settlement** | Charging each finished ride, retries, rider's balance and outstanding debt | charge, settled, outstanding debt |
+| **Payments** | Payment method verification and charging; shields VeloCity from the external processor | payment method, pre-authorization, verified, charge |
+| **Debt Recovery** | Active pursuit of outstanding debt — reminders, payment plans, pause / resume | recovery process, paused, resumed, exhausted, payment plan |
+| **Customer Support** | Incidents: reported → type detected → assigned → accepted / rejected → resolved | incident, accept, reject, escalate, reopen, resolve |
+| **Fleet Maintenance** | Broken bikes, maintenance, deciding when a bike returns to circulation | broken, maintenance, fixed, back in circulation |
+
+**External parties:** the **Payment Processor** and the **City** (zone map used by Pricing).
+
+### Overview
+
+```mermaid
+flowchart TB
+    subgraph VC["VeloCity"]
+        direction LR
+        ACC["Accounts"]
+        REN["Rentals"]
+        PRI["Pricing"]
+        SET["Settlement"]
+        PAY["Payments"]
+        DEB["Debt Recovery"]
+        SUP["Customer Support"]
+        FLT["Fleet Maintenance"]
+    end
+
+    subgraph EXT["External"]
+        direction LR
+        PROC["Payment Processor"]
+        CITY["City"]
+    end
+
+    classDef external fill:#eee,stroke:#888,stroke-dasharray: 5 5,color:#333
+    class PROC,CITY external
+```
+
+---
+
+## Context Map
+
+Every arrow points from **upstream (U)** to **downstream (D)**. Labels give the pattern and what flows across the boundary. Data may flow in both directions (events one way, commands the other) — the arrow shows **whose language the integration uses**.
+
+```mermaid
+flowchart LR
+    PROC["Payment Processor<br/>(external)"]
+    CITY["City<br/>(external)"]
+
+    ACC["Accounts"]
+    REN["Rentals"]
+    PRI["Pricing"]
+    SET["Settlement"]
+    PAY["Payments"]
+    DEB["Debt Recovery"]
+    SUP["Customer Support"]
+    FLT["Fleet Maintenance"]
+
+    PROC -->|"U: external, OHS/PL · D: ACL"| PAY
+    CITY -->|"zone map · D: ACL"| PRI
+
+    PAY -->|"U: OHS/PL · D: CF<br/>verify payment method<br/>Payment Method Invalidated"| ACC
+    PAY -->|"U: OHS/PL · D: CF<br/>charge"| SET
+
+    ACC -->|"U: OHS/PL · D: ACL<br/>may this rider rent?"| REN
+    ACC -->|"U: OHS/PL · D: ACL<br/>block / unblock account<br/>(reason: outstanding debt)"| SET
+
+    REN -->|"U: PL · D: CF<br/>Rental Session Ended"| SET
+    REN -->|"U: OHS/PL · D: ACL<br/>fault detected, lock failed<br/>withdraw / make available<br/>reserve / unlock"| FLT
+
+    PRI -->|"U: OHS/PL · D: CF<br/>price for session"| SET
+
+    SET -->|"Customer/Supplier · U: S, PL · D: C<br/>Rental Fee Unpaid<br/>attempt collection"| DEB
+
+    SUP -->|"U: OHS/PL · D: ACL<br/>Fleet Issue Reported<br/>resolve fleet issue"| FLT
+
+    classDef external fill:#eee,stroke:#888,stroke-dasharray: 5 5,color:#333
+    class PROC,CITY external
+```
+
+**Legend**
+
+| Abbreviation | Meaning |
+|---|---|
+| **U / D** | Upstream / Downstream |
+| **OHS** | Open Host Service — upstream offers a protocol for any number of clients |
+| **PL** | Published Language — the shared, documented format of that protocol (events, commands) |
+| **CF** | Conformist — downstream adopts the upstream model as-is |
+| **ACL** | Anticorruption Layer — downstream translates the upstream model into its own |
+| **C / S** | Customer / Supplier — the downstream (customer) requirements factor into the upstream (supplier) planning |
+
+### Zoom: from a finished ride to money
+
+The ride-to-money flow has the most traffic in both directions, yet no cycles. Settlement *calls* Pricing, Payments and Accounts, and Debt Recovery *calls* Settlement — the caller is always downstream.
+
+```mermaid
+flowchart LR
+    REN["Rentals"]
+    PRI["Pricing"]
+    SET["Settlement"]
+    PAY["Payments"]
+    PROC["Payment Processor<br/>(external)"]
+    DEB["Debt Recovery"]
+    ACC["Accounts"]
+
+    REN -->|"1. Rental Session Ended<br/>(start, end, location, reason)"| SET
+    PRI -->|"2. Settlement asks for the price"| SET
+    PAY -->|"3. Settlement charges<br/>(retries a few times)"| SET
+    PROC -->|"ACL"| PAY
+    ACC -->|"4a. Rental Fee Unpaid →<br/>Settlement blocks the account"| SET
+    SET -->|"4b. Rental Fee Unpaid → start recovery<br/>Debt Recovery asks Settlement to collect"| DEB
+    ACC -->|"5. Outstanding Debt Cleared →<br/>Settlement unblocks the account"| SET
+
+    classDef external fill:#eee,stroke:#888,stroke-dasharray: 5 5,color:#333
+    class PROC external
+```
+
+---
+
+## Key Design Decisions
+
+- **No Station context.** A station is a thin client of Rentals; locking, fault detection at return and locking failures live in Rentals.
+- **No reroute.** Every return ends the ride; the location only decides the fee (drop zone fee vs. unauthorized zone return fee). The client-reported location is trusted.
+- **Rentals owns availability in generic language** — *available* / *withdrawn*, never *broken*. Fleet Maintenance (and potentially other clients, e.g. a future marketing context re-branding bikes) decides what happens to a bike and calls Rentals.
+- **Rentals withdraws a bike itself when it detects a fault** (locking failure, fault at station return). Only clients decide when it becomes available again. A broken bike is never offered to riders.
+- **Reserve / unlock is a generic Rentals capability.** Only a rider's unlock starts a rental session; Fleet Maintenance reacts to a technician's unlock with *Maintenance Started*.
+- **A locking failure ends the session immediately** with an explanation; the rider is not charged extra and the bike is withdrawn.
+- **Max rental time is detected by Rentals**, which ends the session automatically; Pricing adds the penalty.
+- **Pricing is a pure calculator**, called by Settlement, using the tariff valid at session start.
+- **Settlement is the only context that moves money** (via Payments) and owns the rider's balance. Debt Recovery asks Settlement to collect. The two teams work as Customer/Supplier: Debt Recovery's needs shape Settlement's published collection language.
+- **Account blocks have exactly two reasons, each from one source:** invalid card (Payments) and outstanding debt (Settlement). Settlement drives both block and unblock for debt.
+- **Accounts knows no Settlement events.** Accounts offers block / unblock *with a reason* as an Open Host Service. Settlement decides when the debt requires it and calls that service through an ACL. The reason keeps a debt unblock from lifting a card block. Card blocks still come from Payments' *Payment Method Invalidated*: flipping that link too would create a Payments ↔ Accounts cycle, because Accounts calls Payments to verify payment methods.
+- **No cycles.** If two contexts have arrows in both directions, ask whose language the integration uses — if both, it is either a Partnership or a misplaced boundary.
+
+---
+
+## Accepted Alternatives for the Debrief
+
+- A single **Returns** context (station + zone returns) instead of returns inside Rentals.
+- **"Billing"** as the name for Pricing — it is the domain expert's word.
+- **Pricing reacting** to *Rental Session Ended* instead of being called by Settlement (orchestration direction is a design choice, not a heuristic outcome).
+- **Fleet Maintenance upstream of Rentals** (Rentals reports faults via Maintenance's OHS) — as long as there is no cycle.
+- The **Payment Processor drawn as external** with ACLs directly in Accounts and Settlement, without a Payments context.
+- **Debt Recovery calls Accounts to unblock** (discuss: *whose fact is "the debt is paid"?*).
+- **Settlement upstream of Accounts:** Settlement publishes *Rental Fee Unpaid* / *Outstanding Debt Cleared* and Accounts conforms (`Settlement [U,PL] -> [D,CF] Accounts`). It has no cycle either, but Accounts then has to know Settlement's events.
+- **Settlement and Debt Recovery merged**, if the group can't find a language difference — point them to *reminders, payment plans, pause* vs. *charge, retry, settled*.
+
+---
+
+## Deferred / Open
+
+- **Billing disputes → pausing Debt Recovery** (from Customer Support) — not modeled yet.
+- ~~**Fleet-issue incidents** routed Customer Support → Fleet Maintenance → Rentals (withdraw) — default, unconfirmed.~~ Confirmed on 2026-11-08 by the role-played domain expert (`docs/bounded-contexts/velocity/domain-expert-answers.md`, DE-52): Customer Support publishes *Fleet Issue Reported*; Fleet Maintenance withdraws the bike in Rentals and, once the bike is fixed, calls Customer Support's *Resolve Fleet Issue* (OHS), so Customer Support stays upstream.
+- ~~**Faults signaled by the bike itself** received by Rentals (it owns locks and stations) — default, unconfirmed.~~ Confirmed on 2026-11-08 (DE-25): Rentals receives the signal and withdraws the bike.
+## Changes from the autonomous run of 2026-11-08
+
+While writing the bounded context canvases (`docs/bounded-contexts/velocity/*/canvas.md`) the map changed in four places, all mirrored in `src/main/cml/VeloCity-Context-Map.cml`:
+- **Customer Support → Fleet Maintenance** is confirmed (`[U,OHS,PL]->[D,ACL]`): *Fleet Issue Reported* one way, Fleet Maintenance calls *Resolve Fleet Issue* when the bike is fixed.
+- **Accounts → Rentals** is an Open Host Service with an ACL in Rentals (*may this rider rent?*).
+- **Rentals → Fleet Maintenance** and **City → Pricing** have an ACL downstream instead of a Conformist: Fleet Maintenance translates *withdrawn* into *broken*, and Pricing translates the City's zone map into drop zone / unauthorized zone.
