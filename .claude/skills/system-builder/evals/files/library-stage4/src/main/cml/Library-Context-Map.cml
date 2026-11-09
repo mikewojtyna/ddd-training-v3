@@ -1,0 +1,39 @@
+/* Library - context map (written in stage 1 of the system build, 2026-11-09) */
+ContextMap LibraryContextMap {
+	type = SYSTEM_LANDSCAPE
+	state = TO_BE
+
+	contains Catalog
+	contains Lending
+	contains Fines
+	contains PaymentGateway
+
+	// Lending asks whether a copy exists and may be lent (query: Copy Availability)
+	Catalog [U,OHS,PL]->[D,ACL] Lending : CopyLookup
+
+	// Book Returned Late -> Fines assesses a late fee. Fines only listens.
+	Lending [U,PL]->[D,ACL] Fines : LateReturns
+
+	// Fines charges a fee
+	PaymentGateway [U,OHS,PL]->[D,ACL] Fines : FeeCharging
+}
+
+BoundedContext Catalog {
+	type = FEATURE
+	domainVisionStatement = "Which titles and copies the library owns and whether a copy can be lent. Key language: title, copy, reference-only."
+}
+
+BoundedContext Lending {
+	type = FEATURE
+	domainVisionStatement = "Loans of copies to members: borrow, renew, return, due dates. Key language: loan, due date, renewal, late return."
+}
+
+BoundedContext Fines {
+	type = FEATURE
+	domainVisionStatement = "Late fees: assessing, charging and waiving them. Key language: late fee, waiver, outstanding fee."
+}
+
+BoundedContext PaymentGateway {
+	type = SYSTEM
+	domainVisionStatement = "External card payment provider."
+}

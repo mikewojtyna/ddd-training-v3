@@ -33,6 +33,7 @@ Each step has a Claude Code skill in `.claude/skills/` and produces artifacts th
 - The intent's status tracks progress: `draft → accepted → specified → planned → delivered`.
 - Discovery, the spec writer and the planner each have an independent critic agent review their output before you see it.
 - Every step stops for human review. Approval is always yours.
+- To run steps 3–5 for a whole system at once, use `system-builder`. It orchestrates the skills above: one domain-expert voice and one contract catalogue, parallel builder agents per bounded context (each using `bounded-context-scaffolder`) in dependency waves, then a communication matrix, journeys, an API-only check and a map-vs-code validation with `discover-bounded-contexts`. It runs autonomously or with you in the loop (expert answers, stage approvals, TDD checkpoints relayed from the builders). Design history: `docs/skills/system-builder/design-history.md`.
 - Domain code is built test-first, one Given/When/Then example per cycle. By default each cycle stops so you decide who writes the implementation.
 
 ### Where the artifacts live
