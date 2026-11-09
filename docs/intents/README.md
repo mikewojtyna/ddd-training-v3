@@ -14,9 +14,9 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 | 4 | 2026-11-08 | [A rider wants to add a payment method](rider-adds-payment-method.md) | velocity | Rider | Join VeloCity | delivered | Payment Method Verified, Payment Method Declined |
 | 5 | 2026-11-08 | [A rider wants to sign the user agreement and have their account activated](rider-signs-user-agreement.md) | velocity | Rider | Join VeloCity | delivered | Account Activated |
 | 6 | 2026-11-08 | [A fleet manager wants to add a new bike to the fleet at a station](fleet-manager-adds-bike-to-fleet.md) | velocity | Fleet Manager | Keep the fleet healthy | delivered | Bike Added to Fleet |
-| 7 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | specified | Bike Reserved |
-| 8 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | specified | Rental Session Started, Unlock Failed |
-| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | specified | Reservation Expired |
+| 7 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | delivered | Bike Reserved |
+| 8 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | delivered | Rental Session Started, Unlock Failed |
+| 9 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | planned | Reservation Expired |
 | 10 | 2026-11-08 | [A rider wants to return the bike at a station and end the ride](rider-returns-bike-at-station.md) | velocity | Rider | Return the bike | delivered | Rental Session Ended, Bike Withdrawn |
 | 11 | 2026-11-08 | [A rider wants to end the ride where they are, outside a station](rider-ends-ride-in-drop-zone.md) | velocity | Rider | Return the bike | delivered | Rental Session Ended, Bike Withdrawn |
 | 12 | 2026-11-08 | [Fleet operations wants a ride that runs past the maximum rental time ended](fleet-operations-ends-overdue-rental.md) | velocity | Fleet Operations | Ride | delivered | Rental Session Ended, Bike Withdrawn |
@@ -40,7 +40,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 | 30 | 2026-11-08 | [Fleet operations wants every faulty bike known as broken and kept away from riders](fleet-operations-takes-broken-bike-out-of-circulation.md) | velocity | Fleet Operations | Keep the fleet healthy | delivered | Bike Reported Broken, Bike Withdrawn |
 | 31 | 2026-11-08 | [Fleet operations wants a bike that signals a fault taken away from riders](fleet-operations-withdraws-bike-signalling-fault.md) | velocity | Fleet Operations | Keep the fleet healthy | delivered | Bike Withdrawn |
 | 32 | 2026-11-08 | [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Reported Broken, Bike Withdrawn |
-| 33 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | specified | Bike Reserved, Reservation Expired |
+| 33 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Reserved, Reservation Expired |
 | 34 | 2026-11-08 | [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Unlocked, Maintenance Started, Unlock Failed |
 | 35 | 2026-11-08 | [A technician wants to return a fixed bike to circulation](technician-returns-fixed-bike-to-circulation.md) | velocity | Technician | Keep the fleet healthy | delivered | Bike Fixed, Bike Made Available, Incident Resolved |
 
@@ -62,11 +62,11 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 ### 2. Get a bike
 
 - Reserve a bike
-  - #7 [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) (Rider, specified) → Bike Reserved
+  - #7 [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) (Rider, delivered) → Bike Reserved
 - Unlock a bike
-  - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, specified) → Rental Session Started, Unlock Failed
+  - #8 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, delivered) → Rental Session Started, Unlock Failed
 - Release unused reservations
-  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, specified) → Reservation Expired
+  - #9 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, planned) → Reservation Expired
 
 ### 3. Ride
 
@@ -132,7 +132,7 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 - Report a fault
   - #32 [A technician wants to report a bike broken during a routine check](technician-reports-fault.md) (Technician, delivered) → Bike Reported Broken, Bike Withdrawn
 - Reserve a broken bike
-  - #33 [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) (Technician, specified) → Bike Reserved, Reservation Expired
+  - #33 [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) (Technician, delivered) → Bike Reserved, Reservation Expired
 - Start maintenance
   - #34 [A technician wants to unlock a reserved broken bike and start maintenance](technician-starts-maintenance.md) (Technician, delivered) → Bike Unlocked, Maintenance Started, Unlock Failed
 - Return a fixed bike to circulation
