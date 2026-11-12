@@ -99,7 +99,7 @@ before.
 
 | # | Module | Branch | What you do |
 |---|---|---|---|
-| 1 | M1+2 Vibe coding | `exercise/01-spot-the-vibe` | Find the business decisions an AI made silently in a one-prompt implementation (`git show ex01/start`). |
+| 1 | M1+2 Vibe coding | `exercise/01-spot-the-vibe` | Find the business decisions, bugs and design problems an AI produced from one prompt, in the separate repo [`vibe-code-velocity`](https://github.com/mikewojtyna/vibe-code-velocity). |
 | 2 | M6 Domain exploration | `exercise/02-interview-expert` | Event Storming with a role-played expert, then let AI find the gaps in your board. |
 | 3 | M6 Archetypes | `exercise/03-archetype-card-sort` | Sort 12 cards into archetype, entity, design pattern or process. |
 | 4 | M6 Archetypes | `exercise/04-archetypes-funnel-plm` | Walk the Archetypes Funnel on a PLM narrative, with AI asking the questions. |
@@ -115,7 +115,8 @@ before.
 | 14 | M7 Advanced agent setup | `exercise/14-port-to-your-tool` | Port `CLAUDE.md`, a skill and its critic to Copilot or Cursor. |
 | 15 | M7 Advanced agent setup | `exercise/15-living-docs` | Decide which docs an agent should read, and where they live. |
 
-Exercises 1, 2, 3, 4, 6, 10 and 15 need no build: you only need `EXERCISE.md`, `handouts/` and, for Exercise 1, git.
+Exercises 2, 3, 4, 6, 10 and 15 need no build: you only need `EXERCISE.md` and `handouts/`. Exercise 1 needs a clone of
+[`vibe-code-velocity`](https://github.com/mikewojtyna/vibe-code-velocity) (its `EXERCISE.md` is there).
 The others need the Java build and an AI coding agent (the skills are in `.claude/skills/`).
 
 ## Code layout
