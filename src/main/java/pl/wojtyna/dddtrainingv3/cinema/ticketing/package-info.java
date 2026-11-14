@@ -38,6 +38,9 @@
 /// - **Students pay 20% less; more discounts will follow** (policy as a strategy, `Discount`, passed into
 ///   `TicketPriceCalculator`): Saturday, no discount → 30 PLN (`TicketPriceCalculatorTest#customerWithoutDiscountPaysFullPrice`),
 ///   Saturday, student → 24 PLN (`TicketPriceCalculatorTest#studentPays20PercentLess`).
+/// - **A ticket is scanned at the entrance only once** (event-sourced aggregate `Ticket`): given T-1 issued, when it is
+///   scanned, then `TicketScanned` (`TicketTest#issuedTicketIsScanned`); given T-1 already scanned, then the second scan
+///   is rejected (`TicketTest#ticketIsScannedOnlyOnce`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
