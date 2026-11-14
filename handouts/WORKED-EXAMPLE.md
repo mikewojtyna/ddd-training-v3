@@ -14,6 +14,8 @@ master of 2026-11-10: line and byte counts with `wc`, the affected tests by actu
 minutes in a throwaway worktree and running all VeloCity tests. The layered layout (Part A) **doesn't exist**: it's a
 sketch, and its numbers are **estimates**. Token numbers are always estimates from sizes (rule of thumb); no agent
 session was recorded for either layout. To get session numbers, run the change live and read `/context`.
+The layer sizes in Part C's "Scaling up" section are also **measured**, on 2026-11-14: `wc` over the real VeloCity
+main and test Java, grouped by layer folder (`api`, `domain`, `infra/adapters/primary`, …) across all eight contexts.
 
 ---
 
@@ -183,6 +185,17 @@ uncertainty. Without a boundary, "did I break the technician's 30 minutes?" can 
 **After (vertical, measured sizes):** ~2,900 lines, **~30,000–35,000 tokens**, one repo, one `./mvnw test`, and the
 suite proves nothing outside Rentals is affected.
 
+The worksheet's table, filled in:
+
+| | Before (Part A, layered) | After (Part B, Rentals) |
+|---|---|---|
+| Files the agent must read | 15–25 | 17 (2 code, 8 tests, 7 docs) |
+| Lines of code (sum) | 4,000–6,000 | 2,880 |
+| Estimated tokens | ~40–60k | ~30–35k |
+| Measured or estimated? | estimated (the layout is a sketch) | sizes measured, tokens estimated |
+| Repos the agent needs access to | 3–4 | 1 |
+| Can it run all affected tests in one place? | no | yes: `./mvnw test`, 12 failures, all in Rentals |
+
 Honest reading of the numbers:
 - The vertical change isn't tiny. **Most of it is tests and spec examples** (2,225 of 2,880 lines), because the
   rule is written down as examples in many places. That's the price of executable specs, and it's the right place
@@ -192,11 +205,53 @@ Honest reading of the numbers:
 - The win is the closed scope: the agent knows **where to stop reading**. In the layered layout there's no such
   line, so a careful agent reads more, and a careless one misses the Celery task.
 
+### Scaling up: any task in Rentals, before and after
+
+The reservation window is a one-constant change. What about an arbitrary Rentals task? Thought experiment for
+**before**: move VeloCity's real classes into layer folders (`controllers/`, `services/`, `domain/`,
+`repositories/`, `config/`), so each layer folder holds all eight contexts. **After** is the real layout, where
+the agent reads only Rentals' share. Measured sizes, tokens = bytes ÷ 4:
+
+| Layer | Before: whole layer, 8 contexts (files / lines / ~tokens) | After: Rentals only |
+|---|---|---|
+| domain | 192 / 4,898 / ~47.5k | 30 / 933 / ~9.2k |
+| api (use cases, events, queries) | 173 / 3,260 / ~35.6k | 37 / 668 / ~7.1k |
+| REST adapters | 30 / 1,645 / ~20.9k | 2 / 234 / ~3.1k |
+| secondary adapters (repositories, ACLs) | 47 / 1,899 / ~23.3k | 6 / 284 / ~3.3k |
+| config | 8 / 901 / ~12.6k | 1 / 139 / ~2.0k |
+| **Main code** | **467 / 13,534 / ~155k** | **77 / 2,350 / ~26k (17%)** |
+| Tests | 122 / 19,722 / ~201k | 26 / 4,483 / ~44k |
+| Context docs (`docs/bounded-contexts/velocity`) | ~67k | canvas + plan ~9k |
+
+Why before costs more than "26k plus some noise":
+- **No folder to stop at.** Nothing marks where Rentals ends, so every layer the agent touches becomes a scan of
+  the whole layer.
+- **Name collisions force merges.** 18 simple class names exist in two or more contexts (`Bike`, `BikeId`, `RiderId`,
+  `Position`, `Pln`, `SessionId`, `CardToken`, `EndReason`, …). One flat `entities/` folder forces renames or one
+  merged `Bike`, and then a Rentals change is also a Fleet Maintenance change, whose tests become relevant too.
+- **Imports stop proving anything.** Today only 5 classes outside Rentals import it, all in `rentalsctxacl` packages
+  (4 in Fleet Maintenance, 1 in Settlement), and the architecture test enforces it. Layered, any service may call
+  any repository, so ruling out a dependency means reading the code.
+- **The docs grow too.** The 9k canvas becomes a share of a 67k system-wide document.
+
+Estimated tokens the agent reads, on top of the session baseline:
+
+| Task | Before (layered) | After (Rentals) |
+|---|---|---|
+| Typical Rentals change (domain + one use case + one test class + its spec and plan) | ~150–250k | ~30–45k |
+| Understand all of Rentals | ~355k (all VeloCity main + tests), plus docs | ~85k (code + tests + docs) |
+
+The baseline is the same in both layouts: `/context` showed ~54k before reading anything (of that, the IDE's MCP tool
+list ~38k, `CLAUDE.md` + `README.md` ~6.3k). The layout decides only the variable part. In practice a layered agent
+doesn't read 250k: it stops early and guesses, which is cheaper in tokens and riskier, e.g. a change to the merged
+`Bike` that's fine for Rentals and breaks Fleet Maintenance.
+
 ### Conclusion
 
 > The agent's context shrinks from ~15–25 files in 3–4 repos (~40–60k tokens, estimated) to 17 files in one context
 > (~30–35k tokens, from measured sizes), because the reservation window is a rule of one context, Rentals, before
-> its pivotal event, and nothing outside it holds a copy.
+> its pivotal event, and nothing outside it holds a copy. For an arbitrary Rentals task the gap widens to ~3–5×
+> (from measured layer sizes), because a layered layout has no boundary to stop reading at.
 
 ---
 
