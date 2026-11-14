@@ -6,7 +6,7 @@ Conventions for the blocks besides the aggregate: domain services, policies, fac
 1. Domain events vs integration events
 2. Use-case orchestration: load → command → save → publish
 3. Event publishing
-4. Policies
+4. Policies (4a reacting, 4b strategy)
 5. Repositories
 6. Factories
 7. Wiring
@@ -71,7 +71,18 @@ public class AddItemToOrderUseCase {
 
 ## 4. Policies
 
-A policy is a business rule of the form **"whenever <event>, then <command>"**. It's the glue for rules that span aggregates or contexts, and those are eventually consistent.
+The word "policy" covers two shapes. Both implement the marker `common.domain.DomainPolicy`:
+
+| | Reacting policy (4a) | Strategy policy (4b) |
+|---|---|---|
+| Business wording | "whenever X happens, then do Y" | "how we decide Z depends on who or when; more variants will come" |
+| Shape | class with `handle(Event)` | `@FunctionalInterface`, variants as named factory methods returning lambdas or closures |
+| Who calls it | event routing in `infra/event` | a domain service or aggregate command that receives it as an argument |
+| State, ports | may use a repository, a publisher or a port | none: values in, value out |
+
+### 4a. Reacting policy
+
+A reacting policy is a business rule of the form **"whenever <event>, then <command>"**. It's the glue for rules that span aggregates or contexts, and those are eventually consistent.
 
 ```java
 public class RideEndedPolicy implements DomainPolicy {
@@ -126,6 +137,62 @@ void paidOrderStartsDelivery() {
 ```
 
 For the compile-only red step, `handle` gets an empty body: the fake records nothing, so the assertion fails for the right reason.
+
+### 4b. Strategy policy (policy as a function)
+
+A strategy policy captures a business choice that **varies** while the calculation or command around it stays the same: discounts, fee waivers, rounding rules, eligibility per contract. Evans calls it the Strategy (Policy) pattern. Use it instead of an `if`/`switch` on a flag inside a domain service when the expert says the variants differ per customer or campaign, or will grow ("students now, seniors and Tuesday deals later").
+
+```java
+/// Policy (strategy): how much a customer pays of the ticket price. Variants grow with marketing campaigns.
+@FunctionalInterface
+public interface Discount extends DomainPolicy {
+
+    Money applyTo(Money price);
+
+    static Discount none() {
+        return price -> price;
+    }
+
+    static Discount percent(int percent) {               // a closure: captures its parameter
+        return price -> price.multipliedBy(100 - percent).dividedBy(100, RoundingMode.HALF_UP);
+    }
+
+    static Discount student() {
+        return percent(20);
+    }
+}
+```
+
+- A `@FunctionalInterface` in `<ctx>/domain/<area>/`, extending `DomainPolicy`, named in the ubiquitous language after the decision (`Discount`, `FeeWaiver`), not `*Strategy`. Its javadoc states the business rule.
+- Variants are **named static factory methods** in the ubiquitous language (`student()`, `percent(20)`), returning lambdas. A variant may capture parameters (a closure). A variant with real logic of its own may become a small class implementing the interface.
+- **Stateless and pure**: values in, a value out. No repositories, no publishing, no Spring.
+- It is **passed as an argument** to the domain service or aggregate command that applies it: `calculator.priceFor(date, Discount.student())`, or `screening.reserve(seat).for(customer).with(discount)`. The use case picks the variant (from the request, the customer's profile, a campaign table). The service or aggregate never decides which variant applies; otherwise the `if` has only moved.
+- Each variant is a rule and gets its own scenario in the TDD checkpoint loop (SKILL.md Step 4). Test the variant directly, or through the service that takes it:
+
+```java
+// @formatter:off
+@DisplayName(
+    """
+     given a Saturday screening,
+     when a student buys a ticket,
+     then the student pays 24 PLN
+    """
+)
+// @formatter:on
+@Test
+void studentPays20PercentLess() {
+    // given
+    var calculator = new TicketPriceCalculator();
+
+    // when
+    var price = calculator.priceFor(SATURDAY, Discount.student());
+
+    // then
+    assertThat(price).isEqualTo(Money.of(PLN, 24));
+}
+```
+
+For the compile-only red step, the new variant returns the price unchanged (`price -> price`), so the assertion fails on the amount. If the service doesn't take the policy yet, adding the parameter is part of the compile-only scaffolding, and the existing tests get `Discount.none()` mechanically.
 
 ## 5. Repositories
 

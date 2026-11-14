@@ -114,6 +114,7 @@ before.
 | 13 | M7 Advanced agent setup | `exercise/13-team-skill` | Build a skill for a recurring task of your team, with evals. |
 | 14 | M7 Advanced agent setup | `exercise/14-port-to-your-tool` | Port `CLAUDE.md`, a skill and its critic to Copilot or Cursor. |
 | 15 | M7 Advanced agent setup | `exercise/15-living-docs` | Decide which docs an agent should read, and where they live. |
+| 16 | M4 Implementing a module | `exercise/16-tactical-cinema` | Build one of each tactical building block (aggregates, value object, domain service, both kinds of policy, factory, repository) for a tiny cinema with `ddd-tactical-building-blocks`. |
 
 Exercises 2, 3, 4, 6, 10 and 15 need no build: you only need `EXERCISE.md` and `handouts/`. Exercise 1 needs a clone of
 [`vibe-code-velocity`](https://github.com/mikewojtyna/vibe-code-velocity) (its `EXERCISE.md` is there).

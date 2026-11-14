@@ -98,6 +98,20 @@
         "Response gives reasons (control over each step / focus on the domain / training value)",
         "Response does not silently build both scenarios without acknowledging the opt-out"
       ]
+    },
+    {
+      "id": 8,
+      "name": "strategy-policy-discount",
+      "prompt": "In orders ordering there is a delivery fee: 9.99 PLN per order. Marketing wants discounts on it: loyal customers pay half, and more campaigns are coming next quarter. Given a loyal customer, When the delivery fee is calculated, Then it is 5.00 PLN. Given a regular customer, When the delivery fee is calculated, Then it is 9.99 PLN.",
+      "expected_output": "Classifies the varying discount as a strategy policy (a @FunctionalInterface extending DomainPolicy with named variants such as none()/half() or percent(n)) passed into a stateless domain service that calculates the fee; does not create an aggregate and does not hard-code an if/enum on the customer type in the service. Restates the rules and scenario order, writes exactly ONE test plus compile-only scaffolding, observes a red, and stops at Checkpoint A.",
+      "files": [],
+      "assertions": [
+        "Response classifies the discount as a policy (strategy), not an aggregate",
+        "A functional interface for the discount exists (or is planned in the design sketch) with named variants",
+        "The fee calculation is a stateless domain service (or the sketch says so) that takes the discount as an argument",
+        "No if/switch on a customer type or loyalty flag inside the fee calculation",
+        "Exactly one @Test method is written and the response stops asking who writes the implementation"
+      ]
     }
   ]
 }
