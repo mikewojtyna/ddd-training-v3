@@ -48,6 +48,9 @@
 ///   `InMemoryTicketRepository`, `Version` on `Ticket`): a saved, scanned ticket loads back already scanned
 ///   (`InMemoryTicketRepositoryTest#savedTicketLoadsBackWithItsHistory`); of two copies scanned concurrently, the second
 ///   save fails (`InMemoryTicketRepositoryTest#staleWriteIsRefused`).
+/// - **Whenever a seat is reserved, a ticket is issued for it** (reacting policy `IssueTicketWhenSeatReservedPolicy`):
+///   given the sequence at 41, when `SeatReserved` (S1, A7, Ann) is handled, then T-42 for S1 / A7 is stored and
+///   `TicketIssued` is published (`IssueTicketWhenSeatReservedPolicyTest#reservedSeatGetsATicket`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
