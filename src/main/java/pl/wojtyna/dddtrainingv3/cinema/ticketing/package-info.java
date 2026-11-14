@@ -21,7 +21,10 @@
 /// - **Discount**: a reduction of the ticket price for some customers, e.g. students. Marketing adds new ones often.
 ///
 /// ## Business decisions
-/// None yet. Add each rule here in its Given/When/Then form, with its building block and its test.
+/// - **A seat number is a row A–J and a seat** (value object `SeatNumber`): given "A7", when a seat number is made from
+///   it, then it is row A, seat 7 (`SeatNumberTest#seatNumberIsARowAndASeat`); given "K3", then it is rejected
+///   (`SeatNumberTest#rowOutsideTheHallIsRejected`); two seat numbers A7 are equal
+///   (`SeatNumberTest#seatNumbersAreEqualByValue`). Seats 1–12 are not checked yet: no scenario asked for it.
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
