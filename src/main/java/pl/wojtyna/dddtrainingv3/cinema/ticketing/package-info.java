@@ -32,6 +32,9 @@
 ///   (`ScreeningTest#reservationCannotLeaveAnEmptySeatBetweenReservedSeats`), A9 is rejected too: reserved seats in a row
 ///   form one block (`ScreeningTest#reservationCannotLeaveSeveralEmptySeatsBetweenReservedSeats`), and B7 is reserved
 ///   (`ScreeningTest#gapRuleAppliesWithinARowOnly`).
+/// - **A ticket costs 25 PLN on weekdays and 30 PLN at weekends** (domain service `TicketPriceCalculator`): Wednesday
+///   2026-11-18 → 25 PLN (`TicketPriceCalculatorTest#weekdayTicketCosts25Pln`), Saturday 2026-11-21 → 30 PLN
+///   (`TicketPriceCalculatorTest#weekendTicketCosts30Pln`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
