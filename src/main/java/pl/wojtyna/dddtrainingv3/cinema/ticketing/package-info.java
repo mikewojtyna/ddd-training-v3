@@ -35,6 +35,9 @@
 /// - **A ticket costs 25 PLN on weekdays and 30 PLN at weekends** (domain service `TicketPriceCalculator`): Wednesday
 ///   2026-11-18 → 25 PLN (`TicketPriceCalculatorTest#weekdayTicketCosts25Pln`), Saturday 2026-11-21 → 30 PLN
 ///   (`TicketPriceCalculatorTest#weekendTicketCosts30Pln`).
+/// - **Students pay 20% less; more discounts will follow** (policy as a strategy, `Discount`, passed into
+///   `TicketPriceCalculator`): Saturday, no discount → 30 PLN (`TicketPriceCalculatorTest#customerWithoutDiscountPaysFullPrice`),
+///   Saturday, student → 24 PLN (`TicketPriceCalculatorTest#studentPays20PercentLess`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")

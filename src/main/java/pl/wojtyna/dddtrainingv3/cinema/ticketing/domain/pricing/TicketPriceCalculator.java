@@ -8,7 +8,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Set;
 
-/// Domain service: a ticket costs 25 PLN on weekdays and 30 PLN at weekends.
+/// Domain service: a ticket costs 25 PLN on weekdays and 30 PLN at weekends, less the customer's discount. Which
+/// discount applies is the caller's choice: the calculator only applies it.
 @Service
 public class TicketPriceCalculator {
 
@@ -17,7 +18,8 @@ public class TicketPriceCalculator {
     private static final Money WEEKEND_PRICE = Money.of(PLN, 30);
     private static final Set<DayOfWeek> WEEKEND = Set.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
 
-    public Money priceFor(LocalDate screeningDay) {
-        return WEEKEND.contains(screeningDay.getDayOfWeek()) ? WEEKEND_PRICE : WEEKDAY_PRICE;
+    public Money priceFor(LocalDate screeningDay, Discount discount) {
+        var price = WEEKEND.contains(screeningDay.getDayOfWeek()) ? WEEKEND_PRICE : WEEKDAY_PRICE;
+        return discount.applyTo(price);
     }
 }

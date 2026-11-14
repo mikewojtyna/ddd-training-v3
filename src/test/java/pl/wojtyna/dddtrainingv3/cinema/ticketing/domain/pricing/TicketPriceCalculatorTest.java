@@ -31,7 +31,7 @@ class TicketPriceCalculatorTest {
         var calculator = new TicketPriceCalculator();
 
         // when
-        var price = calculator.priceFor(WEDNESDAY);
+        var price = calculator.priceFor(WEDNESDAY, Discount.none());
 
         // then
         assertThat(price).isEqualTo(Money.of(PLN, 25));
@@ -52,9 +52,51 @@ class TicketPriceCalculatorTest {
         var calculator = new TicketPriceCalculator();
 
         // when
-        var price = calculator.priceFor(SATURDAY);
+        var price = calculator.priceFor(SATURDAY, Discount.none());
 
         // then
         assertThat(price).isEqualTo(Money.of(PLN, 30));
+    }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         given a Saturday screening,
+         when a customer without a discount buys a ticket,
+         then the customer pays 30 PLN
+        """
+    )
+    // @formatter:on
+    @Test
+    void customerWithoutDiscountPaysFullPrice() {
+        // given
+        var calculator = new TicketPriceCalculator();
+
+        // when
+        var price = calculator.priceFor(SATURDAY, Discount.none());
+
+        // then
+        assertThat(price).isEqualTo(Money.of(PLN, 30));
+    }
+
+    // @formatter:off
+    @DisplayName(
+        """
+         given a Saturday screening,
+         when a student buys a ticket,
+         then the student pays 24 PLN
+        """
+    )
+    // @formatter:on
+    @Test
+    void studentPays20PercentLess() {
+        // given
+        var calculator = new TicketPriceCalculator();
+
+        // when
+        var price = calculator.priceFor(SATURDAY, Discount.student());
+
+        // then
+        assertThat(price).isEqualTo(Money.of(PLN, 24));
     }
 }
