@@ -35,3 +35,4 @@ Each system has its own `CLAUDE.md` with system-specific context:
 - `src/main/java/pl/wojtyna/dddtrainingv3/velocity/CLAUDE.md`
 - `src/main/java/pl/wojtyna/dddtrainingv3/crowdsorcery/CLAUDE.md`
 - `src/main/java/pl/wojtyna/dddtrainingv3/orders/CLAUDE.md`
+- `src/main/java/pl/wojtyna/dddtrainingv3/cinema/CLAUDE.md`
