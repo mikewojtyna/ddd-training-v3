@@ -1,0 +1,231 @@
+{
+  "consumer": {
+    "name": "FleetMaintenance"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.RentalsEventsPactTest.bikeWithdrawnForAFaultIsReportedBroken(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "bikeId": "bike-17",
+          "faultDescription": "E42",
+          "reason": "FAULT_SIGNALLED",
+          "withdrawnAt": "2026-11-08T10:00:00Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a bike was withdrawn because of a fault",
+      "key": "3a2a944e",
+      "matchingRules": {
+        "body": {
+          "$.bikeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.faultDescription": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.reason": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "LOCK_FAILED|FAULT_REPORTED_AT_RETURN|FAULT_SIGNALLED|NOT_RETURNED"
+              }
+            ]
+          },
+          "$.withdrawnAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.RentalsEventsPactTest.expiredTechnicianReservationIsReleased(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "bikeId": "bike-17",
+          "expiredAt": "2026-11-08T10:00:00Z",
+          "holderId": "tech-1",
+          "holderType": "TECHNICIAN"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a technician's reservation expired",
+      "key": "49a3507",
+      "matchingRules": {
+        "body": {
+          "$.bikeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.expiredAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.holderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.RentalsEventsPactTest.failedTechnicianUnlockReleasesTheReservation(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "bikeId": "bike-17",
+          "failedAt": "2026-11-08T10:00:00Z",
+          "holderId": "tech-1",
+          "holderType": "TECHNICIAN"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a technician's unlock failed",
+      "key": "1f8d4a0f",
+      "matchingRules": {
+        "body": {
+          "$.bikeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.failedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.holderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.rentalsctxacl.RentalsEventsPactTest.technicianUnlockStartsMaintenance(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "bikeId": "bike-17",
+          "holderId": "tech-1",
+          "holderType": "TECHNICIAN",
+          "unlockedAt": "2026-11-08T10:00:00Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a withdrawn bike was unlocked for a technician",
+      "key": "2ba772e3",
+      "matchingRules": {
+        "body": {
+          "$.bikeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.holderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.unlockedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "RentalsEvents"
+  }
+}

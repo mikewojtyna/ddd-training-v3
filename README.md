@@ -149,6 +149,7 @@ Conventions:
 | `docs/domains/velocity/`, `docs/domains/crowdsorcery/` | the case studies' inputs: vision, reference context map, discovery session, process board |
 | `docs/archetypes/` | business-archetype analyses |
 | `docs/` (other folders) | the flow's artifacts: canvases, discovery reports, intents, specs, plans; `docs/skills/` holds the skills' design history and evals |
+| `src/test/resources/pacts/` | VeloCity's Pact contracts between bounded contexts (REST and integration events), verified by the `*PactProviderTest` classes |
 | `src/main/cml/` | Context Mapper models |
 | `src/main/java/pl/wojtyna/dddtrainingv3/` | the code, one package per system |
 | `.claude/skills/` | the Claude Code skills of the flow |

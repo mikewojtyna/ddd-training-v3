@@ -1,0 +1,177 @@
+{
+  "consumer": {
+    "name": "Rentals"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.accountsctxacl.AccountsRentalEligibilityPactTest.unknownRiderIsNotEligible(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a rental eligibility query for a rider Accounts doesn't know",
+      "key": "8f46e267",
+      "pending": false,
+      "request": {
+        "method": "GET",
+        "path": "/accounts/riders/rider-unknown-to-accounts/rental-eligibility"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "eligible": false
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.accountsctxacl.AccountsRentalEligibilityPactTest.riderWithIncompleteOnboardingIsNotEligible(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a rental eligibility query for a rider who has not finished onboarding",
+      "key": "cff9971",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider who has not finished onboarding"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/accounts/riders/${riderId}/rental-eligibility",
+            "type": "ProviderState"
+          }
+        },
+        "method": "GET",
+        "path": "/accounts/riders/rider-anna/rental-eligibility"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "eligible": false
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.rentals.infra.adapters.secondary.accountsctxacl.AccountsRentalEligibilityPactTest.onboardedRiderIsEligible(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a rental eligibility query for an onboarded rider",
+      "key": "eca98de7",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "an onboarded rider"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/accounts/riders/${riderId}/rental-eligibility",
+            "type": "ProviderState"
+          }
+        },
+        "method": "GET",
+        "path": "/accounts/riders/rider-anna/rental-eligibility"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "eligible": true
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Accounts"
+  }
+}

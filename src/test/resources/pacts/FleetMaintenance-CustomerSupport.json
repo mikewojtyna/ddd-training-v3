@@ -1,0 +1,157 @@
+{
+  "consumer": {
+    "name": "FleetMaintenance"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.customersupportctxacl.CustomerSupportFleetResolutionPactTest.fleetIssueIsResolved(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "resolving the fleet issue of the bike it reported",
+      "key": "e596893d",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a fleet issue incident about a bike"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "bikeId": "bike-17"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.bikeId": {
+              "dataType": "STRING",
+              "expression": "${bikeId}",
+              "type": "ProviderState"
+            }
+          },
+          "path": {
+            "dataType": "STRING",
+            "expression": "/customer-support/incidents/${incidentId}/fleet-resolution",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.bikeId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/customer-support/incidents/incident-1/fleet-resolution"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.customersupportctxacl.CustomerSupportFleetResolutionPactTest.incidentThatIsNotAFleetIssueIsNotResolved(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "resolving the fleet issue of an incident that is not a fleet issue",
+      "key": "6c75c100",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "an incident that is not a fleet issue"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "bikeId": "bike-17"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/customer-support/incidents/${incidentId}/fleet-resolution",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/customer-support/incidents/incident-1/fleet-resolution"
+      },
+      "response": {
+        "status": 409
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.customersupportctxacl.CustomerSupportFleetResolutionPactTest.unknownIncidentIsNotResolved(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "resolving the fleet issue of an incident Customer Support doesn't know",
+      "key": "9665808f",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "bikeId": "bike-17"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/customer-support/incidents/incident-unknown-to-customer-support/fleet-resolution"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "CustomerSupport"
+  }
+}

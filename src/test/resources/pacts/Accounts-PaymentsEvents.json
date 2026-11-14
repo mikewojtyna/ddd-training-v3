@@ -1,0 +1,58 @@
+{
+  "consumer": {
+    "name": "Accounts"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.primary.paymentsctxacl.PaymentMethodInvalidatedPactTest.blocksTheAccountForAnInvalidCard(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "paymentMethodId": "pm-1",
+          "riderId": "rider-anna"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a rider's current card was invalidated by the processor",
+      "key": "bbc318bf",
+      "matchingRules": {
+        "body": {
+          "$.paymentMethodId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.riderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "PaymentsEvents"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "consumer": {
+    "name": "DebtRecovery"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.primary.settlementctxacl.SettlementEventsPactTest.unpaidRideStartsDebtRecovery(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "amount": 3.00,
+          "occurredAt": "2026-11-08T10:40:00Z",
+          "outstandingDebt": 3.00,
+          "riderId": "rider-debtor",
+          "sessionId": "S-1"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a ride's fee became outstanding debt",
+      "key": "aad9d3d0",
+      "matchingRules": {
+        "body": {
+          "$.amount": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.occurredAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.outstandingDebt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.riderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.sessionId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.primary.settlementctxacl.SettlementEventsPactTest.clearedDebtIsRecorded(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "occurredAt": "2026-11-08T10:40:00Z",
+          "riderId": "rider-debtor"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a rider's outstanding debt was cleared",
+      "key": "248fcd2e",
+      "matchingRules": {
+        "body": {
+          "$.occurredAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.riderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "SettlementEvents"
+  }
+}

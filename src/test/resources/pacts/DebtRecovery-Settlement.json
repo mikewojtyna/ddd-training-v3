@@ -1,0 +1,156 @@
+{
+  "consumer": {
+    "name": "DebtRecovery"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl.SettlementDebtCollectionPactTest.debtIsCollected(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a debt collection that succeeds",
+      "key": "5641b758",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider owing for an unpaid ride who now has a card that works"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/settlement/riders/${riderId}/debt-collections",
+            "type": "ProviderState"
+          }
+        },
+        "method": "POST",
+        "path": "/settlement/riders/rider-debtor/debt-collections"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "collected": true,
+            "outstandingDebt": "0.00"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.outstandingDebt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+\\.\\d{2}"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.debtrecovery.infra.adapters.secondary.settlementctxacl.SettlementDebtCollectionPactTest.collectionFails(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a debt collection that fails",
+      "key": "1ba7f2e9",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider owing for an unpaid ride whose card has no funds"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/settlement/riders/${riderId}/debt-collections",
+            "type": "ProviderState"
+          }
+        },
+        "method": "POST",
+        "path": "/settlement/riders/rider-debtor/debt-collections"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "collected": false,
+            "outstandingDebt": "3.00"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.outstandingDebt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+\\.\\d{2}"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Settlement"
+  }
+}

@@ -1,0 +1,301 @@
+{
+  "consumer": {
+    "name": "Settlement"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctxacl.PaymentsChargePactTest.riderHasNoValidPaymentMethod(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a charge for a rider without a payment method",
+      "key": "eb810b5b",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "amount": 3.00,
+            "reference": "ride-S-1",
+            "riderId": "rider-payments-never-heard-of"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.reference": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/payments/charges"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "failureReason": "NO_VALID_PAYMENT_METHOD",
+            "status": "FAILED"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctxacl.PaymentsChargePactTest.chargeIsDeclined(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a charge to a card without funds",
+      "key": "f557f0df",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider whose card has no funds"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "amount": 3.00,
+            "reference": "ride-S-1",
+            "riderId": "rider-anna"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.riderId": {
+              "dataType": "STRING",
+              "expression": "${riderId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.reference": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.riderId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/payments/charges"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "failureReason": "DECLINED",
+            "status": "FAILED"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.paymentsctxacl.PaymentsChargePactTest.chargeSucceeds(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a charge to a card that works",
+      "key": "b035c99f",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider whose card works"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "amount": 3.00,
+            "reference": "ride-S-1",
+            "riderId": "rider-anna"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.riderId": {
+              "dataType": "STRING",
+              "expression": "${riderId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.amount": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.reference": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.riderId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/payments/charges"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "status": "SUCCEEDED"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Payments"
+  }
+}

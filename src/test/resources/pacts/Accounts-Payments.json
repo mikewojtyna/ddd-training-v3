@@ -1,0 +1,155 @@
+{
+  "consumer": {
+    "name": "Accounts"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary.paymentsctxacl.PaymentMethodVerifierPactTest.cardIsVerified(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a payment method verification of a valid card",
+      "key": "ef1e4ebe",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the processor accepts the card"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cardToken": "tok_visa_pact",
+            "riderId": "rider-pact-card-holder"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/payments/payment-methods"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "paymentMethodId": "pm-1",
+            "verified": true
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.paymentMethodId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.accounts.infra.adapters.secondary.paymentsctxacl.PaymentMethodVerifierPactTest.cardIsDeclined(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a payment method verification of a declined card",
+      "key": "6a6a8d5e",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the processor declines the card"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "cardToken": "tok_declined_pact",
+            "riderId": "rider-pact-card-holder"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/payments/payment-methods"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "verified": false
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Payments"
+  }
+}
