@@ -25,6 +25,13 @@
 ///   it, then it is row A, seat 7 (`SeatNumberTest#seatNumberIsARowAndASeat`); given "K3", then it is rejected
 ///   (`SeatNumberTest#rowOutsideTheHallIsRejected`); two seat numbers A7 are equal
 ///   (`SeatNumberTest#seatNumbersAreEqualByValue`). Seats 1–12 are not checked yet: no scenario asked for it.
+/// - **A seat is reserved only once** (state-based aggregate `Screening`, guarded by its `Seat` entity): given S1 with A5
+///   reserved, when Bob reserves A5, then it is rejected (`ScreeningTest#seatIsReservedOnlyOnce`).
+/// - **No empty seats between reserved seats in a row** (aggregate `Screening`): given S1 with A5 reserved, A6 is
+///   reserved (`ScreeningTest#seatNextToAReservedOneCanBeReserved`), A7 is rejected
+///   (`ScreeningTest#reservationCannotLeaveAnEmptySeatBetweenReservedSeats`), A9 is rejected too: reserved seats in a row
+///   form one block (`ScreeningTest#reservationCannotLeaveSeveralEmptySeatsBetweenReservedSeats`), and B7 is reserved
+///   (`ScreeningTest#gapRuleAppliesWithinARowOnly`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
