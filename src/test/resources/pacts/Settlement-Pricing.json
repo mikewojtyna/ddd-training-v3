@@ -1,0 +1,186 @@
+{
+  "consumer": {
+    "name": "Settlement"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.pricingctxacl.PricingSessionPricePactTest.freeFloatingReturnIsPricedAtItsPosition(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a price query for a 30-minute ride ended free-floating in a drop zone",
+      "key": "6bfb5216",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the launch tariff is in force"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/pricing/session-price",
+        "query": {
+          "endedAt": [
+            "2026-11-09T10:30:00Z"
+          ],
+          "ending": [
+            "FREE_FLOATING"
+          ],
+          "latitude": [
+            "52.2298"
+          ],
+          "longitude": [
+            "21.0123"
+          ],
+          "startedAt": [
+            "2026-11-09T10:00:00Z"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "billingHours": 1,
+            "total": "5.00"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.billingHours": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+\\.\\d{2}"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.pricingctxacl.PricingSessionPricePactTest.stationReturnIsPriced(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a price query for a 30-minute ride returned at a station",
+      "key": "61fdf863",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the launch tariff is in force"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/pricing/session-price",
+        "query": {
+          "endedAt": [
+            "2026-11-09T10:30:00Z"
+          ],
+          "ending": [
+            "STATION"
+          ],
+          "startedAt": [
+            "2026-11-09T10:00:00Z"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "billingHours": 1,
+            "total": "3.00"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.billingHours": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+\\.\\d{2}"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Pricing"
+  }
+}

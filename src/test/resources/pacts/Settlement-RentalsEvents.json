@@ -1,0 +1,167 @@
+{
+  "consumer": {
+    "name": "Settlement"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary.rentalsctxacl.RentalSessionEndedPactTest.chargesARideEndedFreeFloating(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "endReason": "FREE_FLOATING_RETURN",
+          "endedAt": "2026-11-08T10:30:00Z",
+          "latitude": 52.2298,
+          "longitude": 21.0123,
+          "riderId": "rider-anna",
+          "sessionId": "S-1",
+          "startedAt": "2026-11-08T10:00:00Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a rental session ended with a free-floating return",
+      "key": "eeb40b7c",
+      "matchingRules": {
+        "body": {
+          "$.endedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.latitude": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.longitude": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.riderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.sessionId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.startedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.primary.rentalsctxacl.RentalSessionEndedPactTest.chargesARideReturnedAtAStation(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "endReason": "STATION_RETURN",
+          "endedAt": "2026-11-08T10:30:00Z",
+          "riderId": "rider-anna",
+          "sessionId": "S-1",
+          "startedAt": "2026-11-08T10:00:00Z",
+          "stationId": "Central"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a rental session ended with a return at a station",
+      "key": "e2937bb3",
+      "matchingRules": {
+        "body": {
+          "$.endedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.riderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.sessionId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.startedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          },
+          "$.stationId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "RentalsEvents"
+  }
+}

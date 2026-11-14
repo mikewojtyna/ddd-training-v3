@@ -1,0 +1,77 @@
+{
+  "consumer": {
+    "name": "FleetMaintenance"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.primary.customersupportctxacl.FleetIssueReportedPactTest.reportsTheBikeBroken(AsynchronousMessage)"
+      },
+      "contents": {
+        "content": {
+          "bikeId": "bike-17",
+          "description": "The rear brake doesn't work",
+          "incidentId": "incident-1",
+          "reportedAt": "2026-11-08T10:00:00Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a rider reported a fleet issue about a bike",
+      "key": "45f94fba",
+      "matchingRules": {
+        "body": {
+          "$.bikeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.description": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.incidentId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.reportedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "CustomerSupportEvents"
+  }
+}

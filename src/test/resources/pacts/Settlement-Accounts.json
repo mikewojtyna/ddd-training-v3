@@ -1,0 +1,146 @@
+{
+  "consumer": {
+    "name": "Settlement"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.accountsctxacl.AccountsAccountBlocksPactTest.blockOfUnknownRiderIsRejected(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a block for outstanding debt of a rider Accounts doesn't know",
+      "key": "91018c43",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "reason": "OUTSTANDING_DEBT"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/accounts/riders/rider-unknown-to-accounts/blocks"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.accountsctxacl.AccountsAccountBlocksPactTest.blockIsLifted(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "lifting the outstanding debt block",
+      "key": "dc1992b1",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a rider blocked for outstanding debt"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/accounts/riders/${riderId}/blocks/OUTSTANDING_DEBT",
+            "type": "ProviderState"
+          }
+        },
+        "method": "DELETE",
+        "path": "/accounts/riders/rider-anna/blocks/OUTSTANDING_DEBT"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.accountsctxacl.AccountsAccountBlocksPactTest.blockIsPlaced(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a block for outstanding debt",
+      "key": "ececca79",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "an onboarded rider"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "reason": "OUTSTANDING_DEBT"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/accounts/riders/${riderId}/blocks",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/accounts/riders/rider-anna/blocks"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.settlement.infra.adapters.secondary.accountsctxacl.AccountsAccountBlocksPactTest.unblockOfUnknownRiderIsRejected(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "lifting the outstanding debt block of a rider Accounts doesn't know",
+      "key": "c3a881af",
+      "pending": false,
+      "request": {
+        "method": "DELETE",
+        "path": "/accounts/riders/rider-unknown-to-accounts/blocks/OUTSTANDING_DEBT"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Accounts"
+  }
+}

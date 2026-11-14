@@ -1,0 +1,815 @@
+{
+  "consumer": {
+    "name": "FleetMaintenance"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.whereaboutsOfUnknownBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a bike availability query for a bike Rentals doesn't know",
+      "key": "63c437f4",
+      "pending": false,
+      "request": {
+        "method": "GET",
+        "path": "/rentals/bikes/bike-unknown-to-rentals"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.whereaboutsOfBikeAtStation(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a bike availability query for a bike at a station",
+      "key": "400705f9",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a bike parked at station Central"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}",
+            "type": "ProviderState"
+          }
+        },
+        "method": "GET",
+        "path": "/rentals/bikes/bike-17"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "latitude": 52.23,
+            "longitude": 21.011,
+            "stationId": "Central"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.latitude": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.longitude": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.withdrawBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a request to withdraw a bike",
+      "key": "6fbeeba8",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a bike parked at station Central"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/withdrawal",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/withdrawal"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.reserveBikeInCirculation(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician's reservation of a bike that is not withdrawn",
+      "key": "b6730407",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a bike parked at station Central"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/reservations",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/reservations"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": "BikeNotWithdrawn",
+            "message": "bike-17 is not withdrawn"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 409
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.withdrawUnknownBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a request to withdraw a bike Rentals doesn't know",
+      "key": "c26953e5",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-unknown-to-rentals/withdrawal"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.reserveUnknownBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician's reservation of a bike Rentals doesn't know",
+      "key": "b5500f04",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-unknown-to-rentals/reservations"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.unlockBikeReservedByAnotherTechnician(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician unlocking a bike another technician reserved",
+      "key": "faad8ebc",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike reserved by another technician"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/unlock",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/unlock"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": "NotReservationHolder",
+            "message": "no reservation"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 409
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.reserveBikeHeldByAnotherTechnician(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician's reservation of a bike another technician holds",
+      "key": "b7cbd055",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike reserved by another technician"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/reservations",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/reservations"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": "BikeAlreadyHeld",
+            "message": "bike-17 is already held"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 409
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.unlockReservedBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician unlocking the withdrawn bike they reserved",
+      "key": "cb847733",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike reserved by technician tech-pact-1"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/unlock",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/unlock"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "outcome": "UNLOCKED"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.makeAvailableAtStation(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "making a serviced bike available at a station",
+      "key": "8299ab2a",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike unlocked for technician tech-pact-1"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "stationId": "Central"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/availability",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/availability"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.makeAvailableAtUnknownStation(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "making a serviced bike available at a station Rentals doesn't know",
+      "key": "e527a352",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike unlocked for technician tech-pact-1"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "stationId": "Nowhere"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/availability",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/availability"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "error": "UnknownStation",
+            "message": "Unknown station Nowhere"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.message": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 409
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.makeAvailableAtPosition(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "making a serviced bike available where the technician left it",
+      "key": "ccd1a6c2",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike unlocked for technician tech-pact-1"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "latitude": 52.2301,
+            "longitude": 21.0111
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/availability",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.latitude": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.longitude": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/availability"
+      },
+      "response": {
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "pl.wojtyna.dddtrainingv3.velocity.fleetmaintenance.infra.adapters.secondary.rentalsctxacl.RentalsPactTest.reserveWithdrawnBike(MockServer)",
+        "text": [
+
+        ]
+      },
+      "description": "a technician's reservation of a withdrawn bike",
+      "key": "ca38a574",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a withdrawn bike"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "holderId": "tech-pact-1",
+            "holderType": "TECHNICIAN"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/rentals/bikes/${bikeId}/reservations",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/rentals/bikes/bike-17/reservations"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "expiresAt": "2026-11-08T10:30:00Z"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.expiresAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 201
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.7.6"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "Rentals"
+  }
+}
