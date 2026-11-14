@@ -6,6 +6,7 @@ import pl.wojtyna.dddtrainingv3.cinema.ticketing.domain.screening.ScreeningId;
 import pl.wojtyna.dddtrainingv3.cinema.ticketing.domain.screening.SeatNumber;
 import pl.wojtyna.dddtrainingv3.common.domain.DomainEvent;
 import pl.wojtyna.dddtrainingv3.common.domain.DomainEvents;
+import pl.wojtyna.dddtrainingv3.common.domain.Version;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,22 +16,24 @@ import java.util.List;
 public class Ticket {
 
     private final TicketNumber number;
+    private final Version version; // the version this ticket was issued or loaded at; commands never change it
     private final List<TicketEvent> pendingEvents = new ArrayList<>(); // emitted since issue/rebuild, in order
     private boolean scanned; // needed by: scanned only once
 
-    private Ticket(TicketNumber number) {
+    private Ticket(TicketNumber number, Version version) {
         this.number = number;
+        this.version = version;
     }
 
     /// Issuing is an event too: without it, a new ticket has no stream to store or load.
     public static NewTicket issue(TicketNumber number, ScreeningId screening, SeatNumber seat) {
-        var ticket = new Ticket(number);
+        var ticket = new Ticket(number, Version.initial());
         return new NewTicket(ticket, ticket.emit(new TicketEvent.TicketIssued(number, screening, seat)));
     }
 
     /// Restores a ticket from its stored history. The history is already stored, so it is not pending.
     public static Ticket rebuild(TicketNumber number, List<TicketEvent> history) {
-        var ticket = new Ticket(number);
+        var ticket = new Ticket(number, Version.initial().plus(history.size()));
         history.forEach(ticket::apply);
         return ticket;
     }
@@ -60,6 +63,10 @@ public class Ticket {
     @Identity
     public TicketNumber number() {
         return number;
+    }
+
+    public Version version() {
+        return version;
     }
 
     public record NewTicket(Ticket created, DomainEvents events) {

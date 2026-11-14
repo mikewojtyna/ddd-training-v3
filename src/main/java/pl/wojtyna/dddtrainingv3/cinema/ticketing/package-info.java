@@ -44,6 +44,10 @@
 /// - **A new ticket gets the next number of the cinema's ticket sequence** (factory `TicketFactory` with the
 ///   `TicketSequence` port): given the sequence at 41, when a ticket is issued for S1 / A7, then T-42 is issued
 ///   (`TicketFactoryTest#newTicketGetsTheNextNumberFromTheSequence`).
+/// - **Tickets are stored as event streams; a stale write is refused** (repository port `TicketRepository`, adapter
+///   `InMemoryTicketRepository`, `Version` on `Ticket`): a saved, scanned ticket loads back already scanned
+///   (`InMemoryTicketRepositoryTest#savedTicketLoadsBackWithItsHistory`); of two copies scanned concurrently, the second
+///   save fails (`InMemoryTicketRepositoryTest#staleWriteIsRefused`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
