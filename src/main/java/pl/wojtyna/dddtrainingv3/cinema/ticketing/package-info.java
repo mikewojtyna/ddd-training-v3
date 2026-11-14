@@ -41,6 +41,9 @@
 /// - **A ticket is scanned at the entrance only once** (event-sourced aggregate `Ticket`): given T-1 issued, when it is
 ///   scanned, then `TicketScanned` (`TicketTest#issuedTicketIsScanned`); given T-1 already scanned, then the second scan
 ///   is rejected (`TicketTest#ticketIsScannedOnlyOnce`).
+/// - **A new ticket gets the next number of the cinema's ticket sequence** (factory `TicketFactory` with the
+///   `TicketSequence` port): given the sequence at 41, when a ticket is issued for S1 / A7, then T-42 is issued
+///   (`TicketFactoryTest#newTicketGetsTheNextNumberFromTheSequence`).
 ///
 /// Source: `EXERCISE.md` (exercise 16). There is no canvas, context map or CML model for this system.
 @BoundedContext(name = "Ticketing")
