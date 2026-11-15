@@ -91,9 +91,10 @@ git diff ex07/start ex07/solution --stat
 git diff ex07/start ex07/solution -- docs/specs
 ```
 
-Exercises 7, 8 and 9 build on each other: each one starts from the previous one's solution. If you didn't finish,
-continue from the next start tag (`git switch -c my-ex08 ex08/start`). It contains the reference answer of the step
-before.
+Exercises 7, 8 and 9 build on each other: each one starts from the previous one's solution. Exercise 17 (capturing the
+intents, added later, hence its number) comes before them: its solution holds the four intents exercise 7 starts from.
+If you didn't finish, continue from the next start tag (`git switch -c my-ex08 ex08/start`). It contains the reference
+answer of the step before.
 
 ### The exercises
 
@@ -115,10 +116,11 @@ before.
 | 14 | M7 Advanced agent setup | `exercise/14-port-to-your-tool` | Port `CLAUDE.md`, a skill and its critic to Copilot or Cursor. |
 | 15 | M7 Advanced agent setup | `exercise/15-living-docs` | Decide which docs an agent should read, and where they live. |
 | 16 | M4 Implementing a module | `exercise/16-tactical-cinema` | Build one of each tactical building block (aggregates, value object, domain service, both kinds of policy, factory, repository) for a tiny cinema with `ddd-tactical-building-blocks`. |
+| 17 | M4 Implementing a module | `exercise/17-capture-intents` | Turn a messy product ticket (VELO-207) into intents with `intent-creator`. Do it before exercise 7. |
 
 Exercises 2, 3, 4, 6, 10 and 15 need no build: you only need `EXERCISE.md` and `handouts/`. Exercise 1 needs a clone of
 [`vibe-code-velocity`](https://github.com/mikewojtyna/vibe-code-velocity) (its `EXERCISE.md` is there).
-The others need the Java build and an AI coding agent (the skills are in `.claude/skills/`).
+Exercise 17 needs an AI coding agent and Python 3, but no Java build. The others need the Java build and an AI coding agent (the skills are in `.claude/skills/`).
 
 ## Code layout
 
