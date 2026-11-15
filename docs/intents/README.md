@@ -8,6 +8,10 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 
 | # | Date | Intent | System | Actor | Activity | Status | Outcome |
 |---|------|--------|--------|-------|----------|--------|---------|
+| 1 | 2026-11-08 | [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) | velocity | Rider | Get a bike | accepted | Bike Reserved |
+| 2 | 2026-11-08 | [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) | velocity | Rider | Get a bike | accepted | Rental Session Started, Unlock Failed |
+| 3 | 2026-11-08 | [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) | velocity | Fleet Operations | Get a bike | accepted | Reservation Expired |
+| 4 | 2026-11-08 | [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) | velocity | Technician | Keep the fleet healthy | accepted | Bike Reserved, Reservation Expired |
 
 ## Value stream: velocity
 
@@ -21,6 +25,12 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 
 ### 2. Get a bike
 
+- Reserve a bike
+  - #1 [A rider wants to reserve a bike they are standing near](rider-reserves-bike.md) (Rider, accepted) → Bike Reserved
+- Unlock a bike
+  - #2 [A rider wants to unlock the bike they reserved and start riding](rider-unlocks-reserved-bike.md) (Rider, accepted) → Rental Session Started, Unlock Failed
+- Release unused reservations
+  - #3 [Fleet operations wants reservations that weren't used released](fleet-operations-releases-expired-reservations.md) (Fleet Operations, accepted) → Reservation Expired
 
 ### 3. Ride
 
@@ -62,6 +72,8 @@ Each intent is one fine-grained business need. Read the **timeline** to see the 
 - Add a bike to the fleet: *(no intent yet)*
 - Take broken bikes out of circulation: *(no intent yet)*
 - Report a fault: *(no intent yet)*
+- Reserve a broken bike
+  - #4 [A technician wants to reserve a broken bike](technician-reserves-broken-bike.md) (Technician, accepted) → Bike Reserved, Reservation Expired
 - Start maintenance: *(no intent yet)*
 - Return a fixed bike to circulation: *(no intent yet)*
 

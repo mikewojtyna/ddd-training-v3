@@ -21,10 +21,16 @@
 
 ## Getting a bike
 
-The answers about reservations (DE-10 to DE-17, DE-26, DE-80, DE-81) are not in this branch (Exercise 17). Reservation rules are open: ask the business.
-
 | ID | Question | 🎭 Answer |
 |---|---|---|
+| DE-10 | How long does a rider's reservation last? | **2 minutes.** |
+| DE-11 | How long does a technician's reservation last? | **30 minutes**, because the technician has to get to the bike. |
+| DE-12 | What does "standing near a bike" mean? | The rider is within **50 metres** of the bike. Bikes are only ever inside the service area, so being near one is the service-area check. |
+| DE-13 | Can a rider hold several bikes? | No: **one rider, one bike.** A rider with a reservation or a running rental session can't reserve another bike. |
+| DE-14 | Is the account checked again at unlock? | No. It's checked when reserving; the reservation lasts 2 minutes. |
+| DE-15 | Does a failed unlock make the bike broken? | No. The reservation is released and the bike is available again. If the bike really is faulty it signals the fault itself. |
+| DE-16 | Who can reserve a broken bike? | Only a technician. Technicians reserve only broken bikes. |
+| DE-17 | Does a reservation cost anything? | No. Reservations and expired reservations are free. |
 | DE-18 | Where do bikes come from? | A **fleet manager** adds a new bike to the fleet at a station. From then on it is available. |
 
 ## Rides and returns
@@ -36,6 +42,7 @@ The answers about reservations (DE-10 to DE-17, DE-26, DE-80, DE-81) are not in 
 | DE-22 | Does a station return need anything from the rider? | The rider names the station they're at. The client-reported location is trusted (reference map decision). |
 | DE-23 | Lock failure at a drop-zone return? | Treated exactly like a lock failure at a station: the session ends at that moment, the bike is withdrawn, and **no return fee** applies, wherever the bike is. |
 | DE-24 | A rider reports a fault when returning at a station. | The session ends normally (normal fees) and the bike is withdrawn as faulty. |
+| DE-26 | Does the 50 m rule apply to technicians? How is a bike that wasn't returned found? | Riders only. A technician reserves a broken bike without giving a position. Finding a bike that wasn't returned, from its last signalled position, is the technician's job and not modelled. |
 | DE-25 | The bike signals a fault during a ride. | The ride isn't interrupted. The bike is withdrawn as soon as the session ends. Outside a ride it is withdrawn at once (a reservation on it is cancelled). |
 
 ## Billing
@@ -97,6 +104,8 @@ These refine or extend answers above; where they refine one, the earlier answer 
 
 | ID | Question | 🎭 Answer |
 |---|---|---|
+| DE-80 | DE-14 lets a rider blocked during their 2-minute reservation start a ride, against the vision's "a blocked account cannot start new rentals". | **Revised: the rider's eligibility is checked again at unlock.** An ineligible rider's unlock is rejected; nothing changes, and the reservation runs out on its own. (Refines DE-14.) |
+| DE-81 | Does a reservation still hold at the exact second its period ends? | **Yes, up to and including its end time.** Reserved at 10:00:00 → unlocking at 10:02:00 works; a check at 10:02:00 finds it still reserved; from 10:02:01 it has expired. The same for technicians (30 minutes). Same reading as DE-20. |
 | DE-82 | An overdue session is noticed late (check at 20:07). When does it end? | **At the 12-hour mark** (started + 12 h), whenever it is noticed. Hourly fees count up to that mark, plus the penalty. (Refines DE-20, DE-33.) |
 | DE-83 | Is "15:01" in DE-31 minutes or seconds? | **Seconds.** Billing time is measured to the second: 15 min 0 s is free, 15 min 1 s starts hour 1. (Refines DE-31.) |
 | DE-84 | Does a quick trip ending free-floating pay the return fee? | **Yes.** "Quick trips cost nothing" is about hourly fees. The return fee depends only on where the ride ends. A 10-minute ride ended in a drop zone costs PLN 2.00. (Refines DE-34.) A position exactly on a zone's border counts as inside. The zone map valid at the end of the ride is used. |
