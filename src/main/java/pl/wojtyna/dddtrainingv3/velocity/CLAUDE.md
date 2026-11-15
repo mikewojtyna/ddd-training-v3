@@ -15,7 +15,7 @@ VeloCity is a city bike rental service and the current exercise of the training.
 - `docs/bounded-contexts/velocity/domain-expert-answers.md`: the **role-played** domain-expert answers (DE-n) that filled the vision's gaps during the autonomous run of 2026-11-08. They are decisions made by Claude, not by the trainer; canvases, specs, plans and code cite them.
 - `docs/bounded-contexts/velocity/integration-contracts.md`: the published languages, i.e. every REST resource and integration event between contexts.
 - `docs/bounded-contexts/velocity/conversation.md`: the record of the session that built all of VeloCity.
-- `docs/intents/`, `docs/specs/`, `docs/plans/`: 35 intents, all delivered.
+- `docs/intents/`: only the story map in this branch (Exercise 17). No intents, specs or plans yet; the code is ahead of the docs.
 
 ## Bounded contexts
 

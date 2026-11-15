@@ -20,9 +20,6 @@ Actors: Rider, Technician, Support Agent, Collections Agent, Fleet Manager, Flee
 - Sign the user agreement
 
 ### 2. Get a bike
-- Reserve a bike
-- Unlock a bike
-- Release unused reservations
 
 ### 3. Ride
 - Ride within the maximum rental time
@@ -57,7 +54,6 @@ Actors: Rider, Technician, Support Agent, Collections Agent, Fleet Manager, Flee
 - Add a bike to the fleet
 - Take broken bikes out of circulation
 - Report a fault
-- Reserve a broken bike
 - Start maintenance
 - Return a fixed bike to circulation
 

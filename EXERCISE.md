@@ -1,48 +1,57 @@
-# Exercise 7: Write the spec
+# Exercise 17: Capture the intents
 
-**Module:** M4 Implementing a module with AI · **Time:** 60 min · **Form:** pairs · **Start:** tag `ex07/start`
+**Module:** M4 Implementing a module with AI · **Time:** 45 min · **Form:** pairs · **Start:** tag `ex17/start`
+
+Do this exercise **before Exercise 7**. Its reference solution holds the intents Exercise 7 starts from.
 
 ## Situation
 
-VeloCity is running, but four business needs around reservations have been accepted and nobody has specified them yet:
+Product has just filed `handouts/VELO-207-reservations.md`, an epic called "Manage reservations". Like most tickets, it
+mixes business needs with solutions, opinions and leftovers. Nobody has turned it into intents yet: `docs/intents/`
+holds only the story map, and there are no specs or plans.
 
-| Intent | Difficulty |
-|---|---|
-| `docs/intents/rider-reserves-bike.md` | easy |
-| `docs/intents/rider-unlocks-reserved-bike.md` | medium |
-| `docs/intents/fleet-operations-releases-expired-reservations.md` | medium |
-| `docs/intents/technician-reserves-broken-bike.md` | hard: reuses reservation for a different purpose |
-
-All four have status `accepted`. There's no spec and no plan for any of them yet.
+The domain-expert answers about reservations have been removed from
+`docs/bounded-contexts/velocity/domain-expert-answers.md`. **You are the business.**
 
 ## Your task
 
-1. Pick one intent. Read it together, then read the related parts of `docs/domains/velocity/velocity-vision.md`.
-2. Ask the agent to write its spec, for example *"Write the spec for fleet-operations-releases-expired-reservations"*.
-   The `spec-writer` skill runs and the spec-critic reviews the draft before you see it.
-3. Answer the agent's questions **as the business**. When you don't know the answer, write it down as an open question.
-4. Review the draft. **You must reject at least one rule or add at least one missing example.** Look for:
-   - the exact moment something ends: at 10:02:00 or only from 10:02:01?
-   - what happens to a bike that is held by somebody else;
-   - a rider versus a technician: same rule or a different one?
-5. Approve it only when you would sign it as the product owner:
+1. Read the ticket together, then "Renting a Bike" and "Broken Bikes & Maintenance" in
+   `docs/domains/velocity/velocity-vision.md`.
+2. Ask the agent to capture the intents, for example *"Capture the intents for handouts/VELO-207-reservations.md"*.
+   The `intent-creator` skill runs.
+3. Answer its questions **as the business**. When you don't know, or the ticket and the vision disagree, say so: it
+   should become an open question, not a decision the agent makes for you.
+4. Review every draft intent against this checklist:
+   - one actor, a business role (not "the system", not "user"), and one goal; no "and", "manage" or "handle" in the title;
+   - a clear *so that*: the business value, not a feature;
+   - no Given/When/Then, no endpoint, table, Redis or Kafka outside *Notes for the spec*;
+   - no number the business didn't give. The ticket has two competing durations. Where did they end up?
+   - every line of the ticket is accounted for: an intent, an out-of-scope item, a note for the spec, or deliberately dropped.
+5. **Change the split before you accept:** merge two intents, split one, or reject one, and say why.
+6. Accept the intents you would sign as product owner. Ask the agent to set them to `accepted` (never let it decide
+   that on its own), then:
    ```bash
-   python3 .claude/skills/spec-writer/scripts/specs.py approve <intent>
+   python3 .claude/skills/intent-creator/scripts/intents.py build
+   python3 .claude/skills/intent-creator/scripts/intents.py check
    ```
 
 ## Done when
 
-- `docs/specs/<intent>.md` exists with status `approved`, and the intent's status is `specified`.
-- `python3 .claude/skills/spec-writer/scripts/specs.py check <intent>` reports no ERROR.
-- You can name the rule you changed and why.
+- At least three intents in `docs/intents/` have status `accepted` and hang under an activity of `story-map.md`.
+- `intents.py check` reports no ERROR.
+- You can name one line of the ticket that did **not** become an intent, and why.
 
 ## Debrief questions
 
-- Which question from the agent surprised you? Which question did it **not** ask?
-- What did the critic catch that you'd have missed?
-- Compare with the reference solution: `git diff ex07/start ex07/solution -- docs/specs`.
+- Which split did you argue about, between yourselves or with the agent?
+- Did the agent invent a number, an actor or a rule? Did it notice the 15 minutes vs "the seconds it takes to unlock"?
+- What happened to the Redis lock, the countdown timer, cancelling and Postgres 17?
+- Compare with the reference solution: `git diff ex17/start ex17/solution -- docs/intents`.
+- The canvases in `docs/bounded-contexts/velocity/` already name intents. Does your split match what the rest of the
+  system expects? `grep -rn "reserv" docs/bounded-contexts/velocity/*/canvas.md`
+- Next: Exercise 7 writes the spec of one of these intents.
 
 ## Rules
 
-- Approval is yours. Never let the agent approve its own spec.
-- Don't edit status lines by hand. Use the scripts.
+- Approval is yours. Never let the agent accept its own intents.
+- Don't write specs, plans or code in this exercise.
